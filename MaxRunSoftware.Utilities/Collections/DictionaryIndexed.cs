@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ namespace MaxRunSoftware.Utilities;
 /// </summary>
 /// <see href="https://stackoverflow.com/a/46596033">StackOverflow</see>
 [Serializable]
-public sealed class DictionaryIndexed<TKey, TValue> : IDictionary<TKey, TValue>, IBucket<TKey, TValue>
+public sealed class DictionaryIndexed<TKey, TValue> : IDictionary<TKey, TValue>
 {
     // Non-generic version only in .NET 4.5
     private readonly OrderedDictionary d;
@@ -96,5 +96,4 @@ public sealed class DictionaryIndexed<TKey, TValue> : IDictionary<TKey, TValue>,
 
     public ICollection<TValue> Values => d.Values.OfType<TValue>().ToList();
 
-    IEnumerable<TKey> IBucketReadOnly<TKey, TValue>.Keys => Keys;
 }

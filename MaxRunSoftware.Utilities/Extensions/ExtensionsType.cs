@@ -186,24 +186,19 @@ public static class ExtensionsType
 
     #region DefaultValue
 
-    private static readonly IBucketReadOnly<Type, object> getDefaultValueCache = new DefaultValueCache();
 
-    private sealed class DefaultValueCache : IBucketReadOnly<Type, object>
+    public static object? GetDefaultValue(this Type? type)
     {
-        private readonly IBucketReadOnly<Type, object> bucket = new BucketCacheThreadSafeCopyOnWrite<Type, object>(Activator.CreateInstance);
-        public IEnumerable<Type> Keys => bucket.Keys;
-        public object this[Type key] => key == null ? null : key.IsPrimitive || key.IsValueType || key.IsEnum ? bucket[key] : null;
-    }
+        if (type == null) return null;
 
-    public static object GetDefaultValue(this Type type) => getDefaultValueCache[type];
+        if (type.IsPrimitive || type.IsValueType || type.IsEnum)
+        {
+            //return Expression.Lambda<Func<object>>(Expression.Convert(Expression.Default(type), typeof(object))).Compile()();
+            return Activator.CreateInstance(type);
+        }
 
-    /*
-    public static object GetDefaultValue2(this Type type)
-    {
-        var o = Expression.Lambda<Func<object>>(Expression.Convert(Expression.Default(type), typeof(object))).Compile()();
-        return o;
+        return null;
     }
-    */
 
     #endregion DefaultValue
 

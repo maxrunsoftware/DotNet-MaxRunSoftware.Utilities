@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,33 +70,6 @@ public static class Extensions
 
         try { disposable.Dispose(); }
         catch (Exception e) { onErrorLog($"Error calling {disposable.GetType().FullNameFormatted()}.Dispose() : {e.Message}", e); }
-    }
-
-    private static readonly IBucketReadOnly<Type, Action<object>> closeSafelyCache = new BucketCacheThreadSafeCopyOnWrite<Type, Action<object>>(CloseSafelyCreate);
-
-    private static Action<object> CloseSafelyCreate(Type type)
-    {
-        // ReSharper disable once ReplaceWithSingleCallToFirstOrDefault
-        var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(o => o.GetParameters().Length == 0)
-            .Where(o => o.Name.Equals("Close"))
-            .FirstOrDefault();
-
-
-        if (method == null) throw new Exception("Close() method not found on object " + type.FullNameFormatted());
-
-        return Util.CreateAction(method);
-    }
-
-    public static void CloseSafely(this IDisposable objectWithCloseMethod, Action<string, Exception> onErrorLog)
-    {
-        if (objectWithCloseMethod == null) return;
-
-        var type = objectWithCloseMethod.GetType();
-        var closer = closeSafelyCache[type];
-
-        try { closer(objectWithCloseMethod); }
-        catch (Exception e) { onErrorLog($"Error calling {objectWithCloseMethod.GetType().FullNameFormatted()}.Close() : {e.Message}", e); }
     }
 
     #endregion IDisposable

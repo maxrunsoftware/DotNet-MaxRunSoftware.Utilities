@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,18 +69,18 @@ tr:hover {background-color: #ddd;}
 
     public void CSS(string css) => cssItems.Add(css);
 
-    public void Table(Table table)
+    public void Table(IEnumerable<string> columns, IEnumerable<IEnumerable<string>> rows)
     {
         var s = new StringBuilder();
         s.AppendLine("<table>");
         s.AppendLine("<thead>");
         s.Append("<tr>");
-        foreach (var c in table.Columns) s.Append("<th>" + c.Name + "</th>");
+        foreach (var c in columns) s.Append("<th>" + c + "</th>");
 
         s.AppendLine("</tr>");
         s.AppendLine("</thead>");
         s.AppendLine("<tbody>");
-        foreach (var r in table)
+        foreach (var r in rows)
         {
             s.Append("<tr>");
             foreach (var cell in r) s.Append("<td>" + cell + "</td>");

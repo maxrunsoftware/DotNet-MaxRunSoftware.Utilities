@@ -56,14 +56,10 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Extensions\" />
-        <Folder Include="Sql\" />
         <Folder Include="Data\" />
         <Folder Include="Utils\" />
         <Folder Include="Threading\" />
         <Folder Include="Collections\" />
         <Folder Include="Reflection\" />
-        <Folder Include="Sql\MsSql\" />
-        <Folder Include="Sql\MySql\" />
-        <Folder Include="Sql\Oracle\" />
     </ItemGroup>
 </Project>
