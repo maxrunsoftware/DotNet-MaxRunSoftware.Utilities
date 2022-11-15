@@ -60,7 +60,6 @@
         <Folder Include="Data\" />
         <Folder Include="Utils\" />
         <Folder Include="Threading\" />
-        <Folder Include="Buckets\" />
         <Folder Include="Collections\" />
         <Folder Include="Reflection\" />
         <Folder Include="Sql\MsSql\" />
