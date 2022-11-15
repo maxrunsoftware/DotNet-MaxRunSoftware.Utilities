@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -280,24 +280,6 @@ public static partial class Util
         return c;
     }
 
-    private static readonly IBucketReadOnly<Type, Func<object>> createInstanceCache = new BucketCacheThreadSafeCopyOnWrite<Type, Func<object>>(CreateInstanceFactory);
-
-    /// <summary>
-    /// High performance new object creation. Type must have a default constructor.
-    /// </summary>
-    /// <param name="type">The type of object to create</param>
-    /// <returns>A new object</returns>
-    public static object CreateInstance(Type type) => createInstanceCache[type]();
-
-    public static List<T> CreateList<T, TEnumerable>(params TEnumerable[] enumerables) where TEnumerable : IEnumerable<T>
-    {
-        var list = new List<T>();
-        foreach (var enumerable in enumerables)
-        foreach (var item in enumerable)
-            list.Add(item);
-
-        return list;
-    }
 
     /// <summary>
     /// Creates an Action from a MethodInfo. The method provided must have 0 parameters.
