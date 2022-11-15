@@ -32,7 +32,4 @@
         <None Remove="MySql.Data" />
         <None Remove="Oracle.ManagedDataAccess.Core" />
     </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Sql\" />
-    </ItemGroup>
 </Project>
