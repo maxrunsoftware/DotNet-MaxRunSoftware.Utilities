@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ReleaseVersion>2.0.0</ReleaseVersion>
         <Description>Various helper methods and functions</Description>
-        <PackageVersion>$(ReleaseVersion)</PackageVersion>
+        <PackageVersion>2.0.0-$(Configuration)-$(Platform)-$([System.DateTime]::UtcNow.ToString(yyyyMMdd-HHmmss))</PackageVersion>
         <Authors>Max Run Software</Authors>
         <PackOnBuild>true</PackOnBuild>
         <PackageId>MaxRunSoftware.Utilities</PackageId>
@@ -65,7 +65,10 @@
         <Folder Include="Collections\" />
         <Folder Include="Reflection\" />
     </ItemGroup>
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="rm $(SolutionDir)publish/packages/publish/packages/maxrunsoftware.utilities/2.0.0/.nupkg.metadata&#xA;rm $(SolutionDir)publish/packages/publish/packages/maxrunsoftware.utilities/2.0.0/maxrunsoftware.utilities.2.0.0.nupkg&#xA;rm $(SolutionDir)publish/packages/publish/packages/maxrunsoftware.utilities/2.0.0/maxrunsoftware.utilities.2.0.0.nupkg.sha512&#xA;rm $(SolutionDir)publish/packages/publish/packages/maxrunsoftware.utilities/2.0.0/maxrunsoftware.utilities.nuspec&#xA;&#xA;nuget add $(SolutionDir)/MaxRunSoftware.Utilities/bin/Debug/MaxRunSoftware.Utilities.2.0.0.nupkg -source $(SolutionDir)publish/packages&#xA;" />
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost" />
+    </Target>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre" />
     </Target>
 </Project>
