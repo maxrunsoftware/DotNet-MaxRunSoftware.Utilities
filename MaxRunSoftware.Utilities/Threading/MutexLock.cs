@@ -1,18 +1,17 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading;
 
 namespace MaxRunSoftware.Utilities;
 
@@ -26,7 +25,7 @@ public sealed class MutexLock : IDisposable
     private readonly bool hasHandle;
     public string MutexName { get; }
 
-    private static readonly char[] illegalMutexChars = new[] { ':', '/', '\\' }
+    private static readonly char[] ILLEGAL_MUTEX_CHARS = new[] { ':', '/', '\\' }
         .Concat(Path.GetInvalidFileNameChars())
         .Concat(Path.GetInvalidPathChars())
         .Concat(Path.DirectorySeparatorChar)
@@ -37,7 +36,7 @@ public sealed class MutexLock : IDisposable
     private static string MutexNameFormat(string mutexName)
     {
         mutexName = mutexName.CheckNotNullTrimmed(nameof(mutexName));
-        for (var i = 0; i < illegalMutexChars.Length; i++) mutexName = mutexName.Replace(illegalMutexChars[i], '_');
+        for (var i = 0; i < ILLEGAL_MUTEX_CHARS.Length; i++) mutexName = mutexName.Replace(ILLEGAL_MUTEX_CHARS[i], '_');
 
         while (mutexName.Contains("__")) { mutexName = mutexName.Replace("__", "_"); }
 
@@ -45,26 +44,26 @@ public sealed class MutexLock : IDisposable
 
         while (mutexName.EndsWith("_")) { mutexName = mutexName.RemoveRight(); }
 
-        mutexName = mutexName.TrimOrNullUpper();
-        if (mutexName == null) return "MUTEX";
+        var mutexNameUpper = mutexName.TrimOrNullUpper();
+        if (mutexNameUpper == null) return "MUTEX";
 
-        if (mutexName.StartsWith("MUTEX")) return mutexName;
+        if (mutexNameUpper.StartsWith("MUTEX")) return mutexNameUpper;
 
-        return "MUTEX_" + mutexName;
+        return "MUTEX_" + mutexNameUpper;
     }
 
-    private static readonly object locker = new();
-    private static readonly Dictionary<string, string> mutexNames = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly object LOCKER = new();
+    private static readonly Dictionary<string, string> MUTEX_NAMES = new(StringComparer.OrdinalIgnoreCase);
 
     private MutexLock(string mutexName, TimeSpan timeout)
     {
         mutexName = mutexName.CheckNotNullTrimmed(nameof(mutexName));
-        lock (locker)
+        lock (LOCKER)
         {
-            if (!mutexNames.TryGetValue(mutexName, out var actualMutexName))
+            if (!MUTEX_NAMES.TryGetValue(mutexName, out var actualMutexName))
             {
                 actualMutexName = MutexNameFormat(mutexName);
-                mutexNames.Add(mutexName, actualMutexName);
+                MUTEX_NAMES.Add(mutexName, actualMutexName);
             }
 
             mutexName = actualMutexName;

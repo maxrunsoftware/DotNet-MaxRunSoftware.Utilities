@@ -27,14 +27,14 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str">The string</param>
     /// <returns>The hashcode</returns>
-    public static int GetHashCodeCaseSensitive(this string str) => str == null ? 0 : StringComparer.Ordinal.GetHashCode(str);
+    public static int GetHashCodeCaseSensitive(this string? str) => str == null ? 0 : StringComparer.Ordinal.GetHashCode(str);
 
     /// <summary>
     /// Gets the OrdinalIgnoreCase hashcode
     /// </summary>
     /// <param name="str">The string</param>
     /// <returns>The hashcode</returns>
-    public static int GetHashCodeCaseInsensitive(this string str) => str == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(str);
+    public static int GetHashCodeCaseInsensitive(this string? str) => str == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(str);
 
     /// <summary>
     /// Removes the first character from a string if there is one
@@ -352,14 +352,14 @@ public static class ExtensionsString
 
     #region Equals
 
-    public static bool Equals(this string str, string other, StringComparer comparer)
+    public static bool Equals(this string str, string other, StringComparer? comparer)
     {
         var ec = comparer ?? (IEqualityComparer<string>)EqualityComparer<string>.Default;
 
         return ec.Equals(str, other);
     }
 
-    public static bool Equals(this string str, string[] others, out string match, StringComparer comparer)
+    public static bool Equals(this string str, string[] others, out string? match, StringComparer? comparer)
     {
         var ec = comparer ?? (IEqualityComparer<string>)EqualityComparer<string>.Default;
 
@@ -378,17 +378,17 @@ public static class ExtensionsString
 
     public static bool EqualsCaseSensitive(this string str, string other) => Equals(str, other, StringComparer.Ordinal);
 
-    public static bool EqualsCaseSensitive(this string str, string[] others, out string match) => Equals(str, others, out match, StringComparer.Ordinal);
+    public static bool EqualsCaseSensitive(this string str, string[] others, out string? match) => Equals(str, others, out match, StringComparer.Ordinal);
 
     public static bool EqualsCaseSensitive(this string str, string[] others) => Equals(str, others, out _, StringComparer.Ordinal);
 
     public static bool EqualsIgnoreCase(this string str, string other) => Equals(str, other, StringComparer.OrdinalIgnoreCase);
 
-    public static bool EqualsIgnoreCase(this string str, string[] others, out string match) => Equals(str, others, out match, StringComparer.OrdinalIgnoreCase);
+    public static bool EqualsIgnoreCase(this string str, string[] others, out string? match) => Equals(str, others, out match, StringComparer.OrdinalIgnoreCase);
 
     public static bool EqualsIgnoreCase(this string str, string[] others) => Equals(str, others, out _, StringComparer.OrdinalIgnoreCase);
 
-    public static bool EqualsWildcard(this string text, string wildcardString)
+    public static bool EqualsWildcard(this string? text, string? wildcardString)
     {
         // https://bitbucket.org/hasullivan/fast-wildcard-matching/src/7457d0dc1aee5ecd373f7c8a7785d5891b416201/FastWildcardMatching/WildcardMatch.cs?at=master&fileviewer=file-view-default
 
@@ -596,9 +596,10 @@ public static class ExtensionsString
         return isLike;
     }
 
-    public static bool EqualsWildcard(this string text, string wildcardString, bool ignoreCase)
+    public static bool EqualsWildcard(this string? text, string? wildcardString, bool ignoreCase)
     {
         if (text == null) return wildcardString == null;
+        if (wildcardString == null) return false;
 
         // https://bitbucket.org/hasullivan/fast-wildcard-matching/src/7457d0dc1aee5ecd373f7c8a7785d5891b416201/FastWildcardMatching/WildcardMatch.cs?at=master&fileviewer=file-view-default
 
@@ -724,7 +725,7 @@ public static class ExtensionsString
     /// <summary>Attempts to identity which NewLine character a string uses.</summary>
     /// <param name="str">String to search</param>
     /// <returns>The newline identified</returns>
-    public static string IdentifyNewLine(this string str)
+    public static string IdentifyNewLine(this string? str)
     {
         var nl = Environment.NewLine;
         if (str == null) return nl;
@@ -775,14 +776,14 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="strings">The strings to guess on</param>
     /// <returns>The best found Type or string type if a best guess couldn't be found</returns>
-    public static Type GuessType(this IEnumerable<string> strings)
+    public static Type GuessType(this IEnumerable<string?> strings)
     {
         strings.CheckNotNull(nameof(strings));
 
-        var list = strings.TrimOrNull().ToList();
-        var listCount = list.Count;
+        var list2 = strings.TrimOrNull().ToList();
+        var listCount = list2.Count;
 
-        list = list.WhereNotNull().ToList();
+        var list = list2.WhereNotNull().ToList();
         var nullable = listCount != list.Count;
         if (list.Count == 0) return typeof(string);
 
@@ -877,9 +878,9 @@ public static class ExtensionsString
         return newArray;
     }
 
-    public static string[] SplitOnDirectorySeparator(this string path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
+    public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
 
-    public static string[] SplitOnCamelCase(this string str)
+    public static string[] SplitOnCamelCase(this string? str)
     {
         if (str == null) return Array.Empty<string>();
 
@@ -905,21 +906,21 @@ public static class ExtensionsString
     #region SplitDelimited
 
     /// <summary>http://stackoverflow.com/a/3776617</summary>
-    private static readonly Regex splitDelimitedCommaRegex = new("(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*)", RegexOptions.Compiled);
+    private static readonly Regex SPLIT_DELIMITED_COMMA_REGEX = new("(?:^|,)(\"(?:[^\"]+|\"\")*\"|[^,]*)", RegexOptions.Compiled);
 
-    private static readonly string[] splitDelimitedTabArray = { "\t" };
+    private static readonly string[] SPLIT_DELIMITED_TAB_ARRAY = { "\t" };
 
-    public static List<string[]> SplitDelimitedComma(this string text)
+    public static List<string?[]> SplitDelimitedComma(this string? text)
     {
-        var result = new List<string[]>();
+        var result = new List<string?[]>();
         if (text == null) return result;
 
         var lines = text.SplitOnNewline().TrimOrNull().WhereNotNull().ToList();
 
         foreach (var line in lines)
         {
-            var matches = splitDelimitedCommaRegex.Matches(line);
-            var items = new List<string>(matches.Count);
+            var matches = SPLIT_DELIMITED_COMMA_REGEX.Matches(line);
+            var items = new List<string?>(matches.Count);
             foreach (Match match in matches)
             {
                 var item = match.Value.TrimStart(',').Replace("\"", "").TrimOrNull();
@@ -932,17 +933,17 @@ public static class ExtensionsString
         return result;
     }
 
-    public static List<string[]> SplitDelimitedTab(this string text)
+    public static List<string?[]> SplitDelimitedTab(this string? text)
     {
-        var result = new List<string[]>();
+        var result = new List<string?[]>();
         if (text == null) return result;
 
         var lines = text.SplitOnNewline().Where(o => o.TrimOrNull() != null).ToList();
 
         foreach (var line in lines)
         {
-            var matches = line.Split(splitDelimitedTabArray, StringSplitOptions.None);
-            var items = new List<string>(matches.Length);
+            var matches = line.Split(SPLIT_DELIMITED_TAB_ARRAY, StringSplitOptions.None);
+            var items = new List<string?>(matches.Length);
             foreach (var match in matches)
             {
                 var item = match.TrimOrNull();

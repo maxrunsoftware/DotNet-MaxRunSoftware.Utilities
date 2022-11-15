@@ -50,7 +50,12 @@ public static class Extensions
     /// <typeparam name="T">The service type</typeparam>
     /// <param name="serviceProvider">The service provider</param>
     /// <returns>The typed service</returns>
-    public static T GetService<T>(this IServiceProvider serviceProvider) => (T)serviceProvider.GetService(typeof(T));
+    public static T? GetService<T>(this IServiceProvider serviceProvider)
+    {
+        var o = serviceProvider.GetService(typeof(T));
+        if (o == null) return default;
+        return (T)o;
+    }
 
     /// <summary>
     /// Gets a typed value from a serialized object
@@ -59,11 +64,16 @@ public static class Extensions
     /// <param name="serializationInfo"></param>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T GetValue<T>(this SerializationInfo serializationInfo, string name) => (T)serializationInfo.GetValue(name, typeof(T));
+    public static T? GetValue<T>(this SerializationInfo serializationInfo, string name)
+    {
+        var o = serializationInfo.GetValue(name, typeof(T));
+        if (o == null) return default;
+        return (T)o;
+    }
 
     #region IDisposable
 
-    public static void DisposeSafely(this IDisposable disposable, Action<string, Exception> onErrorLog)
+    public static void DisposeSafely(this IDisposable? disposable, Action<string, Exception> onErrorLog)
     {
         onErrorLog.CheckNotNull(nameof(onErrorLog));
         if (disposable == null) return;
@@ -78,7 +88,7 @@ public static class Extensions
 
     public static string[] MatchAll(this Regex regex, string input) => regex.Matches(input).Select(o => o.Value).ToArray();
 
-    public static string MatchFirst(this Regex regex, string input) => regex.Matches(input).Select(o => o.Value).FirstOrDefault();
+    public static string? MatchFirst(this Regex regex, string input) => regex.Matches(input).Select(o => o.Value).FirstOrDefault();
 
     #endregion Regex
 

@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading;
-using Microsoft.Extensions.Logging;
-
 namespace MaxRunSoftware.Utilities;
 
 public sealed class FileSystemFile : FileSystemObject
@@ -31,7 +28,7 @@ public sealed class FileSystemFile : FileSystemObject
     {
         size = new Lazy<long>(() =>
         {
-            if (!IsReparsePoint) return FileInfo.Length;
+            if (!IsReparsePoint) return FileInfo!.Length;
 
             // https://stackoverflow.com/a/57454136
             using (Stream fs = Util.FileOpenRead(Path)) { return fs.Length; }

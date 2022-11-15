@@ -16,9 +16,9 @@ namespace MaxRunSoftware.Utilities;
 
 public static class ExtensionsData
 {
-    private static List<string[]> ToCsvSplit(DataTable dataTable)
+    private static List<string?[]> ToCsvSplit(DataTable dataTable)
     {
-        var rows = new List<string[]>();
+        var rows = new List<string?[]>();
 
         var columns = dataTable.Columns.AsList().ToArray();
         var width = columns.Length;
@@ -32,7 +32,7 @@ public static class ExtensionsData
         {
             var array = dataRow.ItemArray;
             var arrayWidth = array.Length;
-            var arrayString = new string[arrayWidth];
+            var arrayString = new string?[arrayWidth];
             for (var i = 0; i < arrayWidth; i++) arrayString[i] = array[i].ToStringGuessFormat();
 
             rows.Add(arrayString);
@@ -41,7 +41,7 @@ public static class ExtensionsData
         return rows;
     }
 
-    public static void DisposeSafely(this IDbConnection connection, Action<string, Exception> errorLog = null)
+    public static void DisposeSafely(this IDbConnection? connection, Action<string, Exception>? errorLog = null)
     {
         if (connection == null) return;
 
@@ -55,10 +55,10 @@ public static class ExtensionsData
         catch (Exception e) { errorLog?.Invoke("Error disposing database connection [" + connection.GetType().FullNameFormatted() + "]", e); }
     }
 
-    public static IDataParameter SetParameterValue(this IDbCommand command, int parameterIndex, object value)
+    public static IDataParameter SetParameterValue(this IDbCommand command, int parameterIndex, object? value)
     {
         var o = command.Parameters[parameterIndex];
-        if (o is not IDbDataParameter p) return null;
+        var p = (o as IDbDataParameter).CheckNotNull();
 
         p.Value = value ?? DBNull.Value;
         return p;
@@ -67,13 +67,13 @@ public static class ExtensionsData
     public static IDataParameter AddParameter(this IDbCommand command,
         DbType? dbType = null,
         ParameterDirection? direction = null,
-        string parameterName = null,
+        string? parameterName = null,
         byte? precision = null,
         byte? scale = null,
         int? size = null,
-        string sourceColumn = null,
+        string? sourceColumn = null,
         DataRowVersion? sourceVersion = null,
-        object value = null)
+        object? value = null)
     {
         var p = command.CreateParameter();
         if (dbType.HasValue) p.DbType = dbType.Value;
@@ -142,7 +142,7 @@ public static class ExtensionsData
         return list;
     }
 
-    public static List<DataColumn> AsList(this DataColumnCollection dataColumnCollection)
+    public static List<DataColumn> AsList(this DataColumnCollection? dataColumnCollection)
     {
         var list = new List<DataColumn>();
         if (dataColumnCollection == null) return list;
@@ -153,18 +153,22 @@ public static class ExtensionsData
         return list;
     }
 
-    public static List<object[]> AsList(this DataRowCollection dataRowCollection)
+    public static List<object?[]> AsList(this DataRowCollection? dataRowCollection)
     {
-        var list = new List<object[]>();
+        var list = new List<object?[]>();
         if (dataRowCollection == null) return list;
 
         list.Capacity = dataRowCollection.Count + 1;
-        foreach (DataRow row in dataRowCollection) list.Add(row.ItemArray.Copy());
+        foreach (DataRow row in dataRowCollection)
+        {
+            var array = row.ItemArray.Copy();
+            list.Add(array);
+        }
 
         return list;
     }
 
-    public static IDbCommand CreateCommand(this IDbConnection connection, string commandText, CommandType? commandType = null, int? commandTimeout = null)
+    public static IDbCommand CreateCommand(this IDbConnection connection, string? commandText, CommandType? commandType = null, int? commandTimeout = null)
     {
         var command = connection.CreateCommand();
         if (commandText != null) command.CommandText = commandText;
@@ -176,18 +180,22 @@ public static class ExtensionsData
         return command;
     }
 
-    public static T GetValueOrDefault<T>(this IDataRecord row, string fieldName)
+    public static T? GetValueOrDefault<T>(this IDataRecord row, string fieldName)
     {
         // http://stackoverflow.com/a/2610220
         var ordinal = row.GetOrdinal(fieldName);
         return row.GetValueOrDefault<T>(ordinal);
     }
 
-    public static T GetValueOrDefault<T>(this IDataRecord row, int ordinal) =>
+    public static T? GetValueOrDefault<T>(this IDataRecord row, int ordinal)
+    {
         // http://stackoverflow.com/a/2610220
-        (T)(row.IsDBNull(ordinal) ? default(T) : row.GetValue(ordinal));
+        if (row.IsDBNull(ordinal)) return default;
+        var v = row.GetValue(ordinal);
+        return (T)v;
+    }
 
-    public static string GetStringNullable(this IDataReader reader, int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
+    public static string? GetStringNullable(this IDataReader reader, int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
 
     public static string ToCsv(this DataTable dataTable, string delimiter, string escape)
     {

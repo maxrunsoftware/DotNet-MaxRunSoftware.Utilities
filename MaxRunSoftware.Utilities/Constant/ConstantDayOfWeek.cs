@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ namespace MaxRunSoftware.Utilities;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    // ReSharper disable StringLiteralTypo
     public static readonly ImmutableArray<string> DayOfWeek_Sunday_Strings = ImmutableArray.Create("U,SU,SUN,SUND,SUNDA,SUNDAY".Split(','));
     public static readonly ImmutableArray<string> DayOfWeek_Monday_Strings = ImmutableArray.Create("M,MO,MON,MOND,MONDA,MONDAY".Split(','));
     public static readonly ImmutableArray<string> DayOfWeek_Tuesday_Strings = ImmutableArray.Create("T,TU,TUE,TUES,TUESD,TUESDA,TUESDAY".Split(','));
@@ -24,6 +25,8 @@ public static partial class Constant
     public static readonly ImmutableArray<string> DayOfWeek_Thursday_Strings = ImmutableArray.Create("R,TH,THU,THUR,THURS,THURSD,THURSDA,THURSDAY".Split(','));
     public static readonly ImmutableArray<string> DayOfWeek_Friday_Strings = ImmutableArray.Create("F,FR,FRI,FRID,FRIDA,FRIDAY".Split(','));
     public static readonly ImmutableArray<string> DayOfWeek_Saturday_Strings = ImmutableArray.Create("S,SA,SAT,SATU,SATUR,SATURD,SATURDA,SATURDAY".Split(','));
+    // ReSharper restore StringLiteralTypo
+
     public static readonly ImmutableArray<DayOfWeek> DaysOfWeek = ImmutableArray.Create(DayOfWeek.Sunday, DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday);
     public static readonly ImmutableDictionary<string, DayOfWeek> String_DayOfWeek = String_DayOfWeek_Create();
 

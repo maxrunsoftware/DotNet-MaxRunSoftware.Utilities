@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Extensions.Logging;
-
 namespace MaxRunSoftware.Utilities;
 
 public abstract class FileSystemObject : ImmutableObjectBase<FileSystemObject>
@@ -22,13 +20,13 @@ public abstract class FileSystemObject : ImmutableObjectBase<FileSystemObject>
 
     protected static readonly StringComparer STRING_COMPARER = Constant.Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
     protected static readonly StringComparison STRING_COMPARISON = Constant.Path_IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-    private static readonly char[] pathDelimiters = Constant.PathDelimiters.ToArray();
+    private static readonly char[] PATH_DELIMITERS = Constant.PathDelimiters.ToArray();
 
     public string Path { get; }
 
     private readonly Lzy<IReadOnlyList<string>> pathParts;
     public IReadOnlyList<string> PathParts => pathParts.Value;
-    private IReadOnlyList<string> PathParts_Build() => Path.Split(pathDelimiters).Where(o => o.TrimOrNull() != null).ToList();
+    private IReadOnlyList<string> PathParts_Build() => Path.Split(PATH_DELIMITERS).Where(o => o.TrimOrNull() != null).ToList();
 
     private readonly Lzy<string> name;
     public string Name => name.Value;
@@ -37,14 +35,15 @@ public abstract class FileSystemObject : ImmutableObjectBase<FileSystemObject>
         var fn = System.IO.Path.GetFileName(Path);
         if (fn.TrimOrNull() != null) return fn;
         var dn = System.IO.Path.GetDirectoryName(Path);
-        return dn.TrimOrNull() != null ? dn : fileSystemInfo.Value.Name;
+        if (dn != null && dn.TrimOrNull() != null) return dn;
+        return fileSystemInfo.Value.Name;
     }
 
     private readonly Lzy<FileAttributes> fileAttributes;
     protected FileAttributes FileAttributes => fileAttributes.Value;
     private FileAttributes FileAttributes_Build() => File.GetAttributes(Path);
 
-    public Exception Exception => null;
+    public Exception? Exception => null;
 
     public abstract bool IsDirectory { get; }
     public bool IsReparsePoint => (FileAttributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
@@ -55,17 +54,17 @@ public abstract class FileSystemObject : ImmutableObjectBase<FileSystemObject>
     public abstract bool IsExist { get; }
     public abstract long Size { get; }
 
-    private readonly Lzy<FileSystemDirectory> parent;
-    public FileSystemDirectory Parent => parent.Value;
+    private readonly Lzy<FileSystemDirectory?> parent;
+    public FileSystemDirectory? Parent => parent.Value;
     private FileSystemDirectory? Parent_Build()
     {
-        var di = IsDirectory ? DirectoryInfo.Parent : FileInfo.Directory;
+        var di = IsDirectory ? DirectoryInfo!.Parent : FileInfo!.Directory;
         return di == null ? null : new FileSystemDirectory(di.FullName);
     }
 
     private readonly Lzy<FileSystemInfo> fileSystemInfo;
-    public FileInfo FileInfo => fileSystemInfo.Value as FileInfo;
-    public DirectoryInfo DirectoryInfo => fileSystemInfo.Value as DirectoryInfo;
+    public FileInfo? FileInfo => fileSystemInfo.Value as FileInfo;
+    public DirectoryInfo? DirectoryInfo => fileSystemInfo.Value as DirectoryInfo;
     private FileSystemInfo FileSystemInfo_Build() => IsDirectory ? new DirectoryInfo(Path) : new FileInfo(Path);
 
     private readonly Lzy<DateTime> creationTime;

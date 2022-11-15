@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,7 @@
 
 namespace MaxRunSoftware.Utilities;
 
+// ReSharper disable once InconsistentNaming
 public static class ExtensionsIO
 {
     public static string[] RemoveBase(this FileSystemInfo info, DirectoryInfo baseToRemove, bool caseSensitive = false)
@@ -45,7 +46,7 @@ public static class ExtensionsIO
         return list.ToArray();
     }
 
-    public static long GetLength(this FileInfo file)
+    public static long GetLength(this FileInfo? file)
     {
         if (file == null) return -1;
 
@@ -65,5 +66,5 @@ public static class ExtensionsIO
     /// </summary>
     /// <param name="file">File to check</param>
     /// <returns>true if file is a symbolic link, otherwise false</returns>
-    public static bool IsSymbolic(this FileInfo file) => file != null && file.Attributes.HasFlag(FileAttributes.ReparsePoint);
+    public static bool IsSymbolic(this FileInfo? file) => file != null && file.Attributes.HasFlag(FileAttributes.ReparsePoint);
 }

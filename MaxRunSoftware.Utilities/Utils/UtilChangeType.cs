@@ -19,9 +19,9 @@ namespace MaxRunSoftware.Utilities;
 
 public static partial class Util
 {
-    public static TOutput ChangeType<TInput, TOutput>(TInput obj) => (TOutput)ChangeType(obj, typeof(TOutput));
+    public static TOutput? ChangeType<TInput, TOutput>(TInput? obj) => (TOutput?)ChangeType(obj, typeof(TOutput));
 
-    public static TOutput ChangeType<TOutput>(object obj) => (TOutput)ChangeType(obj, typeof(TOutput));
+    public static TOutput? ChangeType<TOutput>(object? obj) => (TOutput?)ChangeType(obj, typeof(TOutput));
 
     public static object? ChangeType(object? obj, Type outputType)
     {

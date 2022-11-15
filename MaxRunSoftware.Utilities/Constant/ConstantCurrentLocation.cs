@@ -25,7 +25,7 @@ public static partial class Constant
     {
         // https://stackoverflow.com/questions/616584/how-do-i-get-the-name-of-the-current-executable-in-c
 
-        var list = new List<string>();
+        var list = new List<string?>();
 
         try { list.Add(Environment.CurrentDirectory); }
         catch { }
@@ -109,7 +109,7 @@ public static partial class Constant
         return list;
     }
 
-    public static readonly string Path_Current_Directory = Path_Current_Directories.FirstOrDefault();
+    public static readonly string? Path_Current_Directory = Path_Current_Directories.FirstOrDefault();
 
     public static readonly ImmutableArray<string> Path_Current_Files = ImmutableArray.Create(GetCurrentLocationsFile().ToArray());
 
@@ -135,7 +135,7 @@ public static partial class Constant
     /// <summary>
     /// The current EXE file name. Could be a full file path, or a partial file path, or null
     /// </summary>
-    public static readonly string Path_Current_File = Path_Current_Files.FirstOrDefault();
+    public static readonly string? Path_Current_File = Path_Current_Files.FirstOrDefault();
 
     /// <summary>
     /// Are we executing via a batch file or script or running the command directly from the console window?

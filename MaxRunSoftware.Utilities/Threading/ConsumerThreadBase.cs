@@ -14,7 +14,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
@@ -75,7 +74,7 @@ public abstract class ConsumerThreadBase<T> : ThreadBase
         {
             if (ShouldExitWorkLoop()) return;
 
-            T t = default;
+            T? t = default!;
             try
             {
                 stopwatch.Restart();
@@ -92,6 +91,8 @@ public abstract class ConsumerThreadBase<T> : ThreadBase
             }
             catch (OperationCanceledException)
             {
+                // TODO: Figure out property nameof for logging
+                // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
                 log.LogDebug($"Received {nameof(OperationCanceledException)}, cancelling thread {Name}");
                 Cancel();
             }
@@ -107,6 +108,7 @@ public abstract class ConsumerThreadBase<T> : ThreadBase
             {
                 stopwatch.Restart();
                 ConsumerThreadState = ConsumerThreadState.Working;
+                if (t == null) throw new NullReferenceException("Should not happen");
                 WorkConsume(t);
 
                 //itemsCompleted++;

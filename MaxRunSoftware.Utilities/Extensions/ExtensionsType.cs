@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace MaxRunSoftware.Utilities;
@@ -50,13 +49,13 @@ public static class ExtensionsType
         throw new MissingMemberException($"Could not find property {type.FullNameFormatted()}.{name} -> " + infos.Select(o => o.Name).OrderBy(o => o, StringComparer.OrdinalIgnoreCase).ToStringDelimited(" | "));
     }
 
-    public static object GetPropertyValue(this Type type, string name, object instance, BindingFlags flags = Constant.BindingFlag_Lookup_Default) => type.FindProperty(name, flags).GetValue(instance);
+    public static object? GetPropertyValue(this Type type, string name, object instance, BindingFlags flags = Constant.BindingFlag_Lookup_Default) => type.FindProperty(name, flags).GetValue(instance);
 
     #endregion Property
 
     #region Field
 
-    public static object GetFieldValue(this Type type, string name, object instance, BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic)
+    public static object? GetFieldValue(this Type type, string name, object instance, BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic)
     {
         var info = type.GetField(name, flags);
         if (info == null) throw new MissingFieldException(type.FullNameFormatted(), name);
@@ -234,19 +233,19 @@ public static class ExtensionsType
         return Array.Empty<TAttribute>();
     }
 
-    public static TAttribute GetEnumItemAttribute<TAttribute>(this Type enumType, string enumItemName) where TAttribute : Attribute => GetEnumItemAttributes<TAttribute>(enumType, enumItemName).FirstOrDefault();
+    public static TAttribute? GetEnumItemAttribute<TAttribute>(this Type enumType, string enumItemName) where TAttribute : Attribute => GetEnumItemAttributes<TAttribute>(enumType, enumItemName).FirstOrDefault();
 
-    private static readonly Dictionary<Type, Dictionary<string, object>> getEnumValueCache = new();
-    private static readonly object getEnumValueCacheLock = new();
+    private static readonly Dictionary<Type, Dictionary<string, object>> GET_ENUM_VALUE_CACHE = new();
+    private static readonly object GET_ENUM_VALUE_CACHE_LOCK = new();
 
-    public static object GetEnumValue(this Type enumType, string enumItemName)
+    public static object? GetEnumValue(this Type enumType, string enumItemName)
     {
         enumType.CheckIsEnum(nameof(enumType));
         enumItemName = enumItemName.CheckNotNullTrimmed(nameof(enumItemName));
 
-        lock (getEnumValueCacheLock)
+        lock (GET_ENUM_VALUE_CACHE_LOCK)
         {
-            if (!getEnumValueCache.TryGetValue(enumType, out var enumItemDic))
+            if (!GET_ENUM_VALUE_CACHE.TryGetValue(enumType, out var enumItemDic))
             {
                 enumItemDic = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
                 foreach (var enumValue in enumType.GetEnumValues())
@@ -255,13 +254,14 @@ public static class ExtensionsType
                     if (enumValueString != null) enumItemDic[enumValueString] = enumValue;
                 }
 
-                getEnumValueCache.Add(enumType, enumItemDic);
+                GET_ENUM_VALUE_CACHE.Add(enumType, enumItemDic);
             }
 
             return enumItemDic.TryGetValue(enumItemName, out var enumObject) ? enumObject : null;
         }
     }
 
+    /*
     private static Func<string, object> GetParseEnumDelegate(Type tEnum)
     {
         // https://stackoverflow.com/a/41594057
@@ -311,7 +311,7 @@ public static class ExtensionsType
                 ), eValue
             ).Compile();
     }
-
+    */
 
     /// <summary>
     /// https://stackoverflow.com/a/51441889

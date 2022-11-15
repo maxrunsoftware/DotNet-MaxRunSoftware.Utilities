@@ -46,7 +46,6 @@ public abstract class ConsumerProducerThreadBase<TConsume, TProduce> : ConsumerT
         try { cancellation.Cancel(); }
         catch (Exception e)
         {
-            var log = Constant.CreateLogger(GetType());
             log.LogWarning(e, "CancellationTokenSource.Cancel() request threw exception");
         }
 

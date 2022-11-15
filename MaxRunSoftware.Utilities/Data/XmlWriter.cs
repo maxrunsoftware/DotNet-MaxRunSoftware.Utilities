@@ -33,7 +33,7 @@ public class XmlWriter : IDisposable
 
     private readonly StringBuilder stream;
     private readonly System.Xml.XmlWriter writer;
-    private string toString;
+    private string? toString;
     private readonly SingleUse isDisposed = new();
 
     public XmlWriter(bool formatted = false)
@@ -55,7 +55,7 @@ public class XmlWriter : IDisposable
         writer.Dispose();
     }
 
-    public override string ToString()
+    public override string? ToString()
     {
         if (!isDisposed.IsUsed)
         {
@@ -68,7 +68,7 @@ public class XmlWriter : IDisposable
 
     public IDisposable Element(string elementName, params (string attributeName, object attributeValue)[] attributes) => Element(elementName, null, attributes);
 
-    public IDisposable Element(string elementName, string elementValue, params (string attributeName, object attributeValue)[] attributes)
+    public IDisposable Element(string elementName, string? elementValue, params (string attributeName, object attributeValue)[] attributes)
     {
         writer.WriteStartElement(elementName);
         foreach (var attr in attributes) Attribute(attr.attributeName, attr.attributeValue);

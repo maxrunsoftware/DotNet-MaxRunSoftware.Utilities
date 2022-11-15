@@ -427,9 +427,9 @@ public static class ExtensionsCollection
 
     #region EqualsAt
 
-    public static bool EqualsAt<T>(this T[] array1, T[] array2, int index) => EqualsAt(array1, array2, index, null);
+    public static bool EqualsAt<T>(this T[]? array1, T[]? array2, int index) => EqualsAt(array1, array2, index, null);
 
-    public static bool EqualsAt<T>(this T[] array1, T[] array2, int index, IEqualityComparer<T> comparer)
+    public static bool EqualsAt<T>(this T[]? array1, T[]? array2, int index, IEqualityComparer<T>? comparer)
     {
         if (array1 == null) return false;
 
@@ -453,9 +453,9 @@ public static class ExtensionsCollection
         return comparer.Equals(item1, item2);
     }
 
-    public static bool EqualsAt<T>(this T[] array, int index, T item) => EqualsAt(array, index, null, item);
+    public static bool EqualsAt<T>(this T[]? array, int index, T item) => EqualsAt(array, index, null, item);
 
-    public static bool EqualsAt<T>(this T[] array, int index, IEqualityComparer<T> comparer, T item)
+    public static bool EqualsAt<T>(this T[]? array, int index, IEqualityComparer<T>? comparer, T item)
     {
         if (array == null) return false;
 
@@ -474,9 +474,9 @@ public static class ExtensionsCollection
         return comparer.Equals(o, item);
     }
 
-    public static bool EqualsAtAny<T>(this T[] array, int index, params T[] items) => EqualsAtAny(array, index, null, items);
+    public static bool EqualsAtAny<T>(this T[]? array, int index, params T[]? items) => EqualsAtAny(array, index, null, items);
 
-    public static bool EqualsAtAny<T>(this T[] array, int index, IEqualityComparer<T> comparer, params T[] items)
+    public static bool EqualsAtAny<T>(this T[]? array, int index, IEqualityComparer<T>? comparer, params T[]? items)
     {
         if (array == null) return false;
 
@@ -501,8 +501,6 @@ public static class ExtensionsCollection
     /// <returns>A new array of length newLength</returns>
     public static T[] Resize<T>(this T[] array, int newLength)
     {
-        if (array == null) return null;
-
         var newArray = new T[newLength];
 
         var width = Math.Min(array.Length, newLength);
@@ -511,19 +509,19 @@ public static class ExtensionsCollection
         return newArray;
     }
 
-    public static void ResizeAll<T>(this IList<T[]> list, int newLength)
+    public static void ResizeAll<T>(this IList<T[]?> list, int newLength)
     {
         for (var i = 0; i < list.Count; i++)
         {
-            if (list[i] != null) list[i] = list[i].Resize(newLength);
+            if (list[i] != null) list[i] = list[i]!.Resize(newLength);
         }
     }
 
-    public static void ResizeAll<T>(this T[][] list, int newLength)
+    public static void ResizeAll<T>(this T[]?[] list, int newLength)
     {
         for (var i = 0; i < list.Length; i++)
         {
-            if (list[i] != null) list[i] = list[i].Resize(newLength);
+            if (list[i] != null) list[i] = list[i]!.Resize(newLength);
         }
     }
 
@@ -537,7 +535,7 @@ public static class ExtensionsCollection
     /// <typeparam name="T">Type</typeparam>
     /// <param name="enumerable">The enumerable to search</param>
     /// <returns>The size of the longest array</returns>
-    public static int MaxLength<T>(this IEnumerable<T[]> enumerable)
+    public static int MaxLength<T>(this IEnumerable<T[]?> enumerable)
     {
         var len = 0;
         foreach (var item in enumerable)
@@ -553,7 +551,7 @@ public static class ExtensionsCollection
     /// </summary>
     /// <param name="enumerable">The enumerable to search</param>
     /// <returns>The size of the longest string</returns>
-    public static int MaxLength(this IEnumerable<string> enumerable)
+    public static int MaxLength(this IEnumerable<string?> enumerable)
     {
         var len = 0;
         foreach (var item in enumerable)
@@ -571,7 +569,7 @@ public static class ExtensionsCollection
     /// <typeparam name="TCollection">The type of collection</typeparam>
     /// <param name="enumerable">The enumerable to search</param>
     /// <returns>The size of the longest collection</returns>
-    public static int MaxLength<T, TCollection>(this IEnumerable<TCollection> enumerable) where TCollection : ICollection<T>
+    public static int MaxLength<T, TCollection>(this IEnumerable<TCollection?> enumerable) where TCollection : ICollection<T>
     {
         var len = 0;
         foreach (var item in enumerable)
@@ -586,7 +584,7 @@ public static class ExtensionsCollection
 
     #region Dictionary
 
-    public static Dictionary<TKey, TValue> Copy<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+    public static Dictionary<TKey, TValue> Copy<TKey, TValue>(this Dictionary<TKey, TValue> dictionary) where TKey : notnull
     {
         var d = new Dictionary<TKey, TValue>(dictionary.Count, dictionary.Comparer);
         foreach (var kvp in dictionary) d.Add(kvp.Key, kvp.Value);
@@ -594,9 +592,9 @@ public static class ExtensionsCollection
         return d;
     }
 
-    public static TValue GetValueCaseInsensitive<TValue>(this IDictionary<string, TValue> dictionary, string key) => TryGetValueCaseInsensitive(dictionary, key, out var val) ? val : default;
+    public static TValue? GetValueCaseInsensitive<TValue>(this IDictionary<string, TValue> dictionary, string key) => TryGetValueCaseInsensitive(dictionary, key, out var val) ? val : default;
 
-    public static bool TryGetValueCaseInsensitive<TValue>(this IDictionary<string, TValue> dictionary, string key, out TValue value)
+    public static bool TryGetValueCaseInsensitive<TValue>(this IDictionary<string, TValue> dictionary, string? key, out TValue? value)
     {
         if (key == null)
         {
@@ -645,7 +643,6 @@ public static class ExtensionsCollection
     {
         // TODO: Add overload for single item for performance
 
-        itemsToAdd ??= Array.Empty<T>();
         var arrayNew = new T[array.Length + itemsToAdd.Length];
         for (var i = 0; i < itemsToAdd.Length; i++) arrayNew[i] = itemsToAdd[i];
 
@@ -658,7 +655,6 @@ public static class ExtensionsCollection
     {
         // TODO: Add overload for single item for performance
 
-        itemsToAdd ??= Array.Empty<T>();
         var arrayNew = new T[array.Length + itemsToAdd.Length];
         for (var i = 0; i < array.Length; i++) arrayNew[i] = array[i];
 
@@ -667,12 +663,12 @@ public static class ExtensionsCollection
         return arrayNew;
     }
 
-    public static void AddIfNotNull<T>(this ICollection<T> collection, T item) where T : class
+    public static void AddIfNotNull<T>(this ICollection<T> collection, T? item) where T : class
     {
         if (item != null) collection.Add(item);
     }
 
-    public static string AddIfNotNullTrimmed(this ICollection<string> collection, string item)
+    public static string? AddIfNotNullTrimmed(this ICollection<string> collection, string? item)
     {
         var str = item.TrimOrNull();
         if (str != null) collection.Add(str);
@@ -818,7 +814,7 @@ public static class ExtensionsCollection
 
     #region GetAtIndexOrDefault
 
-    public static T GetAtIndexOrDefault<T>(this T[] array, int index, T defaultValue)
+    public static T? GetAtIndexOrDefault<T>(this T[] array, int index, T? defaultValue)
     {
         array.CheckNotNull(nameof(array));
 
@@ -829,9 +825,9 @@ public static class ExtensionsCollection
         return array[index];
     }
 
-    public static T GetAtIndexOrDefault<T>(this T[] array, int index) => GetAtIndexOrDefault(array, index, default);
+    public static T? GetAtIndexOrDefault<T>(this T[] array, int index) => GetAtIndexOrDefault(array, index, default);
 
-    public static T GetAtIndexOrDefault<T>(this IList<T> list, int index, T defaultValue)
+    public static T? GetAtIndexOrDefault<T>(this IList<T> list, int index, T? defaultValue)
     {
         list.CheckNotNull(nameof(list));
 
@@ -842,11 +838,11 @@ public static class ExtensionsCollection
         return list[index];
     }
 
-    public static T GetAtIndexOrDefault<T>(this IList<T> list, int index) => GetAtIndexOrDefault(list, index, default);
+    public static T? GetAtIndexOrDefault<T>(this IList<T> list, int index) => GetAtIndexOrDefault(list, index, default);
 
-    public static T GetAtIndexOrDefault<T>(this ICollection<T> collection, int index, T defaultValue)
+    public static T? GetAtIndexOrDefault<T>(this ICollection<T> collection, int index, T? defaultValue)
     {
-        collection.CheckNotNull(nameof(collection));
+        collection.CheckNotNull();
 
         if (index < 0) return defaultValue;
 
@@ -863,11 +859,11 @@ public static class ExtensionsCollection
         return defaultValue;
     }
 
-    public static T GetAtIndexOrDefault<T>(this ICollection<T> collection, int index) => GetAtIndexOrDefault(collection, index, default);
+    public static T? GetAtIndexOrDefault<T>(this ICollection<T> collection, int index) => GetAtIndexOrDefault(collection, index, default);
 
-    public static T GetAtIndexOrDefault<T>(this IEnumerable<T> enumerable, int index, T defaultValue)
+    public static T? GetAtIndexOrDefault<T>(this IEnumerable<T> enumerable, int index, T? defaultValue)
     {
-        if (enumerable == null) return defaultValue;
+        enumerable.CheckNotNull();
 
         if (index < 0) return defaultValue;
 
@@ -882,7 +878,7 @@ public static class ExtensionsCollection
         return defaultValue;
     }
 
-    public static T GetAtIndexOrDefault<T>(this IEnumerable<T> enumerable, int index) => GetAtIndexOrDefault(enumerable, index, default);
+    public static T? GetAtIndexOrDefault<T>(this IEnumerable<T> enumerable, int index) => GetAtIndexOrDefault(enumerable, index, default);
 
     #endregion GetAtIndexOrDefault
 
@@ -910,8 +906,6 @@ public static class ExtensionsCollection
 
     public static T?[] WhereNotNull<T>(this T?[] array) where T : struct
     {
-        if (array == null) return null;
-
         var newArraySize = array.Count(t => t != null);
 
         var newArray = new T?[newArraySize];
@@ -964,25 +958,25 @@ public static class ExtensionsCollection
 
     #region Dictionary
 
-    public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) => new(dictionary);
+    public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
 
-    public static TValue GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TValue : class => dictionary.TryGetValue(key, out var value) ? value : null;
+    public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TValue : class => dictionary.TryGetValue(key, out var value) ? value : null;
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue?> dictionary, TKey key) where TValue : struct => dictionary.TryGetValue(key, out var value) ? value : null;
 
-    public static TValue GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue[]> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
+    public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue[]> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue?[]> dictionary, TKey key, int index) where TValue : struct => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
-    public static TValue GetValueNullable<TKey, TValue>(this IDictionary<TKey, IList<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
+    public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, IList<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, IList<TValue?>> dictionary, TKey key, int index) where TValue : struct => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
-    public static TValue GetValueNullable<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
+    public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, List<TValue?>> dictionary, TKey key, int index) where TValue : struct => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
-    public static TValue GetValueNullable<TKey, TValue>(this IDictionary<TKey, IReadOnlyList<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
+    public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, IReadOnlyList<TValue>> dictionary, TKey key, int index) where TValue : class => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, IReadOnlyList<TValue?>> dictionary, TKey key, int index) where TValue : struct => dictionary.TryGetValue(key, out var value) ? value.GetAtIndexOrDefault(index) : null;
 
@@ -995,7 +989,7 @@ public static class ExtensionsCollection
     /// <param name="key">Key</param>
     /// <param name="values">Values</param>
     /// <returns>True if a new list was created, otherwise false</returns>
-    public static bool AddToList<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, params TValue[] values)
+    public static bool AddToList<TKey, TValue>(this IDictionary<TKey, List<TValue>> dictionary, TKey key, params TValue[]? values)
     {
         if (values == null || values.Length < 1) return false;
 
@@ -1027,7 +1021,7 @@ public static class ExtensionsCollection
         foreach (var item in enumerable) set.Add(item);
     }
 
-    public static void Add<T>(this ISet<T> set, T item1, T item2, params T[] items)
+    public static void Add<T>(this ISet<T> set, T item1, T item2, params T[]? items)
     {
         set.Add(item1);
         set.Add(item2);
@@ -1041,7 +1035,7 @@ public static class ExtensionsCollection
 
     #region Enumerator
 
-    public static bool TryGetNext<T>(this IEnumerator<T> enumerator, out T obj)
+    public static bool TryGetNext<T>(this IEnumerator<T> enumerator, out T? obj)
     {
         var moveNext = enumerator.MoveNext();
         if (moveNext)
@@ -1054,7 +1048,7 @@ public static class ExtensionsCollection
         return false;
     }
 
-    public static bool TryGetNext(this IEnumerator enumerator, out object obj)
+    public static bool TryGetNext(this IEnumerator enumerator, out object? obj)
     {
         var moveNext = enumerator.MoveNext();
         if (moveNext)
@@ -1095,7 +1089,7 @@ public static class ExtensionsCollection
     /// <remarks>
     /// Can be called as either static method: EnumerableExtensions.Compare(a, b) or extension method: a.Compare(b).
     /// </remarks>
-    public static int CompareToEnumerable<T>(this IEnumerable<T> obj, IEnumerable<T> other) where T : IComparable<T>
+    public static int CompareToEnumerable<T>(this IEnumerable<T?>? obj, IEnumerable<T?>? other) where T : IComparable<T>
     {
         if (obj == null) return other == null ? 0 : -1;
         if (other == null) return 1;

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,7 @@ public class JsonWriter : IDisposable
 
     private readonly MemoryStream stream;
     private readonly Utf8JsonWriter writer;
-    private string toString;
+    private string? toString;
     private readonly SingleUse isDisposed = new();
 
     public JsonWriter(bool formatted = false)
@@ -56,7 +56,7 @@ public class JsonWriter : IDisposable
         stream.Dispose();
     }
 
-    public override string ToString()
+    public override string? ToString()
     {
         if (!isDisposed.IsUsed)
         {
@@ -67,7 +67,7 @@ public class JsonWriter : IDisposable
         return toString;
     }
 
-    public IDisposable Object(string objectName = null)
+    public IDisposable Object(string? objectName = null)
     {
         if (objectName == null) { writer.WriteStartObject(); }
         else { writer.WriteStartObject(objectName); }
@@ -75,7 +75,7 @@ public class JsonWriter : IDisposable
         return new ObjectToken(this);
     }
 
-    public IDisposable Array(string arrayPropertyName = null)
+    public IDisposable Array(string? arrayPropertyName = null)
     {
         if (arrayPropertyName == null) { writer.WriteStartArray(); }
         else { writer.WriteStartArray(arrayPropertyName); }

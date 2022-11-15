@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,7 +36,7 @@ public static partial class Util
 
     #endregion IsEqual
 
-    public static int Compare<TEnumerable1, TEnumerable2, TItem>(TEnumerable1 enumerable1, TEnumerable2 enumerable2, IComparer<TItem> comparer) where TEnumerable1 : IEnumerable<TItem> where TEnumerable2 : IEnumerable<TItem>
+    public static int Compare<TEnumerable1, TEnumerable2, TItem>(TEnumerable1? enumerable1, TEnumerable2? enumerable2, IComparer<TItem> comparer) where TEnumerable1 : IEnumerable<TItem> where TEnumerable2 : IEnumerable<TItem>
     {
         if (enumerable1 == null) return enumerable2 == null ? 0 : -1;
 

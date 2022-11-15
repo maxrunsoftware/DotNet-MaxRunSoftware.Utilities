@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Microsoft.Extensions.Logging;
+// ReSharper disable InconsistentNaming
 
 namespace MaxRunSoftware.Utilities;
 
@@ -86,7 +87,7 @@ public static partial class Util
 
     public static string FileChangeNameAppendLeft(string file, string stringToAppend) => FileChangeName(file, stringToAppend + Path.GetFileNameWithoutExtension(Path.GetFullPath(file)));
 
-    public static string FileChangeExtension(string file, string newExtension)
+    public static string FileChangeExtension(string file, string? newExtension)
     {
         file = Path.GetFullPath(file);
         var dir = Path.GetDirectoryName(file);
@@ -219,7 +220,7 @@ public static partial class Util
         return true;
     }
 
-    public static string FileGetParent(string path)
+    public static string? FileGetParent(string path)
     {
         path = Path.GetFullPath(path);
         string reassemblyChar;
@@ -294,7 +295,6 @@ public static partial class Util
 
     public static string FilenameSanitize(string path, string replacement)
     {
-        if (path == null) return null;
         //if (replacement == null) throw new ArgumentNullException("replacement");
 
         var illegalChars = new HashSet<char>(Path.GetInvalidFileNameChars());

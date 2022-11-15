@@ -35,9 +35,9 @@ public static partial class Constant
 
     #region Helpers
 
-    private static ImmutableDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(params (TKey Key, TValue Value)[] items) => CreateDictionary(null, items);
+    private static ImmutableDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(params (TKey Key, TValue Value)[] items) where TKey : notnull => CreateDictionary(null, items);
 
-    private static ImmutableDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(IEqualityComparer<TKey> comparer, params (TKey Key, TValue Value)[] items)
+    private static ImmutableDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(IEqualityComparer<TKey>? comparer, params (TKey Key, TValue Value)[]? items) where TKey : notnull
     {
         items ??= Array.Empty<(TKey Key, TValue Value)>();
         var b = comparer != null ? ImmutableDictionary.CreateBuilder<TKey, TValue>(comparer) : ImmutableDictionary.CreateBuilder<TKey, TValue>();
@@ -45,11 +45,11 @@ public static partial class Constant
         return b.ToImmutable();
     }
 
-    private static ImmutableHashSet<T> CreateHashSet<T>(params T[] items) => CreateHashSetInternal(null, items);
+    private static ImmutableHashSet<T> CreateHashSet<T>(params T[]? items) => CreateHashSetInternal(null, items);
 
-    private static ImmutableHashSet<T> CreateHashSet<T>(IEqualityComparer<T> comparer, params T[] items) => CreateHashSetInternal(comparer, items);
+    private static ImmutableHashSet<T> CreateHashSet<T>(IEqualityComparer<T> comparer, params T[]? items) => CreateHashSetInternal(comparer, items);
 
-    private static ImmutableHashSet<T> CreateHashSetInternal<T>(IEqualityComparer<T> comparer, params T[] items)
+    private static ImmutableHashSet<T> CreateHashSetInternal<T>(IEqualityComparer<T>? comparer, params T[]? items)
     {
         items ??= Array.Empty<T>();
         var b = comparer != null ? ImmutableHashSet.CreateBuilder(comparer) : ImmutableHashSet.CreateBuilder<T>();
@@ -58,7 +58,7 @@ public static partial class Constant
     }
 
 
-    private static void LogError(Exception exception, [CallerMemberName] string memberName = "")
+    private static void LogError(Exception? exception, [CallerMemberName] string memberName = "")
     {
         var msg = nameof(Constant) + "." + memberName + "() failed.";
         if (exception != null)
@@ -99,7 +99,7 @@ public static partial class Constant
         }
     }
 
-    private static string TrimOrNull(string str)
+    private static string? TrimOrNull(string? str)
     {
         if (str == null) return null;
 

@@ -1,17 +1,21 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#nullable disable
+
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable InconsistentNaming
 
 namespace MaxRunSoftware.Utilities;
@@ -46,8 +50,7 @@ public static class JavaPropertiesExtensions
 
     public static void LoadFile(this JavaProperties properties, string filename, Encoding encoding = null)
     {
-        if (encoding == null) encoding = Constant.Encoding_UTF8;
-
+        encoding ??= Constant.Encoding_UTF8;
         using (var fs = Util.FileOpenRead(filename)) { properties.Load(fs, encoding); }
     }
 
@@ -88,7 +91,7 @@ public class JavaProperties : Hashtable
     /// to the ones in this instant.
     /// </summary>
     /// <param name="defaults">
-    /// A Hashtable that holds a set of defafult key value pairs to
+    /// A Hashtable that holds a set of default key value pairs to
     /// return when the requested key has not been set.
     /// </param>
     public JavaProperties(Hashtable defaults) { this.defaults = defaults; }
@@ -174,7 +177,7 @@ public class JavaProperties : Hashtable
     /// Returns an enumerator of all the properties available in this instance - including the
     /// defaults.
     /// </summary>
-    /// <returns>An enumarator for all of the keys including defaults.</returns>
+    /// <returns>An enumerator for all of the keys including defaults.</returns>
     public IEnumerator PropertyNames()
     {
         Hashtable combined;
@@ -487,7 +490,7 @@ public class JavaPropertyReader
     private int ReadCharSafe()
     {
         if (reader.BaseStream.Position == reader.BaseStream.Length)
-            // We have reached the end of the stream. The reder will throw exception if we call Read any further.
+            // We have reached the end of the stream. The reader will throw exception if we call Read any further.
             // We just return -1 now;
         {
             return -1;
@@ -504,7 +507,7 @@ public class JavaPropertyReader
     /// by \r, \n or \r\n) each a key value pair, a comment or a blank line.
     /// </para>
     /// <para>
-    /// Leading whitespace (spaces, tabs, formfeeds) are ignored at the start of any line - and a line that is empty or
+    /// Leading whitespace (spaces, tabs, form feeds) are ignored at the start of any line - and a line that is empty or
     /// contains only whitespace is blank and ignored.
     /// </para>
     /// <para>
@@ -531,7 +534,7 @@ public class JavaPropertyReader
     /// 	'\r' - return
     /// 	'\n' - new line
     /// 	'\\' - add escape character.
-    /// 
+    ///
     /// 	'\ ' - add space in a key or at the start of a value.
     /// 	'\!', '\#' - add comment markers at the start of a key.
     /// 	'\=', '\:' - add a separator in a key.
@@ -577,7 +580,7 @@ public class JavaPropertyReader
     /// by \r, \n or \r\n) each a key value pair, a comment or a blank line.
     /// </para>
     /// <para>
-    /// Leading whitespace (spaces, tabs, formfeeds) are ignored at the start of any line - and a line that is empty or
+    /// Leading whitespace (spaces, tabs, form feeds) are ignored at the start of any line - and a line that is empty or
     /// contains only whitespace is blank and ignored.
     /// </para>
     /// <para>
@@ -604,7 +607,7 @@ public class JavaPropertyReader
     /// 	'\r' - return
     /// 	'\n' - new line
     /// 	'\\' - add escape character.
-    /// 
+    ///
     /// 	'\ ' - add space in a key or at the start of a value.
     /// 	'\!', '\#' - add comment markers at the start of a key.
     /// 	'\=', '\:' - add a separator in a key.
@@ -642,13 +645,13 @@ public class JavaPropertyReader
     /// </summary>
     /// <param name="stream">The input stream that the properties are read from.</param>
     /// <param name="encoding">
-    /// The <see cref="System.Text.Encoding">encoding</see> that is used to read the properies file
+    /// The <see cref="System.Text.Encoding">encoding</see> that is used to read the properties file
     /// stream.
     /// </param>
     public void Parse(Stream stream, Encoding encoding)
     {
         var bufferedStream = new BufferedStream(stream, bufferSize);
-        // the default encoding ISO-8859-1 (codepabe 28592) will be used if we do not pass explicitly different encoding
+        // the default encoding ISO-8859-1 (codepage 28592) will be used if we do not pass explicitly different encoding
         var parserEncoding = encoding ?? JavaProperties.DefaultEncoding;
         reader = new BinaryReader(bufferedStream, parserEncoding);
 

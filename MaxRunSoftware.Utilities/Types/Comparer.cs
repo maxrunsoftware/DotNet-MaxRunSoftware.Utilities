@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
 
 namespace MaxRunSoftware.Utilities;
 
@@ -20,42 +19,44 @@ public abstract class EqualityComparerBase<T> : IEqualityComparer<T>, IEqualityC
 {
     protected virtual bool CheckTypeExact => false;
 
-    public bool Equals(T x, T y)
+    public bool Equals(T? x, T? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (ReferenceEquals(x, null)) return true;
         if (ReferenceEquals(y, null)) return true;
+        // ReSharper disable ConditionIsAlwaysTrueOrFalse
         if (x == null && y == null) return true;
         if (x == null) return false;
         if (y == null) return false;
+        // ReSharper restore ConditionIsAlwaysTrueOrFalse
         if (CheckTypeExact && x.GetType() != y.GetType()) return false;
         //if (GetHashCode(x) != GetHashCode(y)) return false;
         return EqualsInternal(x, y);
     }
 
-    protected abstract bool EqualsInternal([NotNull] T x, [NotNull] T y);
+    protected abstract bool EqualsInternal(T x, T y);
 
     public int GetHashCode(T obj)
     {
         // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         // ReSharper disable once HeuristicUnreachableCode
         if (obj == null) return 0;
-        var v = new List<object>();
+        var v = new List<object?>();
         if (CheckTypeExact) v.Add(obj.GetType());
         GetHashCodeValues(obj, v);
         if (v.Count == 0) return 0;
         return Util.HashEnumerable(v);
     }
 
-    protected abstract void GetHashCodeValues([NotNull] T obj, [NotNull] List<object> v);
+    protected abstract void GetHashCodeValues(T obj, List<object?> v);
 
-    protected int HashOrdinalIgnoreCase(string s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
-    protected int HashOrdinal(string s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
+    protected int HashOrdinalIgnoreCase(string? s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
+    protected int HashOrdinal(string? s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
 
     protected bool EqualsOrdinalIgnoreCase(string o1, string o2) => StringComparer.OrdinalIgnoreCase.Equals(o1, o2);
     protected bool EqualsOrdinal(string o1, string o2) => StringComparer.Ordinal.Equals(o1, o2);
 
-    public new bool Equals(object x, object y)
+    public new bool Equals(object? x, object? y)
     {
         if (x is T xt && y is T yt) return Equals(xt, yt);
 
@@ -72,14 +73,16 @@ public abstract class EqualityComparerBase<T> : IEqualityComparer<T>, IEqualityC
 
 public abstract class ComparerBase<T> : EqualityComparerBase<T>, IComparer<T>, IComparer
 {
-    public int Compare(T x, T y)
+    public int Compare(T? x, T? y)
     {
         if (ReferenceEquals(x, y)) return 0;
         if (ReferenceEquals(x, null)) return -1;
         if (ReferenceEquals(y, null)) return 1;
+        // ReSharper disable ConditionIsAlwaysTrueOrFalse
         if (x == null && y == null) return 0;
         if (x == null) return -1;
         if (y == null) return 1;
+        // ReSharper restore ConditionIsAlwaysTrueOrFalse
         if (CheckTypeExact)
         {
             var c = new TypeSlim(x.GetType()).CompareTo(new TypeSlim(y.GetType()));
@@ -90,12 +93,12 @@ public abstract class ComparerBase<T> : EqualityComparerBase<T>, IComparer<T>, I
         return CompareInternal(x, y);
     }
 
-    protected abstract int CompareInternal([NotNull] T x, [NotNull] T y);
+    protected abstract int CompareInternal(T x, T y);
 
     protected int CompareOrdinalIgnoreCase(string o1, string o2) => StringComparer.OrdinalIgnoreCase.Compare(o1, o2);
     protected int CompareOrdinal(string o1, string o2) => StringComparer.Ordinal.Compare(o1, o2);
 
-    public int Compare(object x, object y)
+    public int Compare(object? x, object? y)
     {
         if (x is T xt) return y is T yt ? Compare(xt, yt) : 1;
         if (y is T) return -1;
@@ -123,7 +126,7 @@ public abstract class ComparerListBase<T, TList> : ComparerBase<TList> where TLi
         return true;
     }
 
-    protected abstract bool EqualsInternal([NotNull] T x, [NotNull] T y);
+    protected abstract bool EqualsInternal(T x, T y);
 
 
     protected override int CompareInternal(TList x, TList y)
@@ -146,10 +149,10 @@ public abstract class ComparerListBase<T, TList> : ComparerBase<TList> where TLi
         return xCount - yCount;
     }
 
-    protected abstract int CompareInternal([NotNull] T x, [NotNull] T y);
+    protected abstract int CompareInternal(T x, T y);
 
 
-    protected override void GetHashCodeValues(TList obj, List<object> v)
+    protected override void GetHashCodeValues(TList obj, List<object?> v)
     {
         var count = obj.Count;
         if (count == 0) return;
@@ -159,7 +162,7 @@ public abstract class ComparerListBase<T, TList> : ComparerBase<TList> where TLi
             if (ReferenceEquals(item, null)) v.Add(0);
             else
             {
-                var itemsToHash = new List<object>();
+                var itemsToHash = new List<object?>();
                 GetHashCodeValues(item, itemsToHash);
                 var itemsHashed = Util.Hash(itemsToHash);
                 v.Add(itemsHashed);
@@ -167,12 +170,12 @@ public abstract class ComparerListBase<T, TList> : ComparerBase<TList> where TLi
         }
     }
 
-    protected abstract void GetHashCodeValues([NotNull] T obj, [NotNull] List<object> v);
+    protected abstract void GetHashCodeValues(T obj, List<object?> v);
 }
 
 public class ComparerListComparable<T, TList> : ComparerListBase<T, TList> where TList : IReadOnlyList<T> where T : IEquatable<T>, IComparable<T>
 {
     protected override bool EqualsInternal(T x, T y) => x.Equals(y);
     protected override int CompareInternal(T x, T y) => x.CompareTo(y);
-    protected override void GetHashCodeValues(T obj, List<object> v) => v.Add(obj.GetHashCode());
+    protected override void GetHashCodeValues(T obj, List<object?> v) => v.Add(obj.GetHashCode());
 }

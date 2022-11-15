@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
@@ -29,13 +28,14 @@ public abstract class ThreadBase : IDisposable
     public bool IsStarted => isStarted.IsUsed;
     private readonly SingleUse isDisposed;
     public bool IsDisposed => isDisposed.IsUsed;
-    public string Name => thread.Name;
+    public string Name => thread.Name ?? nameDefault;
+    private readonly string nameDefault;
 
     //public int DisposeTimeoutSeconds { get; set; } = 10;
     public bool IsRunning => thread.IsAlive;
 
     public ThreadState ThreadState => thread.ThreadState;
-    public Exception Exception { get; protected set; }
+    public Exception? Exception { get; protected set; }
 
     protected readonly ILogger log;
     protected ThreadBase()
@@ -44,6 +44,7 @@ public abstract class ThreadBase : IDisposable
         isStarted = new SingleUse(Locker);
         isDisposed = new SingleUse(Locker);
         thread = new Thread(WorkPrivate);
+        nameDefault = GetType().FullNameFormatted();
     }
 
     private void WorkPrivate()
@@ -94,7 +95,7 @@ public abstract class ThreadBase : IDisposable
         if (!isStarted.TryUse()) throw new InvalidOperationException("Start() already called");
 
         thread.IsBackground = isBackgroundThread;
-        thread.Name = name ?? GetType().FullNameFormatted();
+        thread.Name = name ?? nameDefault;
         log.LogDebug("Starting thread '{ThreadName}' with IsBackground={ThreadIsBackground} of type '{FullNameFormatted}'", thread.Name, thread.IsBackground, GetType().FullNameFormatted());
 
         thread.Start();

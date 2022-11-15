@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,12 +20,14 @@ public static class ExtensionsByte
 {
     #region IsValidUTF8
 
+    // ReSharper disable once InconsistentNaming
     public static bool IsValidUTF8(this byte[] buffer) => IsValidUTF8(buffer, buffer.Length);
 
     /// <summary></summary>
     /// <param name="buffer"></param>
     /// <param name="length"></param>
     /// <returns></returns>
+    // ReSharper disable once InconsistentNaming
     public static bool IsValidUTF8(this byte[] buffer, int length)
     {
         var position = 0;
@@ -46,6 +48,7 @@ public static class ExtensionsByte
     /// <param name="length"></param>
     /// <param name="bytes"></param>
     /// <returns></returns>
+    // ReSharper disable once InconsistentNaming
     public static bool IsValidUTF8(this byte[] buffer, int position, int length, ref int bytes)
     {
         if (length > buffer.Length) throw new ArgumentException("Invalid length");
@@ -243,7 +246,7 @@ public static class ExtensionsByte
         // alternative unsafe option https://stackoverflow.com/a/8808245
         EqualsBytes(b1, b2, false);
 
-    public static bool EqualsBytes(this byte[] b1, byte[] b2, bool reverse)
+    public static bool EqualsBytes(this byte[]? b1, byte[]? b2, bool reverse)
     {
         if (b1 == b2) return true; //reference equality check
 

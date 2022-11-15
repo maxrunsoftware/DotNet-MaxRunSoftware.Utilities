@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -97,7 +97,7 @@ public static class ExtensionsStream
         fs.Flush();
     }
 
-    public static bool FlushSafe(this Stream stream)
+    public static bool FlushSafe(this Stream? stream)
     {
         if (stream == null) return false;
 
@@ -109,7 +109,7 @@ public static class ExtensionsStream
         catch (Exception) { return false; }
     }
 
-    public static bool CloseSafe(this Stream stream)
+    public static bool CloseSafe(this Stream? stream)
     {
         if (stream == null) return false;
 
@@ -121,7 +121,7 @@ public static class ExtensionsStream
         catch (Exception) { return false; }
     }
 
-    public static bool FlushSafe(this StreamWriter writer)
+    public static bool FlushSafe(this StreamWriter? writer)
     {
         if (writer == null) return false;
 
@@ -133,7 +133,7 @@ public static class ExtensionsStream
         catch (Exception) { return false; }
     }
 
-    public static bool CloseSafe(this StreamWriter writer)
+    public static bool CloseSafe(this StreamWriter? writer)
     {
         if (writer == null) return false;
 
@@ -145,7 +145,7 @@ public static class ExtensionsStream
         catch (Exception) { return false; }
     }
 
-    public static bool FlushSafe(this BinaryWriter writer)
+    public static bool FlushSafe(this BinaryWriter? writer)
     {
         if (writer == null) return false;
 
@@ -157,7 +157,7 @@ public static class ExtensionsStream
         catch (Exception) { return false; }
     }
 
-    public static bool CloseSafe(this BinaryWriter writer)
+    public static bool CloseSafe(this BinaryWriter? writer)
     {
         if (writer == null) return false;
 

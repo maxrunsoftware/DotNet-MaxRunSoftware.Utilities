@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -147,13 +147,13 @@ public static class ExtensionsToString
 
     public static string ToStringTotalSeconds(this TimeSpan timeSpan, int numberOfDecimalDigits = 0) => timeSpan.TotalSeconds.ToString(MidpointRounding.AwayFromZero, Math.Max(0, numberOfDecimalDigits));
 
-    private static readonly string[] toStringBase16Cache = Enumerable.Range(0, 256).Select(o => BitConverter.ToString(new[] { (byte)o })).ToArray();
+    private static readonly string[] TO_STRING_BASE16_CACHE = Enumerable.Range(0, 256).Select(o => BitConverter.ToString(new[] { (byte)o })).ToArray();
 
-    public static string ToStringBase16(this byte b) => toStringBase16Cache[b];
+    public static string ToStringBase16(this byte b) => TO_STRING_BASE16_CACHE[b];
 
-    private static readonly string[] toStringBase64Cache = Enumerable.Range(0, 256).Select(o => Convert.ToBase64String(new[] { (byte)o }).Substring(0, 2)).ToArray();
+    private static readonly string[] TO_STRING_BASE64_CACHE = Enumerable.Range(0, 256).Select(o => Convert.ToBase64String(new[] { (byte)o }).Substring(0, 2)).ToArray();
 
-    public static string ToStringBase64(this byte b) => toStringBase64Cache[b];
+    public static string ToStringBase64(this byte b) => TO_STRING_BASE64_CACHE[b];
 }
 
 public enum DateTimeToStringFormat

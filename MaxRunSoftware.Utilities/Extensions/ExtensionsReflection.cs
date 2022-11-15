@@ -51,14 +51,14 @@ public static class ExtensionsReflection
 
     #endregion BindingFlags
 
-    public static string GetFileVersion(this Assembly assembly) => FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
+    public static string? GetFileVersion(this Assembly assembly) => FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 
-    public static string GetVersion(this Assembly assembly) => assembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version;
+    public static string? GetVersion(this Assembly assembly) => assembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version;
 
-    private static readonly string anonymousMagicTag;
-    private static readonly string innerMagicTag;
-    public static bool IsAnonymous(this MethodInfo mi) => mi.Name.Contains(anonymousMagicTag);
-    public static bool IsInner(this MethodInfo mi) => mi.Name.Contains(innerMagicTag);
+    private static readonly string MAGIC_TAG_ANONYMOUS;
+    private static readonly string MAGIC_TAG_INNER;
+    public static bool IsAnonymous(this MethodInfo mi) => mi.Name.Contains(MAGIC_TAG_ANONYMOUS);
+    public static bool IsInner(this MethodInfo mi) => mi.Name.Contains(MAGIC_TAG_INNER);
 
     private static string GetNameMagicTag(this MethodInfo mi)
     {
@@ -72,12 +72,13 @@ public static class ExtensionsReflection
     {
         // https://stackoverflow.com/a/56496797
         void Inner() { }
+        // ReSharper disable once EmptyStatement
         ;
         var inner = Inner;
-        innerMagicTag = GetNameMagicTag(inner.Method);
+        MAGIC_TAG_INNER = GetNameMagicTag(inner.Method);
 
         var anonymous = () => { };
-        anonymousMagicTag = GetNameMagicTag(anonymous.Method);
+        MAGIC_TAG_ANONYMOUS = GetNameMagicTag(anonymous.Method);
     }
 
 

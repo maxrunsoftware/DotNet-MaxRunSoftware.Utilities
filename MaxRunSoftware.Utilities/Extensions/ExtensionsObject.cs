@@ -58,6 +58,6 @@ public static class ExtensionsComparable
 
 public static class ExtensionsGetHashCode
 {
-    public static int GetHashCodeOrdinal(this string obj) => obj == null ? 0 : StringComparer.Ordinal.GetHashCode(obj);
-    public static int GetHashCodeOrdinalIgnoreCase(this string obj) => obj == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(obj);
+    public static int GetHashCodeOrdinal(this string? obj) => obj == null ? 0 : StringComparer.Ordinal.GetHashCode(obj);
+    public static int GetHashCodeOrdinalIgnoreCase(this string? obj) => obj == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(obj);
 }

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
@@ -106,14 +105,26 @@ public sealed class FileSystemDirectory : FileSystemObject
             // ignore links to other paths
             if (!IsParentOf(currentDirectory)) continue;
 
-            IReadOnlyCollection<FileSystemDirectory> currentDirectoryDirectories = null;
-            // ReSharper disable InconsistentLogPropertyNaming
-            try { currentDirectoryDirectories = currentDirectory.Directories; }
-            catch (Exception e) { log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message); }
-            IReadOnlyCollection<FileSystemFile> currentDirectoryFiles = null;
-            try { currentDirectoryFiles = currentDirectory.Files; }
-            catch (Exception e) { log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message); }
-            // ReSharper restore InconsistentLogPropertyNaming
+            IReadOnlyCollection<FileSystemDirectory> currentDirectoryDirectories = new List<FileSystemDirectory>();
+            try
+            {
+                currentDirectoryDirectories = currentDirectory.Directories;
+            }
+            catch (Exception e)
+            {
+                log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+            }
+
+            IReadOnlyCollection<FileSystemFile> currentDirectoryFiles = new List<FileSystemFile>();
+            try
+            {
+                currentDirectoryFiles = currentDirectory.Files;
+            }
+            catch (Exception e)
+            {
+                log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+            }
+
             foreach (var d in currentDirectoryDirectories.OrEmpty())
             {
                 if (ReferenceEquals(this, d)) continue;

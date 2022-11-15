@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,7 @@ public sealed class MethodCaller
     public bool IsVoid { get; }
     public Delegate Delegate { get; }
 
-    public object Call(object instance, params object[] args)
+    public object? Call(object instance, params object[]? args)
     {
         args ??= Array.Empty<object>();
 
@@ -113,7 +113,7 @@ public sealed class MethodCaller
 
     public static IReadOnlyList<MethodCaller> GetCallers(Type classType, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static) => classType.GetMethods(flags).Select(o => new MethodCaller(o)).ToList();
 
-    public static MethodCaller GetCaller(Type classType, string methodName, params Type[] argumentTypes)
+    public static MethodCaller? GetCaller(Type classType, string methodName, params Type[]? argumentTypes)
     {
         argumentTypes ??= Array.Empty<Type>();
         foreach (var caller in GetCallers(classType))
@@ -136,8 +136,8 @@ public sealed class MethodCaller
         return null;
     }
 
-    public static MethodCaller GetCaller<TArg1>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1));
-    public static MethodCaller GetCaller<TArg1, TArg2>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2));
-    public static MethodCaller GetCaller<TArg1, TArg2, TArg3>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2), typeof(TArg3));
-    public static MethodCaller GetCaller<TArg1, TArg2, TArg3, TArg4>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
+    public static MethodCaller? GetCaller<TArg1>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1));
+    public static MethodCaller? GetCaller<TArg1, TArg2>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2));
+    public static MethodCaller? GetCaller<TArg1, TArg2, TArg3>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2), typeof(TArg3));
+    public static MethodCaller? GetCaller<TArg1, TArg2, TArg3, TArg4>(Type classType, string methodName) => GetCaller(classType, methodName, typeof(TArg1), typeof(TArg2), typeof(TArg3), typeof(TArg4));
 }

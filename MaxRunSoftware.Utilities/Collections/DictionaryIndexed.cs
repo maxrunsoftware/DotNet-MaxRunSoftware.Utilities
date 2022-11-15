@@ -14,6 +14,12 @@
 
 using System.Collections.Specialized;
 
+#nullable disable
+
+// ReSharper disable AssignNullToNotNullAttribute
+// ReSharper disable PossibleNullReferenceException
+
+
 namespace MaxRunSoftware.Utilities;
 
 /// <summary>

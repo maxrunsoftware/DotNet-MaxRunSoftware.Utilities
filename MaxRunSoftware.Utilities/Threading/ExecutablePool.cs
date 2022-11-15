@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
@@ -26,35 +25,38 @@ public interface IExecutablePoolConfig
 {
     IEnumerator<IExecutable> Enumerator { get; }
     int NumberOfThreads { get; }
-    Action<ExecutablePool> OnComplete { get; }
+    Action<ExecutablePool>? OnComplete { get; }
     object SynchronizationLock { get; }
     bool IsBackground { get; }
-    Action<IExecutable, Exception> OnException { get; }
+    Action<IExecutable?, Exception>? OnException { get; }
     bool ShouldExitOnException { get; }
     bool IsEventsSynchronous { get; }
-    string ThreadPoolName { get; }
+    string? ThreadPoolName { get; }
 }
 
 public sealed class ExecutablePoolConfig : IExecutablePoolConfig
 {
     public IEnumerator<IExecutable> Enumerator { get; set; }
     public int NumberOfThreads { get; set; } = 1;
-    public Action<ExecutablePool> OnComplete { get; set; }
+    public Action<ExecutablePool>? OnComplete { get; set; }
     public object SynchronizationLock { get; set; } = new();
     public bool IsBackground { get; set; }
-    public Action<IExecutable, Exception> OnException { get; set; }
+    public Action<IExecutable?, Exception>? OnException { get; set; }
     public bool ShouldExitOnException { get; set; }
     public bool IsEventsSynchronous { get; set; }
-    public string ThreadPoolName { get; set; }
+    public string? ThreadPoolName { get; set; }
 
-    public ExecutablePoolConfig() { }
+    public ExecutablePoolConfig(IEnumerator<IExecutable> enumerator)
+    {
+        Enumerator = enumerator;
+    }
 
     public ExecutablePoolConfig(IExecutablePoolConfig config)
     {
         Enumerator = config.Enumerator;
         NumberOfThreads = config.NumberOfThreads;
         OnComplete = config.OnComplete;
-        SynchronizationLock = config.SynchronizationLock ?? new object();
+        SynchronizationLock = config.SynchronizationLock;
         IsBackground = config.IsBackground;
         OnException = config.OnException;
         ShouldExitOnException = config.ShouldExitOnException;
@@ -65,7 +67,7 @@ public sealed class ExecutablePoolConfig : IExecutablePoolConfig
 
 public sealed class ExecutablePoolState
 {
-    private static readonly IReadOnlyDictionary<int, IExecutable> empty = new Dictionary<int, IExecutable>().AsReadOnly();
+    private static readonly IReadOnlyDictionary<int, IExecutable> EMPTY = new Dictionary<int, IExecutable>().AsReadOnly();
     public ExecutablePool ExecutablePool { get; }
     public int ThreadsTotal { get; }
     public int ThreadsInactive { get; }
@@ -81,13 +83,13 @@ public sealed class ExecutablePoolState
 
     public bool IsComplete { get; }
 
-    public ExecutablePoolState(ExecutablePool executablePool, int threadsTotal, int threadsInactive, IReadOnlyDictionary<int, IExecutable> executingItems, bool isComplete)
+    public ExecutablePoolState(ExecutablePool executablePool, int threadsTotal, int threadsInactive, IReadOnlyDictionary<int, IExecutable>? executingItems, bool isComplete)
     {
         ExecutablePool = executablePool;
         ThreadsTotal = threadsTotal;
         ThreadsInactive = threadsInactive;
         ThreadsActive = threadsTotal - threadsInactive;
-        ExecutingItems = executingItems ?? empty;
+        ExecutingItems = executingItems ?? EMPTY;
         ExecutingItemsIncluded = executingItems != null;
         IsComplete = isComplete;
     }
@@ -111,7 +113,7 @@ public sealed class ExecutablePoolState
 /// </summary>
 public class ExecutablePool : IDisposable
 {
-    private static readonly int maxNumberOfThreads = 1000; // No one needs more then this many threads
+    private static readonly int MAX_NUMBER_OF_THREADS = 1000; // No one needs more then this many threads
     private static volatile int executablePoolNumCount;
     private readonly string configOriginalTypeName;
     private readonly ILogger log;
@@ -159,9 +161,9 @@ public class ExecutablePool : IDisposable
 
         cfg.Enumerator.CheckNotNull(configOriginalTypeName + "." + nameof(IExecutablePoolConfig.Enumerator));
         cfg.NumberOfThreads.CheckMin(1, configOriginalTypeName + "." + nameof(IExecutablePoolConfig.NumberOfThreads));
-        cfg.NumberOfThreads.CheckMax(maxNumberOfThreads, configOriginalTypeName + "." + nameof(IExecutablePoolConfig.NumberOfThreads));
+        cfg.NumberOfThreads.CheckMax(MAX_NUMBER_OF_THREADS, configOriginalTypeName + "." + nameof(IExecutablePoolConfig.NumberOfThreads));
 
-        cfg.SynchronizationLock ??= new object();
+        //cfg.SynchronizationLock ??= new object();
 
         var executablePoolNum = Interlocked.Increment(ref executablePoolNumCount);
         cfg.ThreadPoolName ??= GetType().NameFormatted() + executablePoolNum;
@@ -188,30 +190,36 @@ public class ExecutablePool : IDisposable
         }
     }
 
-    private void OnThreadException(IExecutable executable, Exception e)
+    private void OnThreadException(IExecutable? executable, Exception e)
     {
         var logMsg = executable == null ? $"{Config.ThreadPoolName}: Error calling Enumerator" : $"Error calling {executable.GetType().NameFormatted()}.{nameof(IExecutable.Execute)}()";
-        var action = Config.OnException;
+        var onException = Config.OnException;
 
-        if (action == null)
+        if (onException == null)
         {
+            // TODO: Figure out logging nameof
+            // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
             log.LogWarning(e, logMsg);
             return;
         }
 
+        // TODO: Figure out logging nameof
+        // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
         log.LogTrace(e, logMsg);
         try
         {
             if (Config.IsEventsSynchronous)
             {
-                lock (synchronizationLock) { action(executable, e); }
+                lock (synchronizationLock) { onException(executable, e); }
             }
-            else { action(executable, e); }
+            else { onException(executable, e); }
         }
         catch (Exception ee)
         {
+            // TODO: Figure out logging nameof
+            // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
             log.LogError(ee, $"{Config.ThreadPoolName}: Error calling {configOriginalTypeName}.{nameof(IExecutablePoolConfig.OnException)}");
-            log.LogError(e, $"{Config.ThreadPoolName}: Original Error: {logMsg}");
+            log.LogError(e, "{ThreadPoolName}: Original Error: {LogMsg}", Config.ThreadPoolName, logMsg);
         }
     }
 
@@ -240,7 +248,12 @@ public class ExecutablePool : IDisposable
             }
             else { action(this); }
         }
-        catch (Exception ee) { log.LogError(ee, "Error calling " + configOriginalTypeName + "." + nameof(IExecutablePoolConfig.OnComplete)); }
+        catch (Exception ee)
+        {
+            // TODO: Figure out logging nameof
+            // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
+            log.LogError(ee, "Error calling " + configOriginalTypeName + "." + nameof(IExecutablePoolConfig.OnComplete));
+        }
     }
 
     private void CurrentItemAdd(int itemNum, IExecutable executable)
@@ -283,7 +296,7 @@ public class ExecutablePool : IDisposable
         {
             while (true)
             {
-                IExecutable executable;
+                IExecutable? executable;
                 int itemNum;
                 lock (locker)
                 {

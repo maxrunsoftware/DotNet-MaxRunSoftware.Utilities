@@ -51,7 +51,7 @@ public static partial class Util
     /// <returns>All non-system assemblies currently visible</returns>
     public static Assembly[] GetAssemblies()
     {
-        var items = new Stack<Assembly>();
+        var items = new Stack<Assembly?>();
         try { items.Push(Assembly.GetEntryAssembly()); }
         catch (Exception) { }
 
@@ -115,7 +115,7 @@ public static partial class Util
 
     #region Attributes
 
-    public static TAttribute GetAssemblyAttribute<TClassInAssembly, TAttribute>() where TClassInAssembly : class where TAttribute : class => typeof(TClassInAssembly).GetTypeInfo().Assembly.GetCustomAttributes(typeof(TAttribute)).SingleOrDefault() as TAttribute;
+    public static TAttribute? GetAssemblyAttribute<TClassInAssembly, TAttribute>() where TClassInAssembly : class where TAttribute : class => typeof(TClassInAssembly).GetTypeInfo().Assembly.GetCustomAttributes(typeof(TAttribute)).SingleOrDefault() as TAttribute;
 
     /// <summary>
     /// Helps in discovery of the target of an Attribute
@@ -143,31 +143,34 @@ public static partial class Util
         /// <summary>
         /// Map of attributes and their respective targets
         /// </summary>
-        private static readonly Dictionary<TAttribute, object> targetMap;
+        private static readonly Dictionary<TAttribute, object> TARGET_MAP;
 
         /// <summary>
         /// List of assemblies that should not be rescanned for types.
         /// </summary>
-        private static readonly List<string> skipAssemblies;
+        private static readonly List<string> SKIP_ASSEMBLIES;
 
         /// <summary>
         /// Adds an attribute and it's target to the dictionary
         /// </summary>
         /// <param name="attribute"></param>
         /// <param name="item"></param>
-        private static void Add(TAttribute attribute, object item) => targetMap.Add(attribute, item);
+        private static void Add(TAttribute attribute, object item) => TARGET_MAP.Add(attribute, item);
 
         /// <summary>
         /// Scans an assembly for all instances of the attribute.
         /// </summary>
         /// <param name="assembly"></param>
-        private static void ScanAssembly(Assembly assembly)
+        private static void ScanAssembly(Assembly? assembly)
         {
+            if (assembly == null) return;
+            if (assembly.FullName == null) return;
+
             const BindingFlags memberInfoBinding = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
 
-            if (!skipAssemblies.Contains(assembly.FullName))
+            if (!SKIP_ASSEMBLIES.Contains(assembly.FullName))
             {
-                skipAssemblies.Add(assembly.FullName);
+                SKIP_ASSEMBLIES.Add(assembly.FullName);
 
                 Debug.WriteLine("Loading attribute targets for " + typeof(TAttribute).Name + " from assembly " + assembly.FullName);
 
@@ -193,7 +196,7 @@ public static partial class Util
 
             foreach (var assemblyName in assembly.GetReferencedAssemblies())
             {
-                if (!skipAssemblies.Contains(assemblyName.FullName)) ScanAssembly(Assembly.Load(assemblyName));
+                if (!SKIP_ASSEMBLIES.Contains(assemblyName.FullName)) ScanAssembly(Assembly.Load(assemblyName));
             }
         }
 
@@ -204,7 +207,7 @@ public static partial class Util
         /// <returns>The target of the attribute - either an Assembly, Type or MemberInfo instance.</returns>
         public static object GetTarget(TAttribute attribute)
         {
-            if (targetMap.TryGetValue(attribute, out var result)) return result;
+            if (TARGET_MAP.TryGetValue(attribute, out var result)) return result;
 
             // Since types can be loaded at any time, recheck that all assemblies are included...
             // Walk up the stack in a last-ditch effort to find instances of the attribute.
@@ -213,7 +216,7 @@ public static partial class Util
             // write call stack method names
             foreach (var methodBase in stackTrace.GetFrames().OrEmpty().WhereNotNull().Select(o => o.GetMethod()).WhereNotNull()) ScanAssembly(methodBase.GetType().Assembly);
 
-            if (!targetMap.TryGetValue(attribute, out result)) throw new InvalidProgramException("Cannot find assembly referencing attribute");
+            if (!TARGET_MAP.TryGetValue(attribute, out result)) throw new InvalidProgramException("Cannot find assembly referencing attribute");
             return result;
         }
 
@@ -222,18 +225,18 @@ public static partial class Util
         /// </summary>
         static AttributeTargetHelper()
         {
-            targetMap = new Dictionary<TAttribute, object>();
+            TARGET_MAP = new Dictionary<TAttribute, object>();
 
             // Do not load any assemblies reference by the assembly which declares the attribute, since they cannot possibly use the attribute
-            skipAssemblies = new List<string>(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
+            SKIP_ASSEMBLIES = new List<string>(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
 
             // Skip common system assemblies
-            skipAssemblies.Add("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            skipAssemblies.Add("System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            skipAssemblies.Add("System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            skipAssemblies.Add("System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-            skipAssemblies.Add("System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            skipAssemblies.Add("System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            SKIP_ASSEMBLIES.Add("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            SKIP_ASSEMBLIES.Add("System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            SKIP_ASSEMBLIES.Add("System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            SKIP_ASSEMBLIES.Add("System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            SKIP_ASSEMBLIES.Add("System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            SKIP_ASSEMBLIES.Add("System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
             // Scan the entire application
             ScanAssembly(Assembly.GetEntryAssembly());
@@ -281,6 +284,11 @@ public static partial class Util
     }
 
 
+    private static string GetMethodName(MethodInfo? method)
+    {
+        return (method == null ? "?" : (method.DeclaringType == null ? "?" : method.DeclaringType.FullNameFormatted())) + "." + (method == null ? "?" : method.Name);
+    }
+
     /// <summary>
     /// Creates an Action from a MethodInfo. The method provided must have 0 parameters.
     /// </summary>
@@ -291,7 +299,7 @@ public static partial class Util
         method.CheckNotNull(nameof(method));
 
         // https://stackoverflow.com/a/2933227
-        if (method.GetParameters().Length > 0) throw new Exception("Expecting method " + method.DeclaringType.FullNameFormatted() + "." + method.Name + " containing 0 parameters");
+        if (method.GetParameters().Length > 0) throw new Exception($"Expecting method {GetMethodName(method)} containing 0 parameters");
 
         var input = Expression.Parameter(typeof(object), "input");
         var compiledExp = Expression.Lambda<Action<object>>(
@@ -312,9 +320,9 @@ public static partial class Util
         method.CheckNotNull(nameof(method));
 
         // https://stackoverflow.com/a/2933227
-        if (method.ReturnType != typeof(T)) throw new Exception("Wrong return type specified for method " + method.DeclaringType.FullNameFormatted() + "." + method.Name + " expecting " + method.ReturnType.FullNameFormatted() + " but instead called with " + typeof(T).FullNameFormatted());
+        if (method.ReturnType != typeof(T)) throw new Exception($"Wrong return type specified for method {GetMethodName(method)} expecting " + method.ReturnType.FullNameFormatted() + " but instead called with " + typeof(T).FullNameFormatted());
 
-        if (method.GetParameters().Length > 0) throw new Exception("Expecting method " + method.DeclaringType.FullNameFormatted() + "." + method.Name + " containing 0 parameters");
+        if (method.GetParameters().Length > 0) throw new Exception($"Expecting method {GetMethodName(method)} containing 0 parameters");
 
         var input = Expression.Parameter(typeof(object), "input");
         var compiledExp = Expression.Lambda<Func<object, T>>(

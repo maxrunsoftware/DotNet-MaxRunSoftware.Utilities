@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,6 +58,7 @@ public static partial class Util
     /// Get all of the IP addresses on the current machine
     /// </summary>
     /// <returns>The IP addresses</returns>
+    // ReSharper disable once InconsistentNaming
     public static IEnumerable<IPAddress> NetGetIPAddresses() =>
         NetworkInterface.GetAllNetworkInterfaces()
             .Where(o => o.OperationalStatus == OperationalStatus.Up)
@@ -121,20 +122,24 @@ public static partial class Util
 
     #region Web
 
-    public static string WebParseFilename(string url)
+    public static string? WebParseFilename(string url)
     {
         var outputFile = url.Split('/').TrimOrNull().WhereNotNull().LastOrDefault();
-        outputFile = FilenameSanitize(outputFile, "_");
+        if (outputFile != null)
+        {
+            outputFile = FilenameSanitize(outputFile, "_");
+        }
+
         return outputFile;
     }
 
     public sealed class WebResponse
     {
         public string Url { get; }
-        public byte[] Data { get; }
+        public byte[]? Data { get; }
         public IDictionary<string, List<string>> Headers { get; }
 
-        public string ContentType
+        public string? ContentType
         {
             get
             {
@@ -147,16 +152,19 @@ public static partial class Util
             }
         }
 
-        public WebResponse(string url, byte[] data, WebHeaderCollection headers)
+        public WebResponse(string url, byte[]? data, WebHeaderCollection? headers)
         {
             Url = url;
             Data = data;
             var d = new SortedDictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-            for (var i = 0; i < headers.Count; i++)
+            if (headers != null)
             {
-                var key = headers.GetKey(i).TrimOrNull();
-                var val = headers.Get(i);
-                if (key != null && val.TrimOrNull() != null) d.AddToList(key, val);
+                for (var i = 0; i < headers.Count; i++)
+                {
+                    var key = headers.GetKey(i).TrimOrNull();
+                    var val = headers.Get(i);
+                    if (key != null && val != null && val.TrimOrNull() != null) d.AddToList(key, val);
+                }
             }
 
             Headers = d;
@@ -164,7 +172,7 @@ public static partial class Util
 
         public override string ToString() => GetType().Name + $"[{Url}] Headers:{Headers.Count} Data:" + (Data == null ? "null" : Data.Length);
 
-        public string ToStringDetail()
+        public string? ToStringDetail()
         {
             var sb = new StringBuilder();
             sb.AppendLine(GetType().Name);
@@ -174,9 +182,6 @@ public static partial class Util
             {
                 var key = kvp.Key;
                 var valList = kvp.Value;
-                if (key == null) continue;
-
-                if (valList == null) continue;
 
                 if (valList.IsEmpty()) continue;
 
@@ -191,7 +196,7 @@ public static partial class Util
         }
     }
 
-    public static WebResponse WebDownload(string url, string outFilename = null, string username = null, string password = null, IDictionary<string, string> cookies = null)
+    public static WebResponse WebDownload(string url, string? outFilename = null, string? username = null, string? password = null, IDictionary<string, string>? cookies = null)
     {
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
         var cli = new WebClient();
@@ -225,7 +230,7 @@ public static partial class Util
 
             try
             {
-                byte[] data = null;
+                byte[]? data = null;
                 if (outFilename == null) { data = cli.DownloadData(url); }
                 else { cli.DownloadFile(url, outFilename); }
 
@@ -238,7 +243,7 @@ public static partial class Util
                 // https://stackoverflow.com/a/26016919
                 var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
                 cli.Headers[HttpRequestHeader.Authorization] = $"Basic {credentials}";
-                byte[] data = null;
+                byte[]? data = null;
                 if (outFilename == null) { data = cli.DownloadData(url); }
                 else { cli.DownloadFile(url, outFilename); }
 
@@ -263,7 +268,7 @@ public static partial class Util
         var previousChar = char.MinValue;
         var position = 0;
 
-        Tuple<string, string> ParseComponent(StringBuilder sb)
+        Tuple<string, string>? ParseComponent(StringBuilder sb)
         {
             var s = sb.ToString();
             sb.Clear();
