@@ -78,8 +78,8 @@ public record CommandLineArgumentsParserResult(
 }
 
 public record CommandLineArgumentsParserOptions(
-    char OptionDelimiter,
     char OptionIdentifier,
+    char OptionDelimiter,
     bool OptionsCaseSensitive
 );
 
@@ -144,7 +144,7 @@ public class CommandLineArgumentsParser
                 result.Args.Add(CommandLineArgumentParserArg.CreateArgument(index, arg, v));
                 result.Arguments.Add(arg);
             }
-            else if (opt.Item2 == null) // flag 
+            else if (opt.Item2 == null) // flag
             {
                 var n = opt.Item1.CheckNotNullTrimmed();
                 result.Args.Add(CommandLineArgumentParserArg.CreateFlag(index, arg, n));

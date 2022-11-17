@@ -27,8 +27,8 @@ public static class ExtensionsEquatable
     public static bool EqualsNullable<T>(this T? obj, T other) where T : struct, IEquatable<T> => obj == null ? false : obj.Value.Equals(other);
     public static bool EqualsNullable<T>(this T obj, T? other) where T : struct, IEquatable<T> => other == null ? false : obj.Equals(other.Value);
 
-    public static bool EqualsOrdinal(this string obj, string other) => StringComparer.Ordinal.Equals(obj, other);
-    public static bool EqualsOrdinalIgnoreCase(this string obj, string other) => StringComparer.OrdinalIgnoreCase.Equals(obj, other);
+    public static bool EqualsOrdinal(this string? obj, string? other) => StringComparer.Ordinal.Equals(obj, other);
+    public static bool EqualsOrdinalIgnoreCase(this string? obj, string? other) => StringComparer.OrdinalIgnoreCase.Equals(obj, other);
 }
 
 public static class ExtensionsComparable

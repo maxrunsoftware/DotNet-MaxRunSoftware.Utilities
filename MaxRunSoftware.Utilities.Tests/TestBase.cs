@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Security.Cryptography.X509Certificates;
+
 namespace MaxRunSoftware.Utilities.Tests;
 
 public class TestBase
 {
+    protected readonly ITestOutputHelper output;
     public TestBase(ITestOutputHelper testOutputHelper)
     {
+        output = testOutputHelper;
         /*
         var type = testOutputHelper.GetType();
         var testField = type.GetField("test", BindingFlags.Instance | BindingFlags.NonPublic);
