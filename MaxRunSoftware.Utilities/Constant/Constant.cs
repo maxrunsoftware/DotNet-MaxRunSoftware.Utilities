@@ -45,6 +45,14 @@ public static partial class Constant
         return b.ToImmutable();
     }
 
+    private static ImmutableArray<T> CreateArray<T>(params T[] items)
+    {
+        var b = ImmutableArray.CreateBuilder<T>();
+        foreach (var item in items) b.Add(item);
+        return b.ToImmutable();
+    }
+
+
     private static ImmutableHashSet<T> CreateHashSet<T>(params T[]? items) => CreateHashSetInternal(null, items);
 
     private static ImmutableHashSet<T> CreateHashSet<T>(IEqualityComparer<T> comparer, params T[]? items) => CreateHashSetInternal(comparer, items);
@@ -102,9 +110,27 @@ public static partial class Constant
     private static string? TrimOrNull(string? str)
     {
         if (str == null) return null;
-
         str = str.Trim();
         return str.Length == 0 ? null : str;
+    }
+
+    private static List<string> PermuteCase( string s )
+    {
+        // https://stackoverflow.com/a/905377
+        var listPermutations = new List<string>();
+        var array = s.ToLower().ToCharArray();
+        var iterations = (1 << array.Length) - 1;
+        for( var i = 0; i <= iterations; i++ )
+        {
+            for( var j = 0; j < array.Length; j++ )
+            {
+                array[j] = (i & (1<<j)) != 0
+                    ? char.ToUpper( array[j] )
+                    : char.ToLower( array[j] );
+            }
+            listPermutations.Add( new string( array ) );
+        }
+        return listPermutations;
     }
 
     #endregion Helpers

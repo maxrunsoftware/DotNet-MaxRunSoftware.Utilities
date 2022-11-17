@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,30 +17,52 @@ namespace MaxRunSoftware.Utilities;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
-    /// <summary>
-    /// Case-Insensitive map of boolean string values to boolean values
-    /// </summary>
-    public static readonly ImmutableDictionary<string, bool> String_Bool = CreateDictionary(StringComparer.OrdinalIgnoreCase,
-        ("1", true),
-        ("T", true),
-        ("TRUE", true),
-        ("Y", true),
-        ("YES", true),
-        ("0", false),
-        ("F", false),
-        ("FALSE", false),
-        ("N", false),
-        ("NO", false)
-    );
-
+    private static readonly ImmutableArray<string> BOOL_TRUE_VALUES = CreateArray("1", "T", "TRUE", "Y", "YES");
+    private static readonly ImmutableArray<string> BOOL_FALSE_VALUES = CreateArray("0", "F", "FALSE", "N", "NO");
 
     /// <summary>
     /// Case-Insensitive hashset of boolean true values
     /// </summary>
-    public static readonly ImmutableHashSet<string> Bool_True = CreateHashSet(StringComparer.OrdinalIgnoreCase, String_Bool.Where(o => o.Value).Select(o => o.Key).ToArray());
+    public static readonly ImmutableHashSet<string> Bool_True = Bool_Values_Create(true);
 
     /// <summary>
     /// Case-Insensitive hashset of boolean false values
     /// </summary>
-    public static readonly ImmutableHashSet<string> Bool_False = CreateHashSet(StringComparer.OrdinalIgnoreCase, String_Bool.Where(o => !o.Value).Select(o => o.Key).ToArray());
+    public static readonly ImmutableHashSet<string> Bool_False = Bool_Values_Create(false);
+
+    private static ImmutableHashSet<string> Bool_Values_Create(bool value)
+    {
+        var array = value ? BOOL_TRUE_VALUES : BOOL_FALSE_VALUES;
+        var hs = new HashSet<string>(
+            array.SelectMany(arrayItem => new[] {
+                arrayItem,
+                arrayItem.ToUpper(),
+                arrayItem.ToUpperInvariant(),
+                arrayItem.ToLower(),
+                arrayItem.ToLowerInvariant()
+            }.Concat(PermuteCase(arrayItem))));
+
+        var b = ImmutableHashSet.CreateBuilder<string>();
+        foreach (var item in hs) b.Add(string.Intern(item));
+        return b.ToImmutable();
+    }
+
+    /// <summary>
+    /// Map of all boolean string values to boolean values
+    /// </summary>
+    public static readonly ImmutableDictionary<string, bool> String_Bool = String_Bool_Create();
+
+    private static ImmutableDictionary<string, bool> String_Bool_Create()
+    {
+        var b = ImmutableDictionary.CreateBuilder<string, bool>();
+        foreach (var s in Bool_True) b.Add(string.Intern(s), true);
+        foreach (var s in Bool_False) b.Add(string.Intern(s), false);
+        return b.ToImmutable();
+    }
+
+
+
+
+
+
 }

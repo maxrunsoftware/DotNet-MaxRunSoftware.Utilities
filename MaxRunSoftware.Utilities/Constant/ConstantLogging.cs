@@ -20,6 +20,32 @@ namespace MaxRunSoftware.Utilities;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    public static readonly ImmutableDictionary<string, LogLevel> String_LogLevel = String_LogLevel_Create(
+        (LogLevel.Information, "info"),
+        (LogLevel.Warning, "warn")
+        );
+
+
+    private static ImmutableDictionary<string,LogLevel> String_LogLevel_Create(params (LogLevel level, string alias)[] aliases)
+    {
+        var d = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().Select(item => (Name: Enum.GetName(item)!, Level: item)))
+        {
+            d.Add(item.Name, item.Level);
+            d.Add(item.Name[0].ToString(), item.Level);
+        }
+
+        foreach (var item in aliases)
+        {
+            d.Add(item.alias, item.level);
+        }
+
+        var b = ImmutableDictionary.CreateBuilder<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in d) b.Add(kvp.Key, kvp.Value);
+        return b.ToImmutable();
+    }
+
+
     private static readonly object CONSTANT_LOGGING_LOCK = new();
     private static ILoggerFactory loggerFactory = new ConsoleLogFactory();
 
