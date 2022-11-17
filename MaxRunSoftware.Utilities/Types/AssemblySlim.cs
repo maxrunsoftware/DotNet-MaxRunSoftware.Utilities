@@ -13,9 +13,12 @@
 // limitations under the License.
 
 using System.Diagnostics;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
 
+[PublicAPI]
 public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<AssemblySlim>, IComparable
 {
     public Assembly Assembly { get; }
@@ -81,25 +84,29 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
         throw new Exception($"Could not determine assembly name for assembly {assembly}");
     }
 
-    public static HashSet<AssemblySlim> GetReferencedAssemblies(AssemblySlim assembly)
+    public HashSet<AssemblySlim> GetReferencedAssemblies()
     {
         var hs = new HashSet<AssemblySlim>();
-        var referencedAssemblyNames = assembly.Assembly.GetReferencedAssemblies();
+        var referencedAssemblyNames = Assembly.GetReferencedAssemblies();
         foreach (var referencedAssemblyName in referencedAssemblyNames.WhereNotNull())
         {
             try
             {
+                // TODO: avoid Assembly.Load and perhaps switch to something else that doesn't full load, perhaps https://learn.microsoft.com/en-us/dotnet/standard/assembly/inspect-contents-using-metadataloadcontext
                 var referencedAssembly = Assembly.Load(referencedAssemblyName);
                 var referencedAssemblySlim = new AssemblySlim(referencedAssembly);
                 hs.Add(referencedAssemblySlim);
             }
-            catch (Exception) { }
+            catch (Exception e)
+            {
+                Constant.CreateLogger<AssemblySlim>().LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
+            }
         }
 
         return hs;
     }
 
-    public static HashSet<AssemblySlim> GetAssembliesVisible()
+    public static HashSet<AssemblySlim> GetAssembliesVisible(bool recursive = false)
     {
         var assemblies = new List<Assembly?>();
 
@@ -133,14 +140,28 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
         }
         catch (Exception) { }
 
-        var assembliesSet = new HashSet<AssemblySlim>();
-        foreach (var assembly in assemblies)
+        var assembliesVisible = new HashSet<AssemblySlim>(assemblies.WhereNotNull().Select(o => new AssemblySlim(o)));
+
+
+        if (recursive)
         {
-            if (assembly == null) continue;
-            assembliesSet.Add(new AssemblySlim(assembly));
+            var assembliesScanned = new HashSet<AssemblySlim>();
+            var queue = new Queue<AssemblySlim>(assembliesVisible);
+
+            while (queue.Count > 0)
+            {
+                var asm = queue.Dequeue();
+                if (!assembliesScanned.Add(asm)) continue;
+                foreach (var item in asm.GetReferencedAssemblies().Where(item => !assembliesScanned.Contains(item)))
+                {
+                    queue.Enqueue(item);
+                }
+            }
+
+            assembliesVisible.AddRange(assembliesScanned);
         }
 
-        return assembliesSet;
+        return assembliesVisible;
     }
 
     #endregion Static
