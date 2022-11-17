@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,9 +69,9 @@ public static partial class Util
     /// <summary>
     /// Parses an encoding name string to an Encoding. Values allowed are...
     /// ASCII
-    /// BIGENDIANUNICODE
-    /// DEFAULT
-    /// UNICODE
+    /// BigEndianUnicode
+    /// Default
+    /// Unicode
     /// UTF32
     /// UTF8
     /// UTF8BOM
@@ -79,8 +79,29 @@ public static partial class Util
     /// </summary>
     /// <param name="encoding">The encoding name string</param>
     /// <returns>The Encoding or UTF8 Encoding if null is provided</returns>
-    public static Encoding ParseEncoding(string encoding) =>
-        (encoding.TrimOrNull() ?? "UTF8") switch
+    public static Encoding ParseEncoding(string? encoding)
+    {
+        static string? ToAlphaNumeric(string? input)
+        {
+            if (input == null) return null;
+            // https://stackoverflow.com/a/48467275
+            var j = 0;
+            var newCharArr = new char[input.Length];
+
+            for (var i = 0; i < input.Length; i++)
+            {
+                if (char.IsLetterOrDigit(input[i]))
+                {
+                    newCharArr[j] = input[i];
+                    j++;
+                }
+            }
+            Array.Resize(ref newCharArr, j);
+            return new string(newCharArr);
+        }
+
+        encoding = (ToAlphaNumeric(encoding).TrimOrNull() ?? "UTF8").ToUpper();
+        return encoding switch
         {
             "ASCII" => Encoding.ASCII,
             "BIGENDIANUNICODE" => Encoding.BigEndianUnicode,
@@ -91,4 +112,5 @@ public static partial class Util
             "UTF8BOM" => Constant.Encoding_UTF8_BOM,
             _ => throw new Exception("Unknown encoding type specified: " + encoding)
         };
+    }
 }
