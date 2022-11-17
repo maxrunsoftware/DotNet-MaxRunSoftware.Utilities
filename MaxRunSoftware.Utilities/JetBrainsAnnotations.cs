@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,17 +35,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE. */
 
 #nullable disable
-#pragma warning disable 1591
 
 // ReSharper disable UnusedType.Global
+
+#pragma warning disable 1591
 // ReSharper disable UnusedMember.Global
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 // ReSharper disable IntroduceOptionalParameters.Global
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable InconsistentNaming
-// ReSharper disable CheckNamespace
 
+// ReSharper disable once CheckNamespace
 namespace JetBrains.Annotations;
 
 /// <summary>
@@ -660,12 +661,12 @@ internal sealed class PublicAPIAttribute : Attribute
 [AttributeUsage(AttributeTargets.Parameter)]
 internal sealed class InstantHandleAttribute : Attribute
 {
-    /// <summary>
-    /// Require the method invocation to be used under the 'await' expression for this attribute to take effect on code
-    /// analysis engine.
-    /// Can be used for delegate/enumerable parameters of 'async' methods.
-    /// </summary>
-    public bool RequireAwait { get; set; }
+  /// <summary>
+  /// Require the method invocation to be used under the 'await' expression for this attribute to take effect on code
+  /// analysis engine.
+  /// Can be used for delegate/enumerable parameters of 'async' methods.
+  /// </summary>
+  public bool RequireAwait { get; set; }
 }
 
 /// <summary>
@@ -827,8 +828,7 @@ internal sealed class MacroAttribute : Attribute
     /// Allows specifying a macro that will be executed for a <see cref="SourceTemplateAttribute">source template</see>
     /// parameter when the template is expanded.
     /// </summary>
-    [CanBeNull]
-    public string Expression { get; set; }
+    [CanBeNull] public string Expression { get; set; }
 
     /// <summary>
     /// Allows specifying which occurrence of the target parameter becomes editable when the template is deployed.
@@ -844,8 +844,7 @@ internal sealed class MacroAttribute : Attribute
     /// Identifies the target parameter of a <see cref="SourceTemplateAttribute">source template</see> if the
     /// <see cref="MacroAttribute" /> is applied on a template method.
     /// </summary>
-    [CanBeNull]
-    public string Target { get; set; }
+    [CanBeNull] public string Target { get; set; }
 }
 
 /// <summary>
@@ -1033,12 +1032,10 @@ internal sealed class LanguageInjectionAttribute : Attribute
     public InjectedLanguage InjectedLanguage { get; }
 
     /// <summary>Specify a string that "precedes" injected string literal.</summary>
-    [CanBeNull]
-    public string Prefix { get; set; }
+    [CanBeNull] public string Prefix { get; set; }
 
     /// <summary>Specify a string that "follows" injected string literal.</summary>
-    [CanBeNull]
-    public string Suffix { get; set; }
+    [CanBeNull] public string Suffix { get; set; }
 }
 
 /// <summary>
