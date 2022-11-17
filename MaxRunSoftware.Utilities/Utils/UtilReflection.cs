@@ -140,6 +140,12 @@ public static partial class Util
     /// </remarks>
     public static class AttributeTargetHelper<TAttribute> where TAttribute : Attribute
     {
+        // ReSharper disable once UnusedTypeParameter
+        private class SkipAssembliesList<T> : List<string>
+        {
+            public SkipAssembliesList(IEnumerable<string> objs) : base(objs) {}
+        }
+
         /// <summary>
         /// Map of attributes and their respective targets
         /// </summary>
@@ -148,7 +154,7 @@ public static partial class Util
         /// <summary>
         /// List of assemblies that should not be rescanned for types.
         /// </summary>
-        private static readonly List<string> SKIP_ASSEMBLIES;
+        private static readonly SkipAssembliesList<TAttribute> SKIP_ASSEMBLIES;
 
         /// <summary>
         /// Adds an attribute and it's target to the dictionary
@@ -228,7 +234,7 @@ public static partial class Util
             TARGET_MAP = new Dictionary<TAttribute, object>();
 
             // Do not load any assemblies reference by the assembly which declares the attribute, since they cannot possibly use the attribute
-            SKIP_ASSEMBLIES = new List<string>(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
+            SKIP_ASSEMBLIES = new SkipAssembliesList<TAttribute>(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
 
             // Skip common system assemblies
             SKIP_ASSEMBLIES.Add("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
