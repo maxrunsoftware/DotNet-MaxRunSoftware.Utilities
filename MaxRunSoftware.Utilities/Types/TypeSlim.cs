@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using JetBrains.Annotations;
+
 namespace MaxRunSoftware.Utilities;
 
+[PublicAPI]
 public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, IComparable
 {
     public string NameFull { get; }
@@ -72,7 +75,7 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
 
     #region Static
 
-    public static string NameFull_Build(Type type)
+    private static string NameFull_Build(Type type)
     {
         var name = type.FullName;
         if (!string.IsNullOrWhiteSpace(name))
