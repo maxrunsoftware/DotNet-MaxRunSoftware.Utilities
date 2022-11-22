@@ -1124,6 +1124,9 @@ public static class ExtensionsCollection
         return c;
     }
 
+        public static IOrderedEnumerable<string> OrderByOrdinalIgnoreCaseThenOrdinal(this IEnumerable<string> obj) => obj.OrderBy(o => o, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+        public static IOrderedEnumerable<T> OrderByOrdinalIgnoreCaseThenOrdinal<T>(this IEnumerable<T> obj, Func<T, string> keySelector) => obj.OrderBy(keySelector, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+
     #endregion CompareTo
 
     #region Equals

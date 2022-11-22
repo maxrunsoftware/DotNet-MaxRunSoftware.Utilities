@@ -12,19 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net;
-
 namespace MaxRunSoftware.Utilities;
 
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
-    public static readonly IPAddress IPAddress_Min = IPAddress.Any;
-    public static readonly IPAddress IPAddress_Max = IPAddress.Broadcast;
+    #region NextInt
 
-    public static readonly Guid Guid_Min = new("00000000-0000-0000-0000-000000000000");
-    public static readonly Guid Guid_Max = new("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF");
+    private static volatile int nextInt;
 
-    public const float Float_Zero = 0;
-    public const double Double_Zero = 0;
+    public static int NextInt() => Interlocked.Increment(ref nextInt);
+
+    public static int NextInt<T>() => Interlocked.Increment(ref NextGeneric<T>.nextGeneric.nextIntInner);
+
+    #endregion NextInt
+
+
+    // ReSharper disable once ClassNeverInstantiated.Local
+    private class NextGeneric<T>
+    {
+        // ReSharper disable once ArrangeObjectCreationWhenTypeEvident
+        public static readonly NextGenericInner<T> nextGeneric = new NextGenericInner<T>();
+
+        // ReSharper disable once UnusedTypeParameter
+        public class NextGenericInner<TT>
+        {
+            public volatile int nextIntInner;
+        }
+    }
+
 }

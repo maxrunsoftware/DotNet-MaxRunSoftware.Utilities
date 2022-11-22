@@ -19,71 +19,82 @@ namespace MaxRunSoftware.Utilities;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    #region Path_Current_Locations
+
     public static readonly ImmutableArray<string> Path_Current_Locations = ImmutableArray.Create(Path_Current_Locations_Create().ToArray());
 
     private static List<string> Path_Current_Locations_Create()
     {
         // https://stackoverflow.com/questions/616584/how-do-i-get-the-name-of-the-current-executable-in-c
+        var queries = new List<Func<string?>>
+        {
+            () => Environment.CurrentDirectory,
+            () => Process.GetCurrentProcess().MainModule?.FileName,
+            () => AppDomain.CurrentDomain.FriendlyName,
+            () => Process.GetCurrentProcess().ProcessName,
+            () => typeof(Constant).Assembly.Location,
+            () => Path.GetFullPath("."),
+        };
 
-        var list = new List<string?>();
-
-        try { list.Add(Environment.CurrentDirectory); }
-        catch { }
-
-        try { list.Add(Process.GetCurrentProcess().MainModule?.FileName); }
-        catch { }
-
-        try { list.Add(AppDomain.CurrentDomain.FriendlyName); }
-        catch { }
-
-        try { list.Add(Process.GetCurrentProcess().ProcessName); }
-        catch { }
-
-        try { list.Add(typeof(Constant).Assembly.Location); }
-        catch { }
-
-        try { list.Add(Path.GetFullPath(".")); }
-        catch { }
+        var extensions = new[] { "exe", "dll" }.SelectMany(PermuteCase).ToHashSet(Path_StringComparer);
 
         var set = new HashSet<string>(Path_StringComparer);
-
-        var list2 = new List<string>();
-        foreach (var item in list)
+        var list = new List<string>();
+        foreach (var query in queries)
         {
-            var item2 = TrimOrNull(item);
-            if (item2 == null) continue;
-
-            try { item2 = Path.GetFullPath(item2); }
+            string path = null!;
+            try
+            {
+                var pathNullable = query();
+                pathNullable = TrimOrNull(pathNullable);
+                if (pathNullable == null) continue;
+                path = pathNullable;
+            }
             catch { }
 
             try
             {
-                if (!File.Exists(item2) && !Directory.Exists(item2))
+                path = Path.GetFullPath(path);
+            }
+            catch { }
+
+            try
+            {
+                if (!File.Exists(path) && !Directory.Exists(path))
                 {
-                    if (File.Exists(item2 + ".exe"))
-                        item2 += ".exe";
-                    else
-                        continue;
+                    foreach (var extension in extensions)
+                    {
+                        try
+                        {
+                            if (!File.Exists(path + "." + extension)) continue;
+                            path += "." + extension;
+                            break;
+                        } catch { }
+                    }
                 }
             }
             catch { }
 
-            if (!set.Add(item2)) continue;
+            if (!set.Add(path)) continue;
 
-            list2.Add(item2);
+            list.Add(path);
         }
 
-        return list2;
+        return list;
     }
 
-    public static readonly ImmutableArray<string> Path_Current_Directories = ImmutableArray.Create(GetCurrentLocationsDirectory().ToArray());
+    #endregion Path_Current_Locations
 
-    private static List<string> GetCurrentLocationsDirectory()
+    #region Path_Current_Directories
+
+    public static readonly ImmutableArray<string> Path_Current_Directories = ImmutableArray.Create(Path_Current_Directories_Create().ToArray());
+
+    private static List<string> Path_Current_Directories_Create()
     {
         var list = new List<string>();
-        var set = new HashSet<string>(Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+        var set = new HashSet<string>(Path_StringComparer);
 
-        foreach (var location in Path_Current_Locations_Create())
+        foreach (var location in Path_Current_Locations)
         {
             try
             {
@@ -94,13 +105,12 @@ public static partial class Constant
                 else if (File.Exists(location))
                 {
                     var location2 = Path.GetDirectoryName(location);
-                    if (location2 != null)
-                    {
-                        location2 = Path.GetFullPath(location2);
-                        if (Directory.Exists(location2))
-                            if (set.Add(location2))
-                                list.Add(location2);
-                    }
+                    if (location2 == null) continue;
+
+                    location2 = Path.GetFullPath(location2);
+                    if (!Directory.Exists(location2)) continue;
+
+                    if (set.Add(location2)) list.Add(location2);
                 }
             }
             catch { }
@@ -111,20 +121,22 @@ public static partial class Constant
 
     public static readonly string? Path_Current_Directory = Path_Current_Directories.FirstOrDefault();
 
-    public static readonly ImmutableArray<string> Path_Current_Files = ImmutableArray.Create(GetCurrentLocationsFile().ToArray());
+    #endregion Path_Current_Directories
 
-    private static List<string> GetCurrentLocationsFile()
+    #region Path_Current_Files
+    public static readonly ImmutableArray<string> Path_Current_Files = ImmutableArray.Create(Path_Current_Files_Create().ToArray());
+
+    private static List<string> Path_Current_Files_Create()
     {
         var list = new List<string>();
         var set = new HashSet<string>(Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
-        foreach (var location in Path_Current_Locations_Create())
+        foreach (var location in Path_Current_Locations)
         {
             try
             {
-                if (File.Exists(location))
-                    if (set.Add(location))
-                        list.Add(location);
+                if (!File.Exists(location)) continue;
+                if (set.Add(location)) list.Add(location);
             }
             catch { }
         }
@@ -137,12 +149,16 @@ public static partial class Constant
     /// </summary>
     public static readonly string? Path_Current_File = Path_Current_Files.FirstOrDefault();
 
+    #endregion Path_Current_Files
+
+    #region IsScriptExecuted
+
     /// <summary>
     /// Are we executing via a batch file or script or running the command directly from the console window?
     /// </summary>
-    public static readonly bool IsScriptExecuted = IS_BATCHFILE_EXECUTED_get();
+    public static readonly bool IsScriptExecuted = IsScriptExecuted_Create();
 
-    private static bool IS_BATCHFILE_EXECUTED_get()
+    private static bool IsScriptExecuted_Create()
     {
         try
         {
@@ -160,4 +176,6 @@ public static partial class Constant
 
         return false;
     }
+
+    #endregion IsScriptExecuted
 }

@@ -27,10 +27,6 @@ public static partial class Constant
     public const string Id = "461985d6-d681-4a0f-b110-547f3beaf967";
     public static readonly Guid Id_Guid = new(Id);
 
-    private static volatile int nextInt;
-
-    public static int NextInt() => Interlocked.Increment(ref nextInt);
-
 
 
     #region Helpers

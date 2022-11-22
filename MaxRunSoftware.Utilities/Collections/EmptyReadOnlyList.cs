@@ -30,3 +30,11 @@ public sealed class EmptyReadOnlyList<T> : IReadOnlyList<T>
 
     public T this[int index] => throw new IndexOutOfRangeException();
 }
+
+public static class ReadOnlyList
+{
+    public static IReadOnlyList<T> Empty<T>()
+    {
+        return Array.Empty<T>();
+    }
+}

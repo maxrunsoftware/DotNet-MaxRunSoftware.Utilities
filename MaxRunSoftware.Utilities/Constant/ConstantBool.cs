@@ -21,12 +21,14 @@ public static partial class Constant
     private static readonly ImmutableArray<string> BOOL_FALSE_VALUES = CreateArray("0", "F", "FALSE", "N", "NO");
 
     /// <summary>
-    /// Case-Insensitive hashset of boolean true values
+    /// Case-Insensitive hashset of boolean true values.
+    /// The set is case insensitive in that it contains all permutations of case variations.
     /// </summary>
     public static readonly ImmutableHashSet<string> Bool_True = Bool_Values_Create(true);
 
     /// <summary>
     /// Case-Insensitive hashset of boolean false values
+    /// The set is case insensitive in that it contains all permutations of case variations.
     /// </summary>
     public static readonly ImmutableHashSet<string> Bool_False = Bool_Values_Create(false);
 
@@ -49,6 +51,7 @@ public static partial class Constant
 
     /// <summary>
     /// Map of all boolean string values to boolean values
+    /// The dictionary is case insensitive in that it contains all permutations of case variations.
     /// </summary>
     public static readonly ImmutableDictionary<string, bool> String_Bool = String_Bool_Create();
 

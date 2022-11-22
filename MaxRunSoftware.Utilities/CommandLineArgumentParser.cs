@@ -62,7 +62,7 @@ public record CommandLineArgumentParserArg(
 public record CommandLineArgumentsParserResult(
     List<CommandLineArgumentParserArg> Args,
     List<string> Arguments,
-    Dictionary<string, List<string>> Options,
+    DictionaryIndexed<string, List<string>> Options,
     List<string> Flags
 )
 {
@@ -71,7 +71,7 @@ public record CommandLineArgumentsParserResult(
         return new CommandLineArgumentsParserResult(
             Args: new List<CommandLineArgumentParserArg>(),
             Arguments: new List<string>(),
-            Options: new Dictionary<string, List<string>>(optionsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase),
+            Options: new DictionaryIndexed<string, List<string>>(optionsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase),
             Flags: new List<string>()
         );
     }
@@ -88,24 +88,37 @@ public class CommandLineArgumentsParser
     private static Tuple<string, string?>? ParseOption(CommandLineArgumentsParserOptions options, string arg)
     {
         arg.CheckNotNull(); // sanity check
-        if (!arg.StartsWith(options.OptionIdentifier)) return null;
+        if (!arg.Contains(options.OptionIdentifier)) return null; // quick short circuit
+
 
         var name = new StringBuilder(100);
         var value = new StringBuilder(500);
 
-        const int parsingIdentifier = 0;
-        const int parsingName = 1;
-        const int parsingValue = 2;
-        var state = parsingIdentifier;
+        const int parsingUnknown = 0;
+        const int parsingIdentifier = 1;
+        const int parsingName = 2;
+        const int parsingValue = 3;
+        var state = parsingUnknown;
 
         var q = new Queue<char>(arg.ToCharArray());
         while (q.Count > 0)
         {
             var c = q.Dequeue();
-            if (state is parsingIdentifier)
+            if (state is parsingUnknown)
             {
-                if (c != options.OptionIdentifier && !char.IsWhiteSpace(c)) state = parsingName;
+                if (char.IsWhiteSpace(c)) continue;
+                if (c != options.OptionIdentifier) return null; // We got a character that is not whitespace or options.OptionIdentifier so not an Option
+                state = parsingIdentifier;
             }
+
+            else if (state is parsingIdentifier)
+            {
+                if (char.IsWhiteSpace(c)) continue;
+                if (c == options.OptionIdentifier) continue;
+                name.Append(c);
+                state = parsingName;
+            }
+
             else if (state is parsingName)
             {
                 if (c == options.OptionDelimiter)
@@ -117,6 +130,7 @@ public class CommandLineArgumentsParser
                     name.Append(c);
                 }
             }
+
             else if (state is parsingValue)
             {
                 value.Append(c);
@@ -128,6 +142,8 @@ public class CommandLineArgumentsParser
 
         var v = value.ToString().TrimOrNull();
 
+
+        if (v == null && n.Contains(options.OptionDelimiter)) return null; // arg="-=foo" should not be a flag
         return new Tuple<string, string?>(n, v);
     }
 
@@ -155,12 +171,13 @@ public class CommandLineArgumentsParser
                 var n = opt.Item1.CheckNotNullTrimmed();
                 var v = opt.Item2.CheckNotNullTrimmed();
                 result.Args.Add(CommandLineArgumentParserArg.CreateOption(index, arg, n, v));
-                if (!result.Options.TryGetValue(n, out var lis))
+
+                var lis = result.Options.GetValueNullable(n);
+                if (lis == null)
                 {
                     lis = new List<string>();
                     result.Options.Add(n, lis);
                 }
-
                 lis.Add(v);
             }
 

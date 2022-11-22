@@ -20,6 +20,9 @@ namespace MaxRunSoftware.Utilities;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    /// <summary>
+    /// Case-insensitive mapping of strings to LogLevels
+    /// </summary>
     public static readonly ImmutableDictionary<string, LogLevel> String_LogLevel = String_LogLevel_Create(
         (LogLevel.Information, "info"),
         (LogLevel.Warning, "warn")
@@ -62,8 +65,8 @@ public static partial class Constant
         {
             lock (CONSTANT_LOGGING_LOCK)
             {
-                loggerFactory = value;
                 // TODO: Forward all previous ConsoleLogFactory logs to new ILoggerFactory if new ILoggerFactory is not a ConsoleLogFactory
+                loggerFactory = value;
             }
 
         }

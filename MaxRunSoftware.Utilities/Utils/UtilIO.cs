@@ -424,6 +424,28 @@ public static partial class Util
     private static readonly string[] pathDelimitersStrings = Constant.PathDelimiters_String.ToArray();
     public static string[] PathParts(string path) => path.Split(pathDelimitersStrings, StringSplitOptions.RemoveEmptyEntries).TrimOrNull().WhereNotNull().ToArray();
 
+    /// <summary>
+    /// Returns true if the path provided is an absolute (full) path
+    /// https://stackoverflow.com/a/47569899
+    /// </summary>
+    /// <param name="path">File system path to check</param>
+    /// <returns>true if path is absolute, false otherwise</returns>
+    public static bool PathIsAbsolute(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+        if (path.IndexOfAny(Path.GetInvalidPathChars()) != -1) return false;
+        if (!Path.IsPathRooted(path)) return false;
+
+        var pathRoot = Path.GetPathRoot(path);
+        if (pathRoot == null) return false;
+
+        if (pathRoot.Length <= 2 && pathRoot != "/") return false; // Accepts X:\ and \\UNC\PATH, rejects empty string, \ and X:, but accepts / to support Linux
+
+        if (pathRoot[0] != '\\' || pathRoot[1] != '\\') return true; // Rooted and not a UNC path
+
+        return pathRoot.Trim('\\').IndexOf('\\') != -1; // A UNC server name without a share name (e.g "\\NAME" or "\\NAME\") is invalid
+    }
+
     public static string PathToString(IEnumerable<string> pathParts, string pathDelimiter = "/", bool trailingDelimiter = true)
     {
         var s = string.Join(pathDelimiter, pathParts).TrimOrNull() ?? string.Empty;

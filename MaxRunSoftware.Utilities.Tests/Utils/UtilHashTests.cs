@@ -12,19 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net;
+namespace MaxRunSoftware.Utilities.Tests.Utils;
 
-namespace MaxRunSoftware.Utilities;
-
-// ReSharper disable InconsistentNaming
-public static partial class Constant
+public class UtilHashTests : TestBase
 {
-    public static readonly IPAddress IPAddress_Min = IPAddress.Any;
-    public static readonly IPAddress IPAddress_Max = IPAddress.Broadcast;
+    public UtilHashTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    public static readonly Guid Guid_Min = new("00000000-0000-0000-0000-000000000000");
-    public static readonly Guid Guid_Max = new("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF");
+    [Fact]
+    public void HashString()
+    {
+        var hash = Util.GenerateHashSHA256(Constant.Encoding_UTF8.GetBytes("some_text"));
+        output.WriteLine(hash);
 
-    public const float Float_Zero = 0;
-    public const double Double_Zero = 0;
+        hash = Util.GenerateHashSHA256(new byte[] {});
+        output.WriteLine(hash);
+        // 9476537661fea5f2c41aebe7e0ea1d7e933051129ae6e9374e34d9db8d7a3be6
+        // 0000000000000000000000000000000000000000000000000000000000000000
+    }
 }
