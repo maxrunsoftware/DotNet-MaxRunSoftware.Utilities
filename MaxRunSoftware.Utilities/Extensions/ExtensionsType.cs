@@ -350,7 +350,7 @@ public static class ExtensionsType
 
     public static bool IsCompilerGenerated(this Type type) => type.GetCustomAttributes(typeof(CompilerGeneratedAttribute)).Any();
 
-    public static string GetEnumNames(this Type enumType, string delimiter, bool isSorted = false) => isSorted ? Enum.GetNames(enumType).OrderByOrdinalThenOrdinalIgnoreCase().ToStringDelimited(delimiter) : Enum.GetNames(enumType).ToStringDelimited(delimiter);
+    public static string GetEnumNames(this Type enumType, string delimiter, bool isSorted = false) => isSorted ? Enum.GetNames(enumType).OrderByOrdinalIgnoreCaseThenOrdinal().ToStringDelimited(delimiter) : Enum.GetNames(enumType).ToStringDelimited(delimiter);
 
     public static bool IsRealType(this Type type)
     {

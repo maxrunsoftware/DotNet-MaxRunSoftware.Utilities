@@ -14,6 +14,9 @@
 
 namespace MaxRunSoftware.Utilities;
 
+
+
+
 public record CommandLineArgumentParserArg(
     bool IsArgument,
     bool IsOption,

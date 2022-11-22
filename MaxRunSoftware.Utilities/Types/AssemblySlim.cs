@@ -54,7 +54,7 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
         if (ReferenceEquals(other, null)) return 1;
         if (ReferenceEquals(this, other)) return 0;
 
-        return StringComparerOrdinalThenOrdinalIgnoreCase.INSTANCE.Compare(NameFull, other.NameFull);
+        return Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(NameFull, other.NameFull);
     }
 
     public override string ToString() => NameFull;

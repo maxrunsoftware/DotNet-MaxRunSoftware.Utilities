@@ -63,7 +63,7 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
 
         int c;
         if (0 != (c = Assembly.CompareTo(other.Assembly))) return c;
-        if (0 != (c = StringComparerOrdinalThenOrdinalIgnoreCase.INSTANCE.Compare(NameFull, other.NameFull))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(NameFull, other.NameFull))) return c;
         if (0 != (c = TypeHashCode.CompareTo(other.TypeHashCode))) return c;
         if (0 != (c = getHashCode.CompareTo(other.getHashCode))) return c;
         return c;
