@@ -12,15 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Tests;
+namespace MaxRunSoftware.Utilities.Tests.Utils;
 
 public class CommandLineArgumentParserTests : TestBase
 {
     public CommandLineArgumentParserTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    private CommandLineArgumentsParserResult Parse(char optId, char optDelim, bool caseSensitive, params string?[]? args) => CommandLineArgumentsParser.Parse(new CommandLineArgumentsParserOptions(optId, optDelim, caseSensitive), args);
+    private CommandLineParseResult Parse(char optId, char optDelim, bool caseSensitive, params string?[]? args) =>
+        Util.CommandLineParse(
+            optionIdentifier: optId,
+            optionDelimiter: optDelim,
+            optionsCaseSensitive: caseSensitive,
+            flagsCaseSensitive: caseSensitive,
+            args
+            );
 
-    private CommandLineArgumentsParserResult Parse(params string?[]? args) => Parse('-', '=', false, args);
+    private CommandLineParseResult Parse(params string?[]? args) => Parse('-', '=', false, args);
 
     [Fact]
     public void Parse_Option()
