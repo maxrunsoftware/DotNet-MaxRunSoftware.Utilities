@@ -137,7 +137,10 @@ public static class ExtensionsData
     {
         var fieldCount = dataReader.FieldCount;
         var list = new List<object[]>();
-        while (dataReader.Read()) { list.Add(GetValues(dataReader, fieldCount)); }
+        while (dataReader.Read())
+        {
+            list.Add(GetValues(dataReader, fieldCount));
+        }
 
         return list;
     }

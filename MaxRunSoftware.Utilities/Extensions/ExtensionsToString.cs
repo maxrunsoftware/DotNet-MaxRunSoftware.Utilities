@@ -87,21 +87,16 @@ public static class ExtensionsToString
     public static string? ToStringGuessFormat(this object? obj)
     {
         if (obj == null) return null;
-
         if (obj == DBNull.Value) return null;
-
         if (obj is string objString) return objString;
-
-        if (obj is DateTime objDateTime) return objDateTime.ToString(DateTimeToStringFormat.YYYY_MM_DD_HH_MM_SS);
-
+        if (obj is DateTime objDateTime) return objDateTime.ToString(DateTimeToStringFormat.ISO_8601);
         if (obj is byte[] objBytes) return "0x" + Util.Base16(objBytes);
-
         if (obj is Type objType) return objType.FullNameFormatted();
 
         var t = obj.GetType();
         if (t.IsNullable(out var underlyingType)) t = underlyingType;
 
-        if (t == typeof(DateTime?)) return ((DateTime?)obj).Value.ToString(DateTimeToStringFormat.YYYY_MM_DD_HH_MM_SS);
+        if (t == typeof(DateTime?)) return ((DateTime?)obj).Value.ToString(DateTimeToStringFormat.ISO_8601);
 
         if (obj is IEnumerable enumerable) return enumerable.ToStringItems();
 
@@ -113,6 +108,7 @@ public static class ExtensionsToString
         foreach (var obj in enumerable.OrEmpty()) yield return obj.ToStringGuessFormat();
     }
 
+    /*
     public static string ToStringGenerated(this object obj, BindingFlags flags = BindingFlags.Instance | BindingFlags.Public, string nullValue = "")
     {
         obj.CheckNotNull(nameof(obj));
@@ -138,6 +134,7 @@ public static class ExtensionsToString
 
         return sb.ToString();
     }
+    */
 
     public static string ToStringDelimited<T>(this IEnumerable<T> enumerable, string delimiter) => string.Join(delimiter, enumerable);
 
@@ -161,7 +158,6 @@ public enum DateTimeToStringFormat
     // ReSharper disable InconsistentNaming
     ISO_8601,
     YYYY_MM_DD,
-
-    YYYY_MM_DD_HH_MM_SS
+    YYYY_MM_DD_HH_MM_SS,
     // ReSharper restore InconsistentNaming
 }

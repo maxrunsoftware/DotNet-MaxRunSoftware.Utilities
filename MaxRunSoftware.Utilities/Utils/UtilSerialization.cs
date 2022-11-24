@@ -26,6 +26,7 @@ public static partial class Util
     /// <returns>The deserialized object</returns>
     public static object DeserializeBinary(byte[] data)
     {
+        // https://github.com/dotnet/designs/blob/main/accepted/2020/better-obsoletion/binaryformatter-obsoletion.md
         IFormatter formatter = new BinaryFormatter();
 
         using (var stream = new MemoryStream(data))

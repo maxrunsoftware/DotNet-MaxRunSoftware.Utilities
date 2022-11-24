@@ -17,19 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
 
-public abstract class SqlResultBase
-{
-    protected readonly ILogger log;
-
-    protected SqlResultBase() : this(true) { }
-
-    protected SqlResultBase(bool createLogger)
-    {
-        log = createLogger ? Constant.LoggerFactory.CreateLogger(GetType()) : Constant.LoggerNull;
-    }
-}
-
-public class SqlResultCollection : SqlResultBase, IReadOnlyList<SqlResult>
+public class SqlResultCollection : IReadOnlyList<SqlResult>
 {
     private readonly IReadOnlyList<SqlResult> results;
 
@@ -56,7 +44,7 @@ public class SqlResultCollection : SqlResultBase, IReadOnlyList<SqlResult>
     public SqlResult this[int index] => results[index];
 }
 
-public class SqlResult : SqlResultBase
+public class SqlResult
 {
     public int Index { get; }
     public SqlResultColumnCollection Columns { get; }
@@ -64,9 +52,9 @@ public class SqlResult : SqlResultBase
 
     public SqlResult(int index, IDataReader reader)
     {
-        log.LogTrace($"Reading {nameof(SqlResult)}[{index + 1}]");
+        Constant.CreateLogger<SqlResult>().LogTrace("Reading {Type}[{Index}]", nameof(SqlResult), index);
         Index = index;
-        Columns = new SqlResultColumnCollection(reader);
+        Columns = new SqlResultColumnCollection(reader, this); // Important to construct Columns before Rows
         Rows = new SqlResultRowCollection(reader, this);
     }
 }
@@ -75,68 +63,101 @@ public static class SqlResultExtensions
 {
     public static SqlResultCollection ReadSqlResults(this IDataReader reader) => new(reader);
 
-    public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
+    //public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
 }
 
-public class SqlResultColumnCollection : SqlResultBase, IReadOnlyList<SqlResultColumn>, IBucketReadOnly<string, SqlResultColumn>, IBucketReadOnly<int, SqlResultColumn>
+public class SqlResultColumnCollection : IReadOnlyList<SqlResultColumn>
 {
-    private readonly IReadOnlyList<SqlResultColumn> columns;
-    private readonly IReadOnlyDictionary<string, SqlResultColumn> columnsByName;
-    private readonly IReadOnlyList<int> columnIndexes;
+    private readonly List<SqlResultColumn> columns;
+    private readonly Dictionary<string, List<SqlResultColumn>> columnsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<SqlResultColumn>> columnsByNameCaseSensitive = new(StringComparer.Ordinal);
 
-    public SqlResultColumnCollection(IDataReader reader, bool fullSchemaDetails = true)
+    internal readonly bool[] nullableColumns;
+
+    public SqlResult Result { get; }
+    public IReadOnlyList<string> Names { get; }
+    public SqlResultColumn this[int index] => columns[index];
+    public SqlResultColumn this[string name]
     {
-        columns = reader.GetSchema(fullSchemaDetails).Select(o => new SqlResultColumn(o)).OrderBy(o => o.Index).ToList().AsReadOnly();
+        get
+        {
+            var list = columnsByName[name]; // Should throw exception on missing case-insensitive match
+            if (list.Count == 1) return list[0];
 
-        columnsByName = columns.ToDictionaryReadOnlyStringCaseInsensitive(o => o.Name);
-        Names = columns.Select(o => o.Name).ToList().AsReadOnly();
-        columnIndexes = columns.Select(o => o.Index).ToList().AsReadOnly();
+            // We have multiple case-insensitive columns with that name so let's try case-sensitive
+            if (columnsByNameCaseSensitive.TryGetValue(name, out var listCaseSensitive))
+            {
+                if (listCaseSensitive.Count == 1) return listCaseSensitive[0];
+                if (listCaseSensitive.Count > 1) throw new ArgumentOutOfRangeException(nameof(name), $"Multiple columns ({listCaseSensitive.Count}) with name '{name}'");
+            }
+
+            // We have multiple case-insensitive columns with that name but 0 columns matching that name case-sensitive
+            throw new ArgumentOutOfRangeException(nameof(name), $"Multiple columns ({list.Count}) with name '{name}'");
+        }
     }
 
-    public SqlResultColumn this[int index] => columns[index];
-    public SqlResultColumn this[string name] => columnsByName[name];
-    public IReadOnlyList<string> Names { get; }
+    public SqlResultColumnCollection(IDataReader reader, SqlResult result)
+    {
+
+        Result = result;
+        columns = reader.GetSchema().Select(o => new SqlResultColumn(o, this)).OrderBy(o => o.Index).ToList();
+        nullableColumns = new bool[columns.Count];
+        Array.Fill(nullableColumns, false); // TODO: Not sure if needed
+
+        foreach (var column in columns)
+        {
+            columnsByName.AddToList(column.Name, column);
+            columnsByNameCaseSensitive.AddToList(column.Name, column);
+        }
+        Names = columns.Select(o => o.Name).ToList().AsReadOnly();
+    }
+
 
     public bool Contains(int index) => index >= 0 && index < Count;
-
     public bool Contains(string name) => columnsByName.ContainsKey(name);
-
     public bool Contains(SqlResultColumn column) => columns.Contains(column);
 
     public int Count => columns.Count;
 
     public IEnumerator<SqlResultColumn> GetEnumerator() => columns.GetEnumerator();
 
-    IEnumerable<string> IBucketReadOnly<string, SqlResultColumn>.Keys => Names;
-    IEnumerable<int> IBucketReadOnly<int, SqlResultColumn>.Keys => columnIndexes;
-
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public class SqlResultColumn : SqlResultBase
+public class SqlResultColumn
 {
     private SqlDataReaderSchemaColumn SchemaColumn { get; }
 
-    public int Index => SchemaColumn.Index;
-    public string Name => SchemaColumn.Name;
-    public int? Size => SchemaColumn.Size;
-    public int? NumericPrecision => SchemaColumn.NumericPrecision;
-    public int? NumericScale => SchemaColumn.NumericScale;
-    public Type DataType => SchemaColumn.DataType;
-    public string DataTypeName => SchemaColumn.DataTypeName;
-    public bool? IsNullable => SchemaColumn.IsNullable;
+    public SqlResultColumnCollection ColumnCollection { get; }
 
-    public SqlResultColumn(SqlDataReaderSchemaColumn schemaColumn)
+    public int Index => SchemaColumn.Index;
+    public string Name => SchemaColumn.ColumnName;
+    public Type Type => SchemaColumn.FieldType;
+    public string DataTypeName => SchemaColumn.DataTypeName;
+
+    public bool IsNullable => ColumnCollection.nullableColumns[Index];
+
+    public SqlResultColumn(SqlDataReaderSchemaColumn schemaColumn, SqlResultColumnCollection columnCollection)
     {
+        ColumnCollection = columnCollection;
         SchemaColumn = schemaColumn.CheckNotNull(nameof(schemaColumn));
     }
 }
 
-public class SqlResultRowCollection : SqlResultBase, IReadOnlyList<SqlResultRow>
+public class SqlResultRowCollection : IReadOnlyList<SqlResultRow>
 {
     public SqlResult Result { get; }
 
-    private readonly IReadOnlyList<SqlResultRow> rows;
+    private readonly List<SqlResultRow> rows;
+
+    public SqlResultRow this[int index] => rows[index];
+
+    public SqlResultRowCollection(IDataReader reader, SqlResult result)
+    {
+        Result = result;
+        var nullableColumnIndexes = Result.Columns.nullableColumns;
+        rows = reader.GetValuesAll().Select(valueRow => new SqlResultRow(valueRow, nullableColumnIndexes)).ToList();
+    }
 
     public IEnumerator<SqlResultRow> GetEnumerator() => rows.GetEnumerator();
 
@@ -144,68 +165,95 @@ public class SqlResultRowCollection : SqlResultBase, IReadOnlyList<SqlResultRow>
 
     public int Count => rows.Count;
 
-    public SqlResultRow this[int index] => rows[index];
-
-    public SqlResultRowCollection(IDataReader reader, SqlResult result)
-    {
-        Result = result.CheckNotNull(nameof(result));
-        var valueRows = reader.GetValuesAll();
-        var list = new List<SqlResultRow>(valueRows.Count);
-        foreach (var valueRow in valueRows)
-        {
-            for (var i = 0; i < valueRow.Length; i++)
-            {
-                if (valueRow[i] == DBNull.Value) valueRow[i] = null;
-            }
-
-            var row = new SqlResultRow(valueRow, this);
-            list.Add(row);
-        }
-
-        rows = list.AsReadOnly();
-    }
 }
 
-public class SqlResultRow : SqlResultBase, IReadOnlyList<object>
+public class SqlResultRow : IReadOnlyList<object?>
 {
-    private readonly object[] objs;
-    private readonly SqlResultRowCollection rowCollection;
+    private readonly object?[] objs;
 
-    public SqlResultRow(object[] data, SqlResultRowCollection rowCollection) : base(false)
+    public SqlResultRow(object?[] data)
     {
+        for (var i = 0; i < data.Length; i++)
+        {
+            if (data[i] == DBNull.Value) data[i] = null;
+        }
+
         objs = data;
-        this.rowCollection = rowCollection;
     }
 
-    public IEnumerator<object> GetEnumerator() => ((IEnumerable<object>)objs).GetEnumerator();
+    public SqlResultRow(object?[] data, bool[] nullableColumnIndexes)
+    {
+        for (var i = 0; i < data.Length; i++)
+        {
+            if (data[i] == null)
+            {
+                nullableColumnIndexes[i] = true;
+            }
+            else if (data[i] == DBNull.Value)
+            {
+                data[i] = null;
+                nullableColumnIndexes[i] = true;
+            }
+        }
+
+        objs = data;
+    }
+
+    public IEnumerator<object?> GetEnumerator() => ((IEnumerable<object?>)objs).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public int Count => objs.Length;
 
-    public object this[int index] => objs[index];
-    public object this[string name] => rowCollection.Result.Columns[name].Index;
-    public object this[SqlResultColumn column] => this[column.Index];
+    public object? this[int index] => objs[index];
 
-    public object GetObject(int index) => this[index];
 
-    public object GetObject(string name) => this[name];
+}
 
-    public object GetObject(SqlResultColumn column) => this[column];
+public static class SqlResultRowExtensions
+{
+    public static object? GetObject(this SqlResultRow row, int index) => row[index];
 
-    public string GetString(int index) => GetObject(index).ToStringGuessFormat();
+    public static object? GetObject(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => row[rowCollection.Result.Columns[name].Index];
 
-    public string GetString(string name) => GetObject(name).ToStringGuessFormat();
+    public static object? GetObject(this SqlResultRow row, SqlResultColumn column) => row[column.Index];
 
-    public string GetString(SqlResultColumn column) => GetObject(column).ToStringGuessFormat();
+    public static string? GetString(this SqlResultRow row, int index) => GetObject(row, index).ToStringGuessFormat();
 
-    public T Get<T>(int index) => GetConvert<T>(GetObject(index));
+    public static string? GetString(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => GetObject(row, rowCollection, name).ToStringGuessFormat();
 
-    public T Get<T>(string name) => GetConvert<T>(GetObject(name));
+    public static string? GetString(this SqlResultRow row, SqlResultColumn column) => GetObject(row, column).ToStringGuessFormat();
 
-    public T Get<T>(SqlResultColumn column) => GetConvert<T>(GetObject(column));
+    public static T? Get<T>(this SqlResultRow row, int index) => GetConvert<T>(GetObject(row, index));
 
-    private static readonly Dictionary<Type, Func<string, object>> converters = CreateConverters();
+    public static T? Get<T>(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => GetConvert<T>(GetObject(row, rowCollection, name));
+
+    public static T? Get<T>(this SqlResultRow row, SqlResultColumn column) => GetConvert<T>(GetObject(row, column));
+
+    private static T? GetConvert<T>(object? o)
+    {
+        if (o == null) return default;
+
+        var returnType = typeof(T);
+
+        if (returnType == typeof(object)) return (T)o;
+
+        if (returnType == typeof(byte[])) return (T)o;
+
+        if (returnType == typeof(string)) return (T?)(object?)o.ToStringGuessFormat();
+
+        if (returnType == typeof(char[])) return (T?)(object?)o.ToStringGuessFormat();
+
+        var os = o.ToString().TrimOrNull();
+        if (os == null) return default;
+
+        if (CONVERTERS.TryGetValue(returnType, out var converter)) return (T)converter(os);
+
+        return (T)o;
+    }
+
+
+    private static readonly Dictionary<Type, Func<string, object>> CONVERTERS = CreateConverters();
 
     private static Dictionary<Type, Func<string, object>> CreateConverters()
     {
@@ -236,27 +284,5 @@ public class SqlResultRow : SqlResultBase, IReadOnlyList<object>
         d.AddRange(o => o.ToGuid(), typeof(Guid), typeof(Guid?));
 
         return new Dictionary<Type, Func<string, object>>(d);
-    }
-
-    private static T GetConvert<T>(object o)
-    {
-        if (o == null) return default;
-
-        var returnType = typeof(T);
-
-        if (returnType == typeof(object)) return (T)o;
-
-        if (returnType == typeof(byte[])) return (T)o;
-
-        if (returnType == typeof(string)) return (T)(object)o.ToStringGuessFormat();
-
-        if (returnType == typeof(char[])) return (T)(object)o.ToStringGuessFormat();
-
-        var os = o.ToString().TrimOrNull();
-        if (os == null) return default;
-
-        if (converters.TryGetValue(returnType, out var converter)) return (T)converter(os);
-
-        return (T)o;
     }
 }

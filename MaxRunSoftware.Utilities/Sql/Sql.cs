@@ -16,6 +16,8 @@ using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
 
+
+
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
 public abstract class Sql
 {
