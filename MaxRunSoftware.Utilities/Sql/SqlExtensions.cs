@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/*
+
 namespace MaxRunSoftware.Utilities;
 
 public static class SqlExtensions
@@ -50,3 +52,6 @@ public static class SqlExtensions
 
     public static Table[] ExecuteQueryToTables(this Sql sql, string sqlQuery, params SqlParameter[] parameters) => Table.Create(sql.ExecuteQuery(sqlQuery, parameters));
 }
+
+
+ */
