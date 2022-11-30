@@ -98,13 +98,7 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
 
     #region CompareTo
 
-    public int CompareTo(object? value) =>
-        value switch
-        {
-            null => 1,
-            Percent p => CompareTo(p),
-            _ => throw Exceptions.CompareTo_WrongType(nameof(Percent))
-        };
+    public int CompareTo(object? value) => value == null ? 1 : CompareTo((Percent)value);
 
     public int CompareTo(Percent value) => m_value.CompareTo(value.m_value);
 
