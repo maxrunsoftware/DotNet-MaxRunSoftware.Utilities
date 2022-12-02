@@ -328,7 +328,7 @@ public static partial class Util
 
         public TempDirectory(string path)
         {
-            log = Constant.CreateLogger(GetType());
+            log = Constant.GetLogger(GetType());
             log.LogDebug("Creating temporary directory {Path}", path);
             Directory.CreateDirectory(path);
             this.path = path;
@@ -356,7 +356,7 @@ public static partial class Util
 
         public TempFile(string path)
         {
-            log = Constant.CreateLogger(GetType());
+            log = Constant.GetLogger(GetType());
             log.LogDebug("Creating temporary file {Path}", path);
             File.WriteAllBytes(path, Array.Empty<byte>());
             this.path = path;

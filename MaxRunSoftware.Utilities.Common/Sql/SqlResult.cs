@@ -25,7 +25,7 @@ public class SqlResult
 
     public SqlResult(int index, IDataReader reader)
     {
-        Constant.CreateLogger<SqlResult>().LogTrace("Reading {Type}[{Index}]", nameof(SqlResult), index);
+        Constant.GetLogger<SqlResult>().LogTrace("Reading {Type}[{Index}]", nameof(SqlResult), index);
         Index = index;
         Columns = new SqlResultColumnCollection(reader, this); // Important to construct Columns before Rows
         Rows = new SqlResultRowCollection(reader, this);

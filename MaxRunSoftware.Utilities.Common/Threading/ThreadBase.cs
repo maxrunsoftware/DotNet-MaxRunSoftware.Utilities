@@ -40,7 +40,7 @@ public abstract class ThreadBase : IDisposable
     protected readonly ILogger log;
     protected ThreadBase()
     {
-        log = Constant.CreateLogger(GetType());
+        log = Constant.GetLogger(GetType());
         isStarted = new SingleUse(Locker);
         isDisposed = new SingleUse(Locker);
         thread = new Thread(WorkPrivate);

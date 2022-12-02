@@ -60,7 +60,7 @@ public class ConsumerThreadPool<T> : IDisposable
         }
         set
         {
-            var log = Constant.CreateLogger(GetType());
+            var log = Constant.GetLogger(GetType());
             var newCount = value;
             lock (locker)
             {

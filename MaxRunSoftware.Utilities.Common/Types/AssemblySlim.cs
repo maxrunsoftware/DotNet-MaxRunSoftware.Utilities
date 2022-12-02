@@ -99,7 +99,7 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
             }
             catch (Exception e)
             {
-                Constant.CreateLogger<AssemblySlim>().LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
+                Constant.GetLogger<AssemblySlim>().LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
             }
         }
 

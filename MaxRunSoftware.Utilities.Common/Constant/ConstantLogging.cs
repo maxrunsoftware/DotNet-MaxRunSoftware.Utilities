@@ -108,12 +108,12 @@ public static partial class Constant
     }
 
 
-    public static ILogger CreateLogger(Type type)
+    public static ILogger GetLogger(Type type)
     {
         return LoggerFactory.CreateLogger(type);
     }
 
-    public static ILogger<T> CreateLogger<T>()
+    public static ILogger<T> GetLogger<T>()
     {
         return LoggerFactory.CreateLogger<T>();
     }

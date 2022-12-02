@@ -76,7 +76,7 @@ public sealed class FileSystemDirectory : FileSystemObject
     private long GetSizes(IEnumerable<FileSystemObject> enumerable)
     {
         long s = 0;
-        var log = Constant.CreateLogger(GetType());
+        var log = Constant.GetLogger(GetType());
         foreach (var obj in enumerable)
         {
             try { s += obj.Size; }
@@ -97,7 +97,7 @@ public sealed class FileSystemDirectory : FileSystemObject
 
         var queue = new Queue<FileSystemDirectory>();
         queue.Enqueue(this);
-        var log = Constant.CreateLogger(GetType());
+        var log = Constant.GetLogger(GetType());
         while (queue.Count > 0)
         {
             var currentDirectory = queue.Dequeue();

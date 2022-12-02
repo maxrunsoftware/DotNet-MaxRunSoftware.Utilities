@@ -154,7 +154,7 @@ public class ExecutablePool : IDisposable
     protected ExecutablePool(IExecutablePoolConfig config)
     {
         config.CheckNotNull(nameof(config));
-        log = Constant.CreateLogger(GetType());
+        log = Constant.GetLogger(GetType());
         configOriginalTypeName = config.GetType().NameFormatted();
 
         var cfg = new ExecutablePoolConfig(config);
