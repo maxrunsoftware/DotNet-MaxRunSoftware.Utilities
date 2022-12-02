@@ -14,7 +14,7 @@
 
 // ReSharper disable UseNameOfInsteadOfTypeOf
 
-namespace MaxRunSoftware.Utilities.Tests.Extensions;
+namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
 public class ExtensionsTypeTests : TestBase
 {

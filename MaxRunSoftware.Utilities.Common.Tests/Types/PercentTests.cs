@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Tests.Types;
+namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
 public class PercentTests : TestBase
 {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Tests;
+namespace MaxRunSoftware.Utilities.Common.Tests;
 
 // ReSharper disable StringLiteralTypo
 public class ConstantCompareTests : TestBase

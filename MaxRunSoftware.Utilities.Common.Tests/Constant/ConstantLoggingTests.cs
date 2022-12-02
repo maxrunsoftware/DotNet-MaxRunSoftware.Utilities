@@ -15,7 +15,7 @@
 using Microsoft.Extensions.Logging;
 // ReSharper disable StringLiteralTypo
 
-namespace MaxRunSoftware.Utilities.Tests;
+namespace MaxRunSoftware.Utilities.Common.Tests;
 
 public class ConstantLoggingTests : TestBase
 {

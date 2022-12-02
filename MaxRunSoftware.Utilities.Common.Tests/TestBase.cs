@@ -14,7 +14,7 @@
 
 using System.Security.Cryptography.X509Certificates;
 
-namespace MaxRunSoftware.Utilities.Tests;
+namespace MaxRunSoftware.Utilities.Common.Tests;
 
 public class TestBase
 {

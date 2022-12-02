@@ -14,7 +14,7 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace MaxRunSoftware.Utilities.Tests;
+namespace MaxRunSoftware.Utilities.Common.Tests;
 
 /// <summary>
 /// TODO: Make these based off config file or environment vars or something so other people can test

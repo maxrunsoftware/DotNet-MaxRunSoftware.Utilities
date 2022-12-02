@@ -15,9 +15,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using MaxRunSoftware.Utilities;
 
-[assembly: Guid(Constant.Id)]
+[assembly: Guid(MaxRunSoftware.Utilities.Common.Constant.Id)]
 
 namespace MaxRunSoftware.Utilities.Common;
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Tests.Collections;
+namespace MaxRunSoftware.Utilities.Common.Tests.Collections;
 
 public class DictionaryIndexedTests : TestBase
 {

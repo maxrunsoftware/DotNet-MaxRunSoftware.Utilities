@@ -23,7 +23,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <AssemblyVersion>2.0.0</AssemblyVersion>
         <FileVersion>2.0.0</FileVersion>
-        <RootNamespace>MaxRunSoftware.Utilities</RootNamespace>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <WarningLevel>4</WarningLevel>
