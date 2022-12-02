@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities", "MaxRunSoftware.Utilities\MaxRunSoftware.Utilities.csproj", "{D2F4C033-3B7E-4B55-87A1-5D76297DC512}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common", "MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj", "{D2F4C033-3B7E-4B55-87A1-5D76297DC512}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Tests", "MaxRunSoftware.Utilities.Tests\MaxRunSoftware.Utilities.Tests.csproj", "{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common.Tests", "MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj", "{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -7,7 +7,7 @@
         <PackageVersion>2.0.0-$(Configuration)-$(Platform)-$([System.DateTime]::UtcNow.ToString(yyyyMMdd-HHmmss))</PackageVersion>
         <Authors>Max Run Software</Authors>
         <PackOnBuild>true</PackOnBuild>
-        <PackageId>MaxRunSoftware.Utilities</PackageId>
+        <PackageId>MaxRunSoftware.Utilities.Common</PackageId>
         <PackageTags>Utility</PackageTags>
         <PackageIconUrl></PackageIconUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -23,6 +23,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <AssemblyVersion>2.0.0</AssemblyVersion>
         <FileVersion>2.0.0</FileVersion>
+        <RootNamespace>MaxRunSoftware.Utilities</RootNamespace>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <WarningLevel>4</WarningLevel>
