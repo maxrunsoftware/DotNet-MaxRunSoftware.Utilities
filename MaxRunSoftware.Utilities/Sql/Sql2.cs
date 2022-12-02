@@ -26,7 +26,7 @@ public class SqlExecuteBuilder
     {
         Connection = connection;
         Command = command;
-        Parameters = new DictionaryIndexed<string, IDataParameter>(StringComparer.OrdinalIgnoreCase);
+        Parameters = new DictionaryIndexed<string, IDataParameter>(StringComparer.Ordinal);
     }
 
     public IDataParameter AddParameter(string name, object? value)
@@ -37,37 +37,45 @@ public class SqlExecuteBuilder
         return AddParameter(name, value, DbType.String);
     }
 
+    public IDataParameter AddParameter(string name, DbType type)
+    {
+        if (Parameters.TryGetValue(name, out var parameterExisting)) throw new Exception($"Cannot add parameter '{name}' because it was already added with value '{parameterExisting.Value}'");
+        var parameter = Command.AddParameter(parameterName: name, dbType: type);
+        Parameters.Add(name, parameter);
+        return parameter;
+    }
+
     public IDataParameter AddParameter(string name, object? value, DbType type)
     {
-        if (Parameters.TryGetValue(name, out var valueExisting)) throw new Exception($"Cannot add parameter '{name}' with value '{value}' because it was already added with value '{valueExisting}'");
-        var dataParameter = Command.AddParameter(parameterName: name, value: value, dbType: type);
-        Parameters.Add(name, dataParameter);
-        return dataParameter;
+        if (Parameters.TryGetValue(name, out var parameterExisting)) throw new Exception($"Cannot add parameter '{name}' with value '{value}' because it was already added with value '{parameterExisting.Value}'");
+        var parameter = Command.AddParameter(parameterName: name, value: value, dbType: type);
+        Parameters.Add(name, parameter);
+        return parameter;
     }
 
 }
 
 public static class SqlExtensions2
 {
-    private static SqlResultCollection Execute(IDbConnection connection, IDbCommand command, Action<SqlExecuteBuilder> builder)
+    private static IEnumerable<SqlResult> Execute(this IDbCommand command, Action<SqlExecuteBuilder> builder)
     {
-        var seb = new SqlExecuteBuilder(connection: connection, command: command);
+        var conn = command.Connection.CheckNotNull();
+        var seb = new SqlExecuteBuilder(connection: conn, command: command);
         builder(seb);
-
         using var reader = command.ExecuteReader();
         return reader.ReadSqlResults();
     }
-    public static SqlResultCollection Execute(this IDbConnection connection, Action<SqlExecuteBuilder> builder)
+    public static IEnumerable<SqlResult> Execute(this IDbConnection connection, Action<SqlExecuteBuilder> builder)
     {
         using var command = connection.CreateCommand();
-        return Execute(connection: connection, command: command, builder: builder);
+        return Execute(command: command, builder: builder);
     }
 
-    public static SqlResultCollection Execute(this IDbConnection connection, string sql, Action<SqlExecuteBuilder> builder)
+    public static IEnumerable<SqlResult> Execute(this IDbConnection connection, string sql, Action<SqlExecuteBuilder> builder)
     {
         using var command = connection.CreateCommand();
         command.CommandText = sql;
         command.CommandType = CommandType.Text;
-        return Execute(connection: connection, command: command, builder: builder);
+        return Execute(command: command, builder: builder);
     }
 }

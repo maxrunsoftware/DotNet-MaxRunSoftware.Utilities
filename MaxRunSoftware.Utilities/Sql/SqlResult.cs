@@ -17,33 +17,6 @@ using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities;
 
-public class SqlResultCollection : IReadOnlyList<SqlResult>
-{
-    private readonly IReadOnlyList<SqlResult> results;
-
-    public SqlResultCollection(IDataReader reader)
-    {
-        var list = new List<SqlResult>();
-        var i = 0;
-        do
-        {
-            var t = new SqlResult(i, reader);
-            list.Add(t);
-            i++;
-        } while (reader.NextResult());
-
-        results = list.AsReadOnly();
-    }
-
-    public IEnumerator<SqlResult> GetEnumerator() => results.GetEnumerator();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-    public int Count => results.Count;
-
-    public SqlResult this[int index] => results[index];
-}
-
 public class SqlResult
 {
     public int Index { get; }
@@ -61,7 +34,16 @@ public class SqlResult
 
 public static class SqlResultExtensions
 {
-    public static SqlResultCollection ReadSqlResults(this IDataReader reader) => new(reader);
+    public static IEnumerable<SqlResult> ReadSqlResults(this IDataReader reader)
+    {
+        var i = 0;
+        do
+        {
+            var result = new SqlResult(i, reader);
+            yield return result;
+            i++;
+        } while (reader.NextResult());
+    }
 
     //public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
 }
