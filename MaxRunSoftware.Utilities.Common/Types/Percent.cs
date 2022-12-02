@@ -19,7 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]

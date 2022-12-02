@@ -14,7 +14,7 @@
 
 using System.Diagnostics;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// LazyWithNoExceptionCaching: Basically the same as Lazy with LazyThreadSafetyMode of ExecutionAndPublication, BUT

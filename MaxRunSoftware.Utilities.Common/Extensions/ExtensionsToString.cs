@@ -16,7 +16,7 @@ using System.Globalization;
 using System.Net;
 using System.Security;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsToString
 {

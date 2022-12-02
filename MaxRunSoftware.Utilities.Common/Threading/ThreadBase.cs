@@ -14,7 +14,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Base class for implementing custom threads

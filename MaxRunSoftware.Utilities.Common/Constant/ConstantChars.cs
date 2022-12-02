@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // ReSharper disable StringLiteralTypo
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable InconsistentNaming
 public static partial class Constant

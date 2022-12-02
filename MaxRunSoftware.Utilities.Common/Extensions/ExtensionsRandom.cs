@@ -14,7 +14,7 @@
 
 using System.Security.Cryptography;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsRandom
 {

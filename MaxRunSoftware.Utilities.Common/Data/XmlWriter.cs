@@ -15,7 +15,7 @@
 using System.Xml;
 using System.Xml.Xsl;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public class XmlWriter : IDisposable
 {

@@ -17,7 +17,7 @@ using System.Net.Cache;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static partial class Util
 {

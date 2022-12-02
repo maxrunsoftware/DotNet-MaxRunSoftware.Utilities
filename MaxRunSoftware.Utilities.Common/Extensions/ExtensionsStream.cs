@@ -14,7 +14,7 @@
 
 using JetBrains.Annotations;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsStream
 {

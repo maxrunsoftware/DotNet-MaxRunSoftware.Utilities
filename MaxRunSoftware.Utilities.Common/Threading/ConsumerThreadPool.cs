@@ -15,7 +15,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Pool of consumer threads. Most useful for performing a bunch of actions on multiple threads.

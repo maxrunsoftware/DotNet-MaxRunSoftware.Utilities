@@ -14,7 +14,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsType
 {

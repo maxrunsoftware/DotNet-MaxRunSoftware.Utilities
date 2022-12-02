@@ -14,7 +14,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Implements a IReadOnlyDictionary of string keys that are case insensitive. Each time a lookup is done first it is

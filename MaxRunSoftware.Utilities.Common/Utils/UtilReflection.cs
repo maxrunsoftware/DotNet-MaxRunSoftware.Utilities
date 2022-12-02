@@ -15,7 +15,7 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static partial class Util
 {

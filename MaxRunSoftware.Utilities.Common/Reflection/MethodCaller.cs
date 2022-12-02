@@ -14,7 +14,7 @@
 
 using System.Linq.Expressions;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public sealed class MethodCaller
 {

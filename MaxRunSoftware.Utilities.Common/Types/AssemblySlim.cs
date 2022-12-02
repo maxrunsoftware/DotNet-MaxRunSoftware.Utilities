@@ -16,7 +16,7 @@ using System.Diagnostics;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
 public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<AssemblySlim>, IComparable

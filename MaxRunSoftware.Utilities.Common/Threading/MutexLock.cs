@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// System-wide Mutex lock. Good for locking on files using the file name.

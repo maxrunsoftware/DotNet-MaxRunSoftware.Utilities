@@ -14,7 +14,7 @@
 
 using System.Text.Json;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public class JsonWriter : IDisposable
 {

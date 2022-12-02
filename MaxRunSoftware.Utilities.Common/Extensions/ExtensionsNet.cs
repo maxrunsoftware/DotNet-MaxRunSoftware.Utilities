@@ -16,7 +16,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsNet
 {

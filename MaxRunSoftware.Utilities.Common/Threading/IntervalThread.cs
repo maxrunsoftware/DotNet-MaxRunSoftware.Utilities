@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Simple polling thread that calls WorkInterval() periodically

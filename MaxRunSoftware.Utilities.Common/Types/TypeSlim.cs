@@ -14,7 +14,7 @@
 
 using JetBrains.Annotations;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
 public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, IComparable

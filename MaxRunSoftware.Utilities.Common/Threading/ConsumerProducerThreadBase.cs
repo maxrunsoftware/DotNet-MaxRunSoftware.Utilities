@@ -15,7 +15,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public abstract class ConsumerProducerThreadBase<TConsume, TProduce> : ConsumerThreadBase<TConsume>
 {

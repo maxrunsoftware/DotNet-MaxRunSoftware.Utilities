@@ -18,7 +18,7 @@
 // ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable InconsistentNaming
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class JavaPropertiesExtensions
 {

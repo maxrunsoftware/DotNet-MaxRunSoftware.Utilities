@@ -17,7 +17,7 @@ using System.Drawing;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 [DebuggerStepThrough]
 public static class Extensions

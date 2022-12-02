@@ -14,7 +14,7 @@
 
 using System.IO.Compression;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsByte
 {

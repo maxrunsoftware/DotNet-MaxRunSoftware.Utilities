@@ -14,7 +14,7 @@
 
 using System.Xml;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public class XmlReader
 {

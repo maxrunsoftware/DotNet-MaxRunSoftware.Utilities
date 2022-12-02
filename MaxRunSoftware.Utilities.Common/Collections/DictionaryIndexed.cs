@@ -20,7 +20,7 @@ using System.Collections.Specialized;
 // ReSharper disable PossibleNullReferenceException
 
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// A dictionary that maintains insertion ordering of keys.

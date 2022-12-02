@@ -14,7 +14,7 @@
 
 using System.Collections.Concurrent;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Thread that consumes an object and produces a new object

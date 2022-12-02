@@ -14,7 +14,7 @@
 
 using System.Runtime.InteropServices;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 [Serializable]
 public enum BytesType

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public abstract class EqualityComparerBase<T> : IEqualityComparer<T>, IEqualityComparer
 {

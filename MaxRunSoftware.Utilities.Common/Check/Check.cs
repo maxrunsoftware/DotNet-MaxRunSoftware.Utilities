@@ -15,7 +15,7 @@
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public enum CheckType { Argument, Variable, Property, Field }
 

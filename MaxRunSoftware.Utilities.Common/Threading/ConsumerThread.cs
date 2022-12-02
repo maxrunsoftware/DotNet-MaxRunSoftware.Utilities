@@ -14,7 +14,7 @@
 
 using System.Collections.Concurrent;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Thread for performing a specified action on a collection

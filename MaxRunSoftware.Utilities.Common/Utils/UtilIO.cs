@@ -15,7 +15,7 @@
 using Microsoft.Extensions.Logging;
 // ReSharper disable InconsistentNaming
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public static partial class Util
 {

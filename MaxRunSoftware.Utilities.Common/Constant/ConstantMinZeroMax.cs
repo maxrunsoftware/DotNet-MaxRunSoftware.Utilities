@@ -14,7 +14,7 @@
 
 using System.Net;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable InconsistentNaming
 public static partial class Constant

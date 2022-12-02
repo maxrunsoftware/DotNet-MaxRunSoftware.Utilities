@@ -15,7 +15,7 @@
 using System.Numerics;
 using Microsoft.Extensions.Logging;
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Common;
 
 public class SqlResult
 {
