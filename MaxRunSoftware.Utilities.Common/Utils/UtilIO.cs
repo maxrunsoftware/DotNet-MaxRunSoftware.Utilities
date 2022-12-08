@@ -64,7 +64,7 @@ public static partial class Util
         using (var stream = FileOpenRead(file)) { return GenerateHashSHA512(stream); }
     }
 
-    public static long FileGetSize(string file) => new FileInfo(file).Length;
+    public static long FileGetLength(string file) => new FileInfo(file).Length;
 
     public static string FileChangeName(string file, string newFileName)
     {
@@ -118,8 +118,8 @@ public static partial class Util
         // TODO: Check if file system is case sensitive or not then do a case-insensitive comparison since Windows uses case-insensitive filesystem.
         if (string.Equals(file1, file2)) return true;
 
-        var file1Size = FileGetSize(file1);
-        var file2Size = FileGetSize(file2);
+        var file1Size = FileGetLength(file1);
+        var file2Size = FileGetLength(file2);
 
         if (file1Size != file2Size) return false;
 

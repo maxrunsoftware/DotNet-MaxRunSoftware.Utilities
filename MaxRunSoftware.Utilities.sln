@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common.Tests", "MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj", "{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp", "MaxRunSoftware.Utilities.Ftp\MaxRunSoftware.Utilities.Ftp.csproj", "{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
