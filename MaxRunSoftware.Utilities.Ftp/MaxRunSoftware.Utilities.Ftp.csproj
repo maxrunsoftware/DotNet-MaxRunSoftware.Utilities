@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
-      <PackageReference Include="FluentFTP" Version="42.1.0" />
+        <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2"/>
+        <PackageReference Include="FluentFTP" Version="42.1.0"/>
     </ItemGroup>
 
 </Project>

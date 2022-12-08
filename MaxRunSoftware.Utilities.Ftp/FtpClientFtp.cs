@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,6 @@
 
 using System.Net;
 using FluentFTP;
-using MaxRunSoftware.Utilities.Common;
-using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
@@ -31,7 +29,7 @@ public class FtpClientFtpConfig
             LogPassword = false,
             ReadTimeout = 1000 * 60,
             DataConnectionReadTimeout = 1000 * 60,
-            ValidateAnyCertificate = true,
+            ValidateAnyCertificate = true
         };
         FtpConfig.Clone();
     }
@@ -42,7 +40,6 @@ public class FtpClientFtpConfig
     public string? Password { get; set; }
     public FtpConfig FtpConfig { get; set; }
     public ILogger FtpLog { get; set; }
-
 }
 
 public class FtpClientFtp : FtpClientBase
@@ -55,16 +52,16 @@ public class FtpClientFtp : FtpClientBase
         {
             if (config.Password != null) throw new InvalidOperationException("Password specified but no Username specified");
             client = new FtpClient(
-                host: config.Host,
-                port: config.Port,
-                config: config.FtpConfig.Clone()!,
-                logger: config.FtpLog
+                config.Host,
+                config.Port,
+                config.FtpConfig.Clone()!,
+                config.FtpLog
             );
         }
         else
         {
             client = new FtpClient(
-                host: config.Host,
+                config.Host,
                 port: config.Port,
                 user: config.Username,
                 pass: config.Password ?? string.Empty,
@@ -87,10 +84,7 @@ public class FtpClientFtp : FtpClientBase
 
     public override string WorkingDirectory => Client.GetWorkingDirectory() ?? "/";
 
-    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
-    {
-        Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new FtpClientProgress { Progress = (Percent)progress.Progress, BytesTransferred = progress.TransferredBytes }));
-    }
+    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) => Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new FtpClientProgress { Progress = (Percent)progress.Progress, BytesTransferred = progress.TransferredBytes }));
 
     protected override void PutFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
     {
@@ -162,5 +156,4 @@ public class FtpClientFtp : FtpClientBase
     protected override bool ExistsFile(string remoteFile) => Client.FileExists(remoteFile);
 
     protected override bool ExistsDirectory(string remoteDirectory) => Client.DirectoryExists(remoteDirectory);
-
 }

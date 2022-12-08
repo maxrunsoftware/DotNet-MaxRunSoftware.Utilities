@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Common;
-using Microsoft.Extensions.Logging;
-
 namespace MaxRunSoftware.Utilities.Ftp;
 
 public abstract class FtpClientBase : IFtpClient

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,3 +26,4 @@ global using System.Text;
 global using System.Threading;
 global using Microsoft.Extensions.Logging;
 global using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
+global using MaxRunSoftware.Utilities.Common;

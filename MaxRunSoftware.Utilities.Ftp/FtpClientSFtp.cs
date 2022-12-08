@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Common;
-using Microsoft.Extensions.Logging;
 using Renci.SshNet;
 
 namespace MaxRunSoftware.Utilities.Ftp;
@@ -70,7 +68,7 @@ public class FtpClientSFtp : FtpClientBase
             log.LogDebug(e, "Could not get remote file length {RemoteFile}", remoteFile);
         }
 
-        Client.DownloadFile(remoteFile, localStream, downloadCallback: bytes =>
+        Client.DownloadFile(remoteFile, localStream, bytes =>
         {
             handlerProgress(new FtpClientProgress
             {
@@ -92,7 +90,7 @@ public class FtpClientSFtp : FtpClientBase
             log.LogDebug(e, "Could not get local file stream length");
         }
 
-        Client.UploadFile(localStream, remoteFile, true, uploadCallback: bytes =>
+        Client.UploadFile(localStream, remoteFile, true, bytes =>
         {
             handlerProgress(new FtpClientProgress
             {
@@ -104,13 +102,12 @@ public class FtpClientSFtp : FtpClientBase
 
     protected override void ListFiles(string? remotePath, List<FtpClientRemoteFile> fileList)
     {
-        remotePath = (remotePath == null || remotePath.TrimOrNull() == null) ? "." : remotePath;
+        remotePath = remotePath == null || remotePath.TrimOrNull() == null ? "." : remotePath;
         foreach (var file in Client.ListDirectory(remotePath).OrEmpty())
         {
             var name = file.Name;
             if (name == null) continue;
-            var fullName = file.FullName;
-            if (fullName == null) fullName = name;
+            var fullName = file.FullName ?? name;
             if (!fullName.StartsWith("/")) fullName = "/" + fullName;
 
             var type = FtpClientRemoteFileType.Unknown;

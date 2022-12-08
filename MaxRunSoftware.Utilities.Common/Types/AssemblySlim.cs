@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Diagnostics;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities.Common;
 
