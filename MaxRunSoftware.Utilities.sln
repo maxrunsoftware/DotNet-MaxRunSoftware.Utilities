@@ -8,9 +8,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ft
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp.Tests", "MaxRunSoftware.Utilities.Ftp.Tests\MaxRunSoftware.Utilities.Ftp.Tests.csproj", "{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Sql", "MaxRunSoftware.Utilities.Sql\MaxRunSoftware.Utilities.Sql.csproj", "{7F9A3223-ACD7-433F-9120-1296CDE673CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Database", "MaxRunSoftware.Utilities.Database\MaxRunSoftware.Utilities.Database.csproj", "{76491051-0E9E-45FA-937D-FFF8B17425E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Sql.Tests", "MaxRunSoftware.Utilities.Sql.Tests\MaxRunSoftware.Utilities.Sql.Tests.csproj", "{C931A1E0-46BC-4027-AD42-B8EDB4384A54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Database.Tests", "MaxRunSoftware.Utilities.Database.Tests\MaxRunSoftware.Utilities.Database.Tests.csproj", "{A50E7560-A33B-4665-A96B-4D979CAA5230}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,13 +34,13 @@ Global
 		{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F9A3223-ACD7-433F-9120-1296CDE673CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F9A3223-ACD7-433F-9120-1296CDE673CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F9A3223-ACD7-433F-9120-1296CDE673CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F9A3223-ACD7-433F-9120-1296CDE673CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C931A1E0-46BC-4027-AD42-B8EDB4384A54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C931A1E0-46BC-4027-AD42-B8EDB4384A54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C931A1E0-46BC-4027-AD42-B8EDB4384A54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C931A1E0-46BC-4027-AD42-B8EDB4384A54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76491051-0E9E-45FA-937D-FFF8B17425E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76491051-0E9E-45FA-937D-FFF8B17425E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76491051-0E9E-45FA-937D-FFF8B17425E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76491051-0E9E-45FA-937D-FFF8B17425E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A50E7560-A33B-4665-A96B-4D979CAA5230}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A50E7560-A33B-4665-A96B-4D979CAA5230}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A50E7560-A33B-4665-A96B-4D979CAA5230}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A50E7560-A33B-4665-A96B-4D979CAA5230}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -17,7 +17,7 @@ using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 
-namespace MaxRunSoftware.Utilities.Sql;
+namespace MaxRunSoftware.Utilities.Database;
 
 // ReSharper disable CommentTypo
 // ReSharper disable InconsistentNaming

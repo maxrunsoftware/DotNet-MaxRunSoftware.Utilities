@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Sql.Tests;
+namespace MaxRunSoftware.Utilities.Database;
 
-public class SqlTests : TestBase
+[AttributeUsage(AttributeTargets.Field)]
+public class SqlTypeAttribute : Attribute
 {
-    public SqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+    public DbType DbType { get; }
+    public Type? DotNetType { get; set; }
 
-    [Fact]
-    public void Can_Connect()
-    {
+    public string? SqlTypeNames { get; set; }
+    public object? ActualSqlType { get; set; }
 
-    }
-
+    public SqlTypeAttribute(DbType dbType) { DbType = dbType; }
 }

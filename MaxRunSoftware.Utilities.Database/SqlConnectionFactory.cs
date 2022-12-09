@@ -12,9 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Sql.Tests;
+namespace MaxRunSoftware.Utilities.Database;
 
-public class TestBase : Common.Tests.TestBase
+[PublicAPI]
+public class SqlConnectionProvider
 {
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+    public SqlConnectionType ConnectionType { get; set; }
+    public string ConnectionString { get; set; }
+
+    public SqlConnectionProvider(SqlConnectionType connectionType, string connectionString)
+    {
+        ConnectionType = connectionType;
+        ConnectionString = connectionString;
+    }
+
+    public IDbConnection OpenConnection() => ConnectionType.OpenConnection(ConnectionString);
 }
