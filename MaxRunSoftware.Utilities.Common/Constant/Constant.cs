@@ -26,8 +26,6 @@ public static partial class Constant
     public const string Id = "461985d6-d681-4a0f-b110-547f3beaf967";
     public static readonly Guid Id_Guid = new(Id);
 
-
-
     #region Helpers
 
     private static ImmutableDictionary<TKey, TValue> CreateDictionary<TKey, TValue>(params (TKey Key, TValue Value)[] items) where TKey : notnull => CreateDictionary(null, items);

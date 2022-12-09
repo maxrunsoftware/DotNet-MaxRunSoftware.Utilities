@@ -152,7 +152,6 @@ public static class ExtensionsString
         return str.Substring(0, characterCount);
     }
 
-
     #region IndexOfAny
 
     // Summary: Reports the zero-based index of the first occurrence in this instance of any

@@ -89,9 +89,23 @@ public static partial class Constant
     /// </summary>
     public static readonly Encoding Encoding_UTF8_BOM = new UTF8Encoding(true); // Thread safe according to https://stackoverflow.com/a/3024405
 
+    public static readonly ImmutableDictionary<string, Encoding> Encodings = Encodings_Create();
+    private static ImmutableDictionary<string, Encoding> Encodings_Create()
+    {
+        var d = new Dictionary<string, Encoding>(StringComparer.OrdinalIgnoreCase);
+        foreach (var encoding in Encoding.GetEncodings())
+        {
+            var enc = encoding.GetEncoding();
+            d[encoding.Name] = enc;
+            d[encoding.DisplayName] = enc;
+        }
+        return d.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+    }
+
     #endregion Encoding
 
     #region Path
+
     public static readonly ImmutableHashSet<char> PathDelimiters = PathDelimiters_Create();
 
     private static ImmutableHashSet<char> PathDelimiters_Create()

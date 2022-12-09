@@ -30,6 +30,34 @@ public class SshConfig
     public Encoding Encoding { get; set; } = Encoding.UTF8;
     public int RetryAttempts { get; set; } = 10;
     public int MaxSessions { get; set; } = 10;
+
+    public void Load(IReadOnlyDictionary<string, string?> dictionary)
+    {
+        LoadCaseInsensitive(new Dictionary<string, string?>(dictionary, StringComparer.OrdinalIgnoreCase));
+    }
+
+    public void Load(IDictionary<string, string?> dictionary)
+    {
+        LoadCaseInsensitive(new Dictionary<string, string?>(dictionary, StringComparer.OrdinalIgnoreCase));
+    }
+
+    protected virtual void LoadCaseInsensitive(Dictionary<string, string?> dictionary)
+    {
+        if (dictionary.TryGetValue(nameof(Host), out var host)) Host = host.CheckNotNullTrimmed();
+        if (dictionary.TryGetValue(nameof(Port), out var port)) Port = port.CheckNotNullTrimmed().ToUShort();
+        if (dictionary.TryGetValue(nameof(Username), out var username)) Username = username;
+        if (dictionary.TryGetValue(nameof(Password), out var password)) Password = password;
+        // TODO: PrivateKeys
+
+        if (dictionary.TryGetValue(nameof(Timeout), out var timeout)) Timeout = timeout == null ? new SshConfig().Timeout : TimeSpan.Parse(timeout);
+        if (dictionary.TryGetValue(nameof(ChannelCloseTimeout), out var channelCloseTimeout)) ChannelCloseTimeout = channelCloseTimeout == null ? new SshConfig().ChannelCloseTimeout : TimeSpan.Parse(channelCloseTimeout);
+        //if (dictionary.TryGetValue(nameof(Encoding), out var encoding)) Encoding = Util.ParseEncoding()
+
+        if (dictionary.TryGetValue(nameof(RetryAttempts), out var retryAttempts)) RetryAttempts = retryAttempts.ToIntNullable() ?? new SshConfig().RetryAttempts;
+
+
+
+    }
 }
 
 public sealed class SshKeyFile

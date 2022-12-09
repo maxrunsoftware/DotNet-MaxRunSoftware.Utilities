@@ -67,50 +67,34 @@ public static partial class Util
     }
 
     /// <summary>
-    /// Parses an encoding name string to an Encoding. Values allowed are...
+    /// Parses an encoding name string to an Encoding. Common values are...
     /// ASCII
     /// BigEndianUnicode
     /// Default
     /// Unicode
     /// UTF32
     /// UTF8
-    /// UTF8BOM
-    /// If null is provided then UTF8 encoding is returned.
+    /// Note: UTF8 is the standard UTF8 with the BOM
     /// </summary>
     /// <param name="encoding">The encoding name string</param>
-    /// <returns>The Encoding or UTF8 Encoding if null is provided</returns>
-    public static Encoding ParseEncoding(string? encoding)
+    /// <returns>The Encoding or ArgumentException if not found</returns>
+    public static Encoding ParseEncoding(string encoding)
     {
-        static string? ToAlphaNumeric(string? input)
-        {
-            if (input == null) return null;
-            // https://stackoverflow.com/a/48467275
-            var j = 0;
-            var newCharArr = new char[input.Length];
+        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encoding, out var enc)) return enc;
 
-            for (var i = 0; i < input.Length; i++)
-            {
-                if (char.IsLetterOrDigit(input[i]))
-                {
-                    newCharArr[j] = input[i];
-                    j++;
-                }
-            }
-            Array.Resize(ref newCharArr, j);
-            return new string(newCharArr);
-        }
+        var charsLower = Constant.Encodings.Keys.SelectMany(o => o.ToCharArray()).Select(char.ToLower).ToHashSet();
+        var encodingCleaned = new string(encoding
+            .ToCharArray()
+            .Select(char.ToLower)
+            .Where(o => charsLower.Contains(o))
+            .ToArray()
+        );
 
-        encoding = (ToAlphaNumeric(encoding).TrimOrNull() ?? "UTF8").ToUpper();
-        return encoding switch
-        {
-            "ASCII" => Encoding.ASCII,
-            "BIGENDIANUNICODE" => Encoding.BigEndianUnicode,
-            "DEFAULT" => Encoding.Default,
-            "UNICODE" => Encoding.Unicode,
-            "UTF32" => Encoding.UTF32,
-            "UTF8" => Constant.Encoding_UTF8,
-            "UTF8BOM" => Constant.Encoding_UTF8_BOM,
-            _ => throw new Exception("Unknown encoding type specified: " + encoding)
-        };
+        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encodingCleaned, out enc)) return enc;
+
+        encodingCleaned = encodingCleaned.Trim();
+        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encodingCleaned, out enc)) return enc;
+
+        throw new ArgumentException($"Unknown encoding '{encoding}'", nameof(encoding));
     }
 }

@@ -6,4 +6,15 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MySql.Data" Version="8.0.31" />
+      <PackageReference Include="Npgsql" Version="7.0.0" />
+      <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.80" />
+      <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    </ItemGroup>
+
 </Project>
