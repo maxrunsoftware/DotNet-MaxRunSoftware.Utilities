@@ -31,35 +31,35 @@ public enum SqlConnectionType
     /// Server=172.16.46.3;Database=NorthWind;User Id=testuser;Password=testpass;TrustServerCertificate=True;
     /// https://learn.microsoft.com/en-us/dotnet/api/system.data.sqlclient.sqlconnection.connectionstring?view=dotnet-plat-ext-7.0
     /// </summary>
-    MicrosoftSQL,
+    MicrosoftSql,
 
     /// <summary>
     /// Data Source=172.16.46.9:1521/orcl;User Id=testuser;Password=testpass;
     /// https://docs.oracle.com/database/121/ODPNT/featConnecting.htm#ODPNT164
     /// </summary>
-    OracleSQL,
+    OracleSql,
 
     /// <summary>
     /// Server=172.16.46.3;Database=NorthWind;User Id=testuser;Password=testpass;
     /// https://dev.mysql.com/doc/connector-net/en/connector-net-8-0-connection-options.html#connector-net-8-0-connection-options-classic-xprotocol
     /// </summary>
-    MySQL,
+    MySql,
 
     /// <summary>
     /// Host=myserver;Username=mylogin;Password=mypass;Database=mydatabase;
     /// https://www.npgsql.org/doc/connection-string-parameters.html
     /// </summary>
-    PostgreSQL,
+    PostgreSql,
 }
 
 public static class SqlConnectionTypeExtensions
 {
     public static IDbConnection CreateConnection(this SqlConnectionType connectionType, string connectionString) => connectionType switch
     {
-        SqlConnectionType.MicrosoftSQL => new SqlConnection(connectionString),
-        SqlConnectionType.OracleSQL => new OracleConnection(connectionString),
-        SqlConnectionType.MySQL => new MySqlConnection(connectionString),
-        SqlConnectionType.PostgreSQL => new NpgsqlConnection(connectionString),
+        SqlConnectionType.MicrosoftSql => new SqlConnection(connectionString),
+        SqlConnectionType.OracleSql => new OracleConnection(connectionString),
+        SqlConnectionType.MySql => new MySqlConnection(connectionString),
+        SqlConnectionType.PostgreSql => new NpgsqlConnection(connectionString),
         _ => throw new NotImplementedException(connectionType.ToString())
     };
 

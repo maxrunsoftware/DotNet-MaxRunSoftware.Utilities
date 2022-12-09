@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
 
 namespace MaxRunSoftware.Utilities.Sql;
 
-[PublicAPI]
-public class SqlConnectionProvider
+[AttributeUsage(AttributeTargets.Field)]
+public class SqlTypeAttribute : Attribute
 {
-    public SqlConnectionType ConnectionType { get; set; }
-    public string ConnectionString { get; set; }
+    public DbType DbType { get; }
+    public Type? DotNetType { get; set; }
 
-    public SqlConnectionProvider(SqlConnectionType connectionType, string connectionString)
-    {
-        ConnectionType = connectionType;
-        ConnectionString = connectionString;
-    }
+    public string? SqlTypeNames { get; set; }
+    public object? ActualSqlType { get; set; }
 
-    public IDbConnection OpenConnection() => ConnectionType.OpenConnection(ConnectionString);
+    public SqlTypeAttribute(DbType dbType) { DbType = dbType; }
 }
-
-public class SqlDialect
