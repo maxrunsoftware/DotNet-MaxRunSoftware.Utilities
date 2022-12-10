@@ -1,27 +1,50 @@
 ﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities;
+namespace MaxRunSoftware.Utilities.Database;
 
-public class SqlMsSql : Sql
+public class MicrosoftSql : Sql
 {
+    public static SqlDialectSettings DefaultSqlDialectSettings { get; } = DefaultSqlDialectSettingsCreate();
+    private static SqlDialectSettings DefaultSqlDialectSettingsCreate()
+    {
+        var d = new SqlDialectSettings
+        {
+            DefaultDataTypeString = nameof(MicrosoftSqlType.NVarChar) + "(MAX)", // GetSqlDbType(SqlMsSqlType.NVarChar).SqlTypeName + "(MAX)";
+            DefaultDataTypeInteger = nameof(MicrosoftSqlType.Int), // GetSqlDbType(SqlMsSqlType.Int).SqlTypeName;
+            DefaultDataTypeDateTime = nameof(MicrosoftSqlType.DateTime), // GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;
+            EscapeLeft = '[',
+            EscapeRight = ']',
+            CommandInsertBatchSizeMax = 2000
+        };
+
+        d.DatabaseUserExcluded.AddRange("master", "model", "msdb", "tempdb");
+
+        // https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
+        d.IdentifierCharactersValid.AddRange((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray());
+
+        // https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql
+        d.ReservedWords.AddRange(SqlDialectSettings.ReservedWordsParse(MicrosoftSqlReservedWords.WORDS));
+
+        return d;
+    }
     public override Type DbTypesEnum => typeof(SqlMsSqlType);
 
     public SqlMsSql()
     {
         // ReSharper disable once StringLiteralTypo
-        ExcludedDatabases.Add("master", "model", "msdb", "tempdb");
+        ExcludedDatabases.Add
         DefaultDataTypeString = GetSqlDbType(SqlMsSqlType.NVarChar).SqlTypeName + "(MAX)";
         DefaultDataTypeInteger = GetSqlDbType(SqlMsSqlType.Int).SqlTypeName;
         DefaultDataTypeDateTime = GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;

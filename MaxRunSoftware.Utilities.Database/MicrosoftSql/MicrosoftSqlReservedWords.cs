@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Sql;
+namespace MaxRunSoftware.Utilities.Database;
 
 /// <summary>
 ///     <see href="https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql">

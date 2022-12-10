@@ -12,28 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Sql;
+using MaxRunSoftware.Utilities.Sql;
 
-public static class MicrosoftSqlConstant
+namespace MaxRunSoftware.Utilities.Database;
+
+public class MicrosoftSqlDialectSettings : SqlDialectSettings
 {
-    // ReSharper disable InconsistentNaming
-    // ReSharper disable once StringLiteralTypo
+    public override ImmutableArray<string> DatabaseUserExcluded { get; } = new[] {"master", "model", "msdb", "tempdb"}.ToImmutableArray();
 
-    public static readonly ImmutableArray<string> Excluded_Databases = new[] {"master", "model", "msdb", "tempdb"}.ToImmutableArray();
+    public override string DefaultDataTypeString { get; } =
+    public override string DefaultDataTypeInteger { get; } =
+    public override string DefaultDataTypeDateTime { get; } =
 
-    public static readonly string Default_DataType_String = nameof(MicrosoftSqlType.NVarChar) + "(MAX)";
-    public static readonly string Default_DataType_Integer = nameof(MicrosoftSqlType.Int);
-    public static readonly string Default_DataType_DateTime = nameof(MicrosoftSqlType.DateTime);
+    public override char EscapeLeft { get; set; } =
+    public override char EscapeRight { get; } = ']';
 
-    public static readonly char Escape_Left = '[';
-    public static readonly char Escape_Right = ']';
-
-    public static readonly uint Command_Insert_BatchSize_Max = 2000;
+    public override uint CommandInsertBatchSizeMax { get; } = 2000;
 
     /// <summary>
-    /// https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
+    ///
     /// </summary>
-    public static readonly ImmutableArray<char> Valid_Identifier_Characters = (Constant.Chars_Alphanumeric_String + "@$#_").ToImmutableArray();
+    public override ImmutableArray<char> IdentifierCharactersValid { get; } = (Constant.Chars_Alphanumeric_String + "@$#_").ToImmutableArray();
 
-    public static readonly ImmutableArray<string> Reserved_Words = MicrosoftSqlReservedWords.WORDS.SplitOnWhiteSpace().TrimOrNull().WhereNotNull().ToImmutableArray();
+    public override ImmutableArray<string> ReservedWords { get; } = ReservedWordsCreate(MicrosoftSqlReservedWords.WORDS);
 }
