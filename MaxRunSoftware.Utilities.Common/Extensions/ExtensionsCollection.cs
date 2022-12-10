@@ -676,7 +676,7 @@ public static class ExtensionsCollection
         return str;
     }
 
-    public static TCollection AddRange<TCollection, TItem>(this TCollection collection, params TItem?[] items) where TCollection : ICollection<TItem?>
+    public static TCollection AddRange<TCollection, TItem>(this TCollection collection, params TItem[] items) where TCollection : ICollection<TItem>
     {
         foreach (var item in items)
         {
