@@ -50,7 +50,6 @@ public static partial class Constant
 
     #endregion StringComparer
 
-
     #region StringComparison
 
     /// <summary>
@@ -84,7 +83,6 @@ public static partial class Constant
 
     #endregion StringComparison
 
-
     #region StringComparer_OrdinalIgnoreCase_Ordinal
 
     /// <summary>
@@ -116,8 +114,28 @@ public static partial class Constant
         public override int GetHashCode(string obj) => ordinal.GetHashCode(obj);
     }
 
-
-
-
     #endregion StringComparer_OrdinalIgnoreCase_Ordinal
+
+    #region CharComparer
+
+    public static readonly CharComparer CharComparer_Lower = new(char.ToLower);
+    public static readonly CharComparer CharComparer_LowerInvariant = new(char.ToLowerInvariant);
+
+    public static readonly CharComparer CharComparer_Upper = new(char.ToUpper);
+    public static readonly CharComparer CharComparer_UpperInvariant = new(char.ToUpperInvariant);
+
+    public static readonly CharComparer CharComparer_Ordinal = new(c => c);
+    public static readonly CharComparer CharComparer_OrdinalIgnoreCase = new(char.ToUpperInvariant);
+
+    public sealed class CharComparer : IEqualityComparer<char>, IComparer<char>
+    {
+        private readonly Func<char, char> converter;
+        public CharComparer(Func<char, char> converter) => this.converter = converter;
+        public bool Equals(char x, char y) => converter(x) == converter(y);
+        public int GetHashCode(char obj) => converter(obj).GetHashCode();
+        public int Compare(char x, char y) => converter(x).CompareTo(converter(y));
+    }
+
+    #endregion CharComparer
+
 }
