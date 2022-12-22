@@ -25,7 +25,7 @@ namespace MaxRunSoftware.Utilities.Database;
 /// <summary>
 /// https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/connection-strings
 /// </summary>
-public enum SqlConnectionType
+public enum DatabaseAppType
 {
     /// <summary>
     /// Server=172.16.46.3;Database=NorthWind;User Id=testuser;Password=testpass;TrustServerCertificate=True;
@@ -52,18 +52,18 @@ public enum SqlConnectionType
     PostgreSql,
 }
 
-public static class SqlConnectionTypeExtensions
+public static class DatabaseAppTypeExtensions
 {
-    public static IDbConnection CreateConnection(this SqlConnectionType connectionType, string connectionString) => connectionType switch
+    public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) => connectionType switch
     {
-        SqlConnectionType.MicrosoftSql => new SqlConnection(connectionString),
-        SqlConnectionType.OracleSql => new OracleConnection(connectionString),
-        SqlConnectionType.MySql => new MySqlConnection(connectionString),
-        SqlConnectionType.PostgreSql => new NpgsqlConnection(connectionString),
+        DatabaseAppType.MicrosoftSql => new SqlConnection(connectionString),
+        DatabaseAppType.OracleSql => new OracleConnection(connectionString),
+        DatabaseAppType.MySql => new MySqlConnection(connectionString),
+        DatabaseAppType.PostgreSql => new NpgsqlConnection(connectionString),
         _ => throw new NotImplementedException(connectionType.ToString())
     };
 
-    public static IDbConnection OpenConnection(this SqlConnectionType connectionType, string connectionString)
+    public static IDbConnection OpenConnection(this DatabaseAppType connectionType, string connectionString)
     {
         var connection = CreateConnection(connectionType, connectionString);
         connection.Open();

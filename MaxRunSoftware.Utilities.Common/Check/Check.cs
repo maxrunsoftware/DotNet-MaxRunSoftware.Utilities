@@ -142,6 +142,38 @@ public static class Check
 
 
     /// <summary>
+    /// Checks if value is null or length is 0, and if it is throw a <see cref="CheckNotNullException" /> or
+    /// <see cref="CheckNotEmptyException" />.
+    /// </summary>
+    /// <typeparam name="T">Array type</typeparam>
+    /// <param name="obj">The value to check</param>
+    /// <param name="name">The nameof argument</param>
+    /// <param name="type">The value type</param>
+    /// <param name="parent">The parent type of the property or field</param>
+    /// <param name="callerFilePath">COMPILER GENERATED</param>
+    /// <param name="callerLineNumber">COMPILER GENERATED</param>
+    /// <param name="callerMemberName">COMPILER GENERATED</param>
+    /// <param name="callerArgumentExpression">COMPILER GENERATED</param>
+    /// <returns>The value</returns>
+    [return: System.Diagnostics.CodeAnalysis.NotNull]
+    [ContractAnnotation("obj: null => halt")]
+    public static T?[] CheckNotEmpty<T>(
+        this T?[]? obj,
+        string? name = null,
+        CheckType? type = null,
+        Type? parent = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int? callerLineNumber = null,
+        [CallerMemberName] string? callerMemberName = null,
+        [CallerArgumentExpression("obj")] string? callerArgumentExpression = null
+    ) => obj == null
+        ? throw CheckNotNullException.Create(type, name, parent, callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression)
+        : obj.Length == 0
+            ? throw CheckNotEmptyException.Create(type, name, parent, callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression)
+            : obj;
+
+
+    /// <summary>
     /// Checks if value is not null and greater than or equal to a value, and if it is not throw a
     /// <see cref="CheckNotNullException" /> or
     /// <see cref="CheckMinException" />.

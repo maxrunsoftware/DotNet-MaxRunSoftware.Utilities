@@ -18,6 +18,8 @@ namespace MaxRunSoftware.Utilities.Database;
 /// Specifies SQL Server-specific data type of a field, property, for use in a
 /// <see cref="T:System.Data.SqlClient.SqlParameter" />.
 /// </summary>
+[PublicAPI]
+[SqlTypeDialect(typeof(MicrosoftSql))]
 public enum MicrosoftSqlType
 {
     /// <summary>

@@ -14,14 +14,14 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class SqlDataReaderSchemaColumn
+public class DataReaderSchemaColumn
 {
     public int Index { get; }
     public string ColumnName { get; }
     public Type FieldType { get; }
     public string DataTypeName { get; }
 
-    public SqlDataReaderSchemaColumn(int index, string columnName, Type fieldType, string dataTypeName)
+    public DataReaderSchemaColumn(int index, string columnName, Type fieldType, string dataTypeName)
     {
         Index = index;
         ColumnName = columnName;
@@ -29,7 +29,7 @@ public class SqlDataReaderSchemaColumn
         DataTypeName = dataTypeName;
     }
 
-    public SqlDataReaderSchemaColumn(IDataReader reader, int columnIndex)
+    public DataReaderSchemaColumn(IDataReader reader, int columnIndex)
     {
         Index = columnIndex;
         ColumnName = reader.GetName(columnIndex);
@@ -37,11 +37,11 @@ public class SqlDataReaderSchemaColumn
         DataTypeName = reader.GetDataTypeName(columnIndex);
     }
 
-    public static List<SqlDataReaderSchemaColumn> Create(IDataReader reader) =>
-        Enumerable.Range(0, reader.FieldCount).Select(i => new SqlDataReaderSchemaColumn(reader, i)).ToList();
+    public static List<DataReaderSchemaColumn> Create(IDataReader reader) =>
+        Enumerable.Range(0, reader.FieldCount).Select(i => new DataReaderSchemaColumn(reader, i)).ToList();
 }
 
-public class SqlDataReaderSchemaColumnExtended
+public class DataReaderSchemaColumnExtended
 {
     public IReadOnlyDictionary<string, object?> Values { get; }
 
@@ -98,18 +98,18 @@ public class SqlDataReaderSchemaColumnExtended
         return (T?)oo;
     }
 
-    public SqlDataReaderSchemaColumnExtended(IReadOnlyDictionary<string, object?> values)
+    public DataReaderSchemaColumnExtended(IReadOnlyDictionary<string, object?> values)
     {
         Values = values;
     }
-    public SqlDataReaderSchemaColumnExtended(IDictionary<string, object?> values)
+    public DataReaderSchemaColumnExtended(IDictionary<string, object?> values)
     {
         Values = values.AsReadOnly();
     }
 
-    public static List<SqlDataReaderSchemaColumnExtended> Create(IDataReader reader)
+    public static List<DataReaderSchemaColumnExtended> Create(IDataReader reader)
     {
-        var result = new List<SqlDataReaderSchemaColumnExtended>();
+        var result = new List<DataReaderSchemaColumnExtended>();
         var dataTable = reader.GetSchemaTable();
         if (dataTable != null)
         {
@@ -124,7 +124,7 @@ public class SqlDataReaderSchemaColumnExtended
                     d[col.ColumnName] = v;
                 }
 
-                var colExt = new SqlDataReaderSchemaColumnExtended(d);
+                var colExt = new DataReaderSchemaColumnExtended(d);
                 result.Add(colExt);
             }
         }
@@ -146,8 +146,8 @@ public class SqlDataReaderSchemaColumnExtended
     }
 }
 
-public static class SqlDataReaderSchemaExtensions
+public static class DataReaderSchemaExtensions
 {
-    public static List<SqlDataReaderSchemaColumn> GetSchema(this IDataReader reader) => SqlDataReaderSchemaColumn.Create(reader);
-    public static List<SqlDataReaderSchemaColumnExtended> GetSchemaExtended(this IDataReader reader) => SqlDataReaderSchemaColumnExtended.Create(reader);
+    public static List<DataReaderSchemaColumn> GetSchema(this IDataReader reader) => DataReaderSchemaColumn.Create(reader);
+    public static List<DataReaderSchemaColumnExtended> GetSchemaExtended(this IDataReader reader) => DataReaderSchemaColumnExtended.Create(reader);
 }

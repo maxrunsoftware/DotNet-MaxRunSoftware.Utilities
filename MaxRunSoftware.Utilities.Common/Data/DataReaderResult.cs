@@ -13,53 +13,71 @@
 // limitations under the License.
 
 using System.Numerics;
-using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class SqlResult
+public class DataReaderResult
 {
     public int Index { get; }
-    public SqlResultColumnCollection Columns { get; }
-    public SqlResultRowCollection Rows { get; }
+    public DataReaderResultColumnCollection Columns { get; }
+    public DataReaderResultRowCollection Rows { get; }
 
-    public SqlResult(int index, IDataReader reader)
+    public DataReaderResult(int index, IDataReader reader)
     {
-        Constant.GetLogger<SqlResult>().LogTrace("Reading {Type}[{Index}]", nameof(SqlResult), index);
+        Constant.GetLogger<DataReaderResult>().LogTrace("Reading " + nameof(DataReaderResult) + "[{Index}]", index);
         Index = index;
-        Columns = new SqlResultColumnCollection(reader, this); // Important to construct Columns before Rows
-        Rows = new SqlResultRowCollection(reader, this);
+        Columns = new DataReaderResultColumnCollection(reader, this); // Important to construct Columns before Rows
+        Rows = new DataReaderResultRowCollection(reader, this);
     }
 }
 
-public static class SqlResultExtensions
+public static class DataReaderResultExtensions
 {
-    public static IEnumerable<SqlResult> ReadSqlResults(this IDataReader reader)
+    public static IEnumerable<DataReaderResult> ReadResults(this IDataReader reader)
     {
         var i = 0;
         do
         {
-            var result = new SqlResult(i, reader);
+            var result = new DataReaderResult(i, reader);
             yield return result;
             i++;
         } while (reader.NextResult());
     }
 
+    public static DataReaderResult? ReadResult(this IDataReader reader) => reader.ReadResults().FirstOrDefault();
+
+    public static IEnumerable<DataReaderResult> ExecuteReaderResults(this IDbCommand command, CommandBehavior? behavior = null)
+    {
+        using var reader = behavior == null ? command.ExecuteReader() : command.ExecuteReader(behavior.Value);
+
+        foreach (var result in reader.ReadResults())
+        {
+            yield return result;
+        }
+    }
+
+    public static DataReaderResult? ExecuteReaderResult(this IDbCommand command, CommandBehavior? behavior = null)
+    {
+        using var reader = behavior == null ? command.ExecuteReader() : command.ExecuteReader(behavior.Value);
+
+        return reader.ReadResult();
+    }
+
     //public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
 }
 
-public class SqlResultColumnCollection : IReadOnlyList<SqlResultColumn>
+public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultColumn>
 {
-    private readonly List<SqlResultColumn> columns;
-    private readonly Dictionary<string, List<SqlResultColumn>> columnsByName = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, List<SqlResultColumn>> columnsByNameCaseSensitive = new(StringComparer.Ordinal);
+    private readonly List<DataReaderResultColumn> columns;
+    private readonly Dictionary<string, List<DataReaderResultColumn>> columnsByName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<DataReaderResultColumn>> columnsByNameCaseSensitive = new(StringComparer.Ordinal);
 
     internal readonly bool[] nullableColumns;
 
-    public SqlResult Result { get; }
+    public DataReaderResult Result { get; }
     public IReadOnlyList<string> Names { get; }
-    public SqlResultColumn this[int index] => columns[index];
-    public SqlResultColumn this[string name]
+    public DataReaderResultColumn this[int index] => columns[index];
+    public DataReaderResultColumn this[string name]
     {
         get
         {
@@ -78,11 +96,11 @@ public class SqlResultColumnCollection : IReadOnlyList<SqlResultColumn>
         }
     }
 
-    public SqlResultColumnCollection(IDataReader reader, SqlResult result)
+    public DataReaderResultColumnCollection(IDataReader reader, DataReaderResult result)
     {
 
         Result = result;
-        columns = reader.GetSchema().Select(o => new SqlResultColumn(o, this)).OrderBy(o => o.Index).ToList();
+        columns = reader.GetSchema().Select(o => new DataReaderResultColumn(o, this)).OrderBy(o => o.Index).ToList();
         nullableColumns = new bool[columns.Count];
         Array.Fill(nullableColumns, false); // TODO: Not sure if needed
 
@@ -97,20 +115,20 @@ public class SqlResultColumnCollection : IReadOnlyList<SqlResultColumn>
 
     public bool Contains(int index) => index >= 0 && index < Count;
     public bool Contains(string name) => columnsByName.ContainsKey(name);
-    public bool Contains(SqlResultColumn column) => columns.Contains(column);
+    public bool Contains(DataReaderResultColumn column) => columns.Contains(column);
 
     public int Count => columns.Count;
 
-    public IEnumerator<SqlResultColumn> GetEnumerator() => columns.GetEnumerator();
+    public IEnumerator<DataReaderResultColumn> GetEnumerator() => columns.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
-public class SqlResultColumn
+public class DataReaderResultColumn
 {
-    private SqlDataReaderSchemaColumn SchemaColumn { get; }
+    private DataReaderSchemaColumn SchemaColumn { get; }
 
-    public SqlResultColumnCollection ColumnCollection { get; }
+    public DataReaderResultColumnCollection ColumnCollection { get; }
 
     public int Index => SchemaColumn.Index;
     public string Name => SchemaColumn.ColumnName;
@@ -119,29 +137,29 @@ public class SqlResultColumn
 
     public bool IsNullable => ColumnCollection.nullableColumns[Index];
 
-    public SqlResultColumn(SqlDataReaderSchemaColumn schemaColumn, SqlResultColumnCollection columnCollection)
+    public DataReaderResultColumn(DataReaderSchemaColumn schemaColumn, DataReaderResultColumnCollection columnCollection)
     {
         ColumnCollection = columnCollection;
         SchemaColumn = schemaColumn.CheckNotNull(nameof(schemaColumn));
     }
 }
 
-public class SqlResultRowCollection : IReadOnlyList<SqlResultRow>
+public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>
 {
-    public SqlResult Result { get; }
+    public DataReaderResult Result { get; }
 
-    private readonly List<SqlResultRow> rows;
+    private readonly List<DataReaderResultRow> rows;
 
-    public SqlResultRow this[int index] => rows[index];
+    public DataReaderResultRow this[int index] => rows[index];
 
-    public SqlResultRowCollection(IDataReader reader, SqlResult result)
+    public DataReaderResultRowCollection(IDataReader reader, DataReaderResult result)
     {
         Result = result;
         var nullableColumnIndexes = Result.Columns.nullableColumns;
-        rows = reader.GetValuesAll().Select(valueRow => new SqlResultRow(valueRow, nullableColumnIndexes)).ToList();
+        rows = reader.GetValuesAll().Select(valueRow => new DataReaderResultRow(valueRow, nullableColumnIndexes)).ToList();
     }
 
-    public IEnumerator<SqlResultRow> GetEnumerator() => rows.GetEnumerator();
+    public IEnumerator<DataReaderResultRow> GetEnumerator() => rows.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -149,11 +167,11 @@ public class SqlResultRowCollection : IReadOnlyList<SqlResultRow>
 
 }
 
-public class SqlResultRow : IReadOnlyList<object?>
+public class DataReaderResultRow : IReadOnlyList<object?>
 {
     private readonly object?[] objs;
 
-    public SqlResultRow(object?[] data)
+    public DataReaderResultRow(object?[] data)
     {
         for (var i = 0; i < data.Length; i++)
         {
@@ -163,7 +181,7 @@ public class SqlResultRow : IReadOnlyList<object?>
         objs = data;
     }
 
-    public SqlResultRow(object?[] data, bool[] nullableColumnIndexes)
+    public DataReaderResultRow(object?[] data, bool[] nullableColumnIndexes)
     {
         for (var i = 0; i < data.Length; i++)
         {
@@ -189,28 +207,28 @@ public class SqlResultRow : IReadOnlyList<object?>
 
     public object? this[int index] => objs[index];
 
-
+    public object?[] ToArray() => objs.Copy();
 }
 
-public static class SqlResultRowExtensions
+public static class DataReaderResultRowExtensions
 {
-    public static object? GetObject(this SqlResultRow row, int index) => row[index];
+    public static object? GetObject(this DataReaderResultRow row, int index) => row[index];
 
-    public static object? GetObject(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => row[rowCollection.Result.Columns[name].Index];
+    public static object? GetObject(this DataReaderResultRow row, DataReaderResultRowCollection rowCollection, string name) => row[rowCollection.Result.Columns[name].Index];
 
-    public static object? GetObject(this SqlResultRow row, SqlResultColumn column) => row[column.Index];
+    public static object? GetObject(this DataReaderResultRow row, DataReaderResultColumn column) => row[column.Index];
 
-    public static string? GetString(this SqlResultRow row, int index) => GetObject(row, index).ToStringGuessFormat();
+    public static string? GetString(this DataReaderResultRow row, int index) => GetObject(row, index).ToStringGuessFormat();
 
-    public static string? GetString(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => GetObject(row, rowCollection, name).ToStringGuessFormat();
+    public static string? GetString(this DataReaderResultRow row, DataReaderResultRowCollection rowCollection, string name) => GetObject(row, rowCollection, name).ToStringGuessFormat();
 
-    public static string? GetString(this SqlResultRow row, SqlResultColumn column) => GetObject(row, column).ToStringGuessFormat();
+    public static string? GetString(this DataReaderResultRow row, DataReaderResultColumn column) => GetObject(row, column).ToStringGuessFormat();
 
-    public static T? Get<T>(this SqlResultRow row, int index) => GetConvert<T>(GetObject(row, index));
+    public static T? Get<T>(this DataReaderResultRow row, int index) => GetConvert<T>(GetObject(row, index));
 
-    public static T? Get<T>(this SqlResultRow row, SqlResultRowCollection rowCollection, string name) => GetConvert<T>(GetObject(row, rowCollection, name));
+    public static T? Get<T>(this DataReaderResultRow row, DataReaderResultRowCollection rowCollection, string name) => GetConvert<T>(GetObject(row, rowCollection, name));
 
-    public static T? Get<T>(this SqlResultRow row, SqlResultColumn column) => GetConvert<T>(GetObject(row, column));
+    public static T? Get<T>(this DataReaderResultRow row, DataReaderResultColumn column) => GetConvert<T>(GetObject(row, column));
 
     private static T? GetConvert<T>(object? o)
     {

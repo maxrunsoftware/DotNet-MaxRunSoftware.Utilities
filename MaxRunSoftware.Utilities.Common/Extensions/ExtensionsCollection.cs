@@ -219,6 +219,26 @@ public static class ExtensionsCollection
         return null;
     }
 
+    public static IEnumerable<List<T?>> ToListChunked<T>(this IEnumerable<T?> enumerable, int chunkSize)
+    {
+        if (chunkSize < 1) chunkSize = 1;
+        var list = new List<T?>(chunkSize);
+
+        foreach (var item in enumerable)
+        {
+            list.Add(item);
+            if (list.Count < chunkSize) continue;
+            var result = list;
+            list = new List<T?>(chunkSize);
+            yield return result;
+        }
+
+        if (list.Count > 0)
+        {
+            yield return list;
+        }
+    }
+
     #endregion Misc
 
     #region Multidimensional Arrays

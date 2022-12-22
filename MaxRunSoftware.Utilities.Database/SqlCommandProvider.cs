@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Common;
+namespace MaxRunSoftware.Utilities.Database;
 
-public static partial class Util
+public interface ISqlCommandProvider
 {
-    public static IReadOnlyList<TEnum> GetEnumValues<TEnum>() where TEnum : struct, Enum => (TEnum[])Enum.GetValues(typeof(TEnum));
+    public IDbCommand CreateCommand();
+}
 
-    public static TEnum CombineEnumFlags<TEnum>(IEnumerable<TEnum> enums) where TEnum : struct, Enum => (TEnum)Enum.Parse(typeof(TEnum), string.Join(", ", enums.Select(o => o.ToString())));
+public static class SqlCommandProviderExtensions
+{
+    // ReSharper disable once InconsistentNaming
+    private static ILogger log => Constant.GetLogger(typeof(SqlCommandProviderExtensions));
+
 }

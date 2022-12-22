@@ -57,21 +57,21 @@ public class SqlExecuteBuilder
 
 public static class SqlExtensions2
 {
-    private static IEnumerable<SqlResult> Execute(this IDbCommand command, Action<SqlExecuteBuilder> builder)
+    private static IEnumerable<DataReaderResult> Execute(this IDbCommand command, Action<SqlExecuteBuilder> builder)
     {
         var conn = command.Connection.CheckNotNull();
         var seb = new SqlExecuteBuilder(connection: conn, command: command);
         builder(seb);
         using var reader = command.ExecuteReader();
-        return reader.ReadSqlResults();
+        return reader.ReadResults();
     }
-    public static IEnumerable<SqlResult> Execute(this IDbConnection connection, Action<SqlExecuteBuilder> builder)
+    public static IEnumerable<DataReaderResult> Execute(this IDbConnection connection, Action<SqlExecuteBuilder> builder)
     {
         using var command = connection.CreateCommand();
         return Execute(command: command, builder: builder);
     }
 
-    public static IEnumerable<SqlResult> Execute(this IDbConnection connection, string sql, Action<SqlExecuteBuilder> builder)
+    public static IEnumerable<DataReaderResult> Execute(this IDbConnection connection, string sql, Action<SqlExecuteBuilder> builder)
     {
         using var command = connection.CreateCommand();
         command.CommandText = sql;

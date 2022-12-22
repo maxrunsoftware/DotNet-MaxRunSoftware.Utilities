@@ -14,24 +14,92 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-public class SqlDialectSettings
+public class SqlDialectSettings : ICloneable
 {
-    public ISet<string> DatabaseUserExcluded { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
     public string DefaultDataTypeString { get; set; } = "TEXT";
     public string DefaultDataTypeInteger { get; set; } = "INT";
     public string DefaultDataTypeDateTime { get; set; } = "DATETIME";
 
-    public char EscapeLeft { get; set; } = '\'';
-    public char EscapeRight { get; set; } = '\'';
+    public char? EscapeLeft { get; set; }
+    public char? EscapeRight { get; set; }
 
-    public uint CommandInsertBatchSizeMax { get; set; } = 2000;
+    public ISet<string> ExcludedDatabases { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public SqlDialectSettings AddDatabaseUserExcluded(params string[] values) => Add(ExcludedDatabases, values);
+
+    public ISet<string> ExcludedSchemas { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public SqlDialectSettings AddSchemaUserExcluded(params string[] values) => Add(ExcludedSchemas, values);
 
     public ISet<char> IdentifierCharactersValid { get; } = new HashSet<char>(Constant.CharComparer_OrdinalIgnoreCase);
+    public SqlDialectSettings AddIdentifierCharactersValid(params char[] values) => Add(IdentifierCharactersValid, values);
 
     public ISet<string> ReservedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public SqlDialectSettings AddReservedWords(params string[] values) => Add(ReservedWords, values.SelectMany(ReservedWordsParse).ToArray());
 
-    public static HashSet<string> ReservedWordsParse(string words) => words.SplitOnWhiteSpace().TrimOrNull().WhereNotNull().ToHashSet(StringComparer.OrdinalIgnoreCase);
+    protected static HashSet<string> ReservedWordsParse(string words) => words.SplitOnWhiteSpace().TrimOrNull().WhereNotNull().ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    private SqlDialectSettings Add<T>(ICollection<T> collection, params T[] values)
+    {
+        foreach(var value in values) collection.Add(value);
+        return this;
+    }
 
 
+
+    public SqlDialectSettings Copy() => Utils.CopyShallow(this);
+    public object Clone() => Copy();
+}
+
+
+public static class SqlDialectSettingsExtensions
+{
+    #region Escape / Format
+
+    public static bool NeedsEscaping(this SqlDialectSettings settings, string objectThatMightNeedEscaping)
+    {
+        if (settings.ReservedWords.Contains(objectThatMightNeedEscaping)) return true;
+
+        if (!objectThatMightNeedEscaping.ContainsOnly(settings.IdentifierCharactersValid)) return true;
+
+        return false;
+    }
+
+    public static string Escape(this SqlDialectSettings settings, string objectToEscape)
+    {
+        if (!settings.NeedsEscaping(objectToEscape)) return objectToEscape;
+
+        var el = settings.EscapeLeft;
+        if (el != null && !objectToEscape.StartsWith(el.Value)) objectToEscape = el.Value + objectToEscape;
+
+        var er = settings.EscapeRight;
+        if (er != null && !objectToEscape.EndsWith(er.Value)) objectToEscape += er.Value;
+
+        return objectToEscape;
+    }
+
+    public static string Unescape(this SqlDialectSettings settings, string objectToUnescape)
+    {
+        var el = settings.EscapeLeft;
+        if (el != null)
+        {
+            while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.StartsWith(el.Value))
+            {
+                objectToUnescape = objectToUnescape.RemoveLeft(1);
+            }
+        }
+
+        var er = settings.EscapeRight;
+        if (er != null)
+        {
+            while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.EndsWith(er.Value))
+            {
+                objectToUnescape = objectToUnescape.RemoveRight(1);
+            }
+        }
+
+        return objectToUnescape;
+    }
+
+    //public abstract string Escape(string database, string schema, string table);
+
+    #endregion Escape / Format
 }

@@ -14,17 +14,26 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-[PublicAPI]
-public class SqlConnectionProvider
+public interface ISqlConnectionProvider
 {
-    public SqlConnectionType ConnectionType { get; set; }
-    public string ConnectionString { get; set; }
+    public IDbConnection OpenConnection();
+}
 
-    public SqlConnectionProvider(SqlConnectionType connectionType, string connectionString)
+[PublicAPI]
+public class SqlConnectionProvider : ISqlConnectionProvider
+{
+    public string? ConnectionString { get; set; }
+    private readonly Func<string, IDbConnection> funcOpenConnection;
+
+    public SqlConnectionProvider(Func<string, IDbConnection> funcOpenConnection)
     {
-        ConnectionType = connectionType;
-        ConnectionString = connectionString;
+        this.funcOpenConnection = funcOpenConnection;
     }
 
-    public IDbConnection OpenConnection() => ConnectionType.OpenConnection(ConnectionString);
+    public virtual IDbConnection OpenConnection()
+    {
+        var cs = ConnectionString;
+        if (cs == null) throw new InvalidOperationException($"{nameof(ConnectionString)} not set");
+        return funcOpenConnection(cs);
+    }
 }

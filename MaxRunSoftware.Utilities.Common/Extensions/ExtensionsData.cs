@@ -16,6 +16,8 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsData
 {
+    #region DataTable
+
     private static List<string?[]> ToCsvSplit(DataTable dataTable)
     {
         var rows = new List<string?[]>();
@@ -41,6 +43,62 @@ public static class ExtensionsData
         return rows;
     }
 
+    public static string ToCsv(this DataTable dataTable, string delimiter, string escape)
+    {
+        var list = ToCsvSplit(dataTable);
+
+        var sb = new StringBuilder();
+
+        foreach (var array in list)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                if (i > 0) sb.Append(delimiter);
+
+                sb.Append(escape);
+                var cell = array[i];
+                if (cell != null && cell.IndexOf("\"", StringComparison.Ordinal) >= 0) cell = cell.Replace("\"", "\"\"");
+
+                sb.Append(cell);
+                sb.Append(escape);
+            }
+
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
+
+    public static List<DataColumn> AsList(this DataColumnCollection? dataColumnCollection)
+    {
+        var list = new List<DataColumn>();
+        if (dataColumnCollection == null) return list;
+
+        list.Capacity = dataColumnCollection.Count + 1;
+        foreach (DataColumn c in dataColumnCollection) list.Add(c);
+
+        return list;
+    }
+
+    public static List<object?[]> AsList(this DataRowCollection? dataRowCollection)
+    {
+        var list = new List<object?[]>();
+        if (dataRowCollection == null) return list;
+
+        list.Capacity = dataRowCollection.Count + 1;
+        foreach (DataRow row in dataRowCollection)
+        {
+            var array = row.ItemArray.Copy();
+            list.Add(array);
+        }
+
+        return list;
+    }
+
+    #endregion DataTable
+
+    #region IDbConnection
+
     public static void DisposeSafely(this IDbConnection? connection, Action<string, Exception>? errorLog = null)
     {
         if (connection == null) return;
@@ -54,6 +112,19 @@ public static class ExtensionsData
         try { connection.Dispose(); }
         catch (Exception e) { errorLog?.Invoke("Error disposing database connection [" + connection.GetType().FullNameFormatted() + "]", e); }
     }
+
+    public static IDbCommand CreateCommand(this IDbConnection connection, string? commandText, CommandType? commandType = null, int? commandTimeout = null)
+    {
+        var command = connection.CreateCommand();
+        if (commandText != null) command.CommandText = commandText;
+        if (commandType != null) command.CommandType = commandType.Value;
+        if (commandTimeout != null) command.CommandTimeout = commandTimeout.Value;
+        return command;
+    }
+
+    #endregion IDbConnection
+
+    #region IDbCommand
 
     public static IDataParameter SetParameterValue(this IDbCommand command, int parameterIndex, object? value)
     {
@@ -96,6 +167,10 @@ public static class ExtensionsData
         command.Parameters.Add(p);
         return p;
     }
+
+    #endregion IDbCommand
+
+    #region IDataReader
 
     public static List<string> GetNames(this IDataReader dataReader)
     {
@@ -145,43 +220,11 @@ public static class ExtensionsData
         return list;
     }
 
-    public static List<DataColumn> AsList(this DataColumnCollection? dataColumnCollection)
-    {
-        var list = new List<DataColumn>();
-        if (dataColumnCollection == null) return list;
+    public static string? GetStringNullable(this IDataReader reader, int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
 
-        list.Capacity = dataColumnCollection.Count + 1;
-        foreach (DataColumn c in dataColumnCollection) list.Add(c);
+    #endregion IDataReader
 
-        return list;
-    }
-
-    public static List<object?[]> AsList(this DataRowCollection? dataRowCollection)
-    {
-        var list = new List<object?[]>();
-        if (dataRowCollection == null) return list;
-
-        list.Capacity = dataRowCollection.Count + 1;
-        foreach (DataRow row in dataRowCollection)
-        {
-            var array = row.ItemArray.Copy();
-            list.Add(array);
-        }
-
-        return list;
-    }
-
-    public static IDbCommand CreateCommand(this IDbConnection connection, string? commandText, CommandType? commandType = null, int? commandTimeout = null)
-    {
-        var command = connection.CreateCommand();
-        if (commandText != null) command.CommandText = commandText;
-
-        if (commandType != null) command.CommandType = commandType.Value;
-
-        if (commandTimeout != null) command.CommandTimeout = commandTimeout.Value;
-
-        return command;
-    }
+    #region IDataRecord
 
     public static T? GetValueOrDefault<T>(this IDataRecord row, string fieldName)
     {
@@ -198,32 +241,8 @@ public static class ExtensionsData
         return (T)v;
     }
 
-    public static string? GetStringNullable(this IDataReader reader, int i) => reader.IsDBNull(i) ? null : reader.GetString(i);
+    #endregion IDataRecord
 
-    public static string ToCsv(this DataTable dataTable, string delimiter, string escape)
-    {
-        var list = ToCsvSplit(dataTable);
 
-        var sb = new StringBuilder();
-
-        foreach (var array in list)
-        {
-            for (var i = 0; i < array.Length; i++)
-            {
-                if (i > 0) sb.Append(delimiter);
-
-                sb.Append(escape);
-                var cell = array[i];
-                if (cell != null && cell.IndexOf("\"", StringComparison.Ordinal) >= 0) cell = cell.Replace("\"", "\"\"");
-
-                sb.Append(cell);
-                sb.Append(escape);
-            }
-
-            sb.AppendLine();
-        }
-
-        return sb.ToString();
-    }
 
 }
