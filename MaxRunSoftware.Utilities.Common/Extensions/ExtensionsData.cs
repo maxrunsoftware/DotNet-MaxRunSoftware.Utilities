@@ -99,18 +99,32 @@ public static class ExtensionsData
 
     #region IDbConnection
 
-    public static void DisposeSafely(this IDbConnection? connection, Action<string, Exception>? errorLog = null)
+    public static void DisposeSafely(this IDbConnection? connection, ILogger? log = null)
     {
         if (connection == null) return;
+        var connectionType = connection.GetType().FullNameFormatted();
+        try
+        {
+            if (connection.State != ConnectionState.Closed)
+            {
+                log?.LogTrace("Closing database connection {ConnectionType}", connectionType);
+                connection.Close();
+            }
+        }
+        catch (Exception e)
+        {
+            log?.LogWarning(e, "Exception closing database connection {ConnectionType}", connectionType);
+        }
 
         try
         {
-            if (connection.State != ConnectionState.Closed) connection.Close();
+            log?.LogTrace("Disposing database connection {ConnectionType}", connectionType);
+            connection.Dispose();
         }
-        catch (Exception e) { errorLog?.Invoke("Error closing database connection [" + connection.GetType().FullNameFormatted() + "]", e); }
-
-        try { connection.Dispose(); }
-        catch (Exception e) { errorLog?.Invoke("Error disposing database connection [" + connection.GetType().FullNameFormatted() + "]", e); }
+        catch (Exception e)
+        {
+            log?.LogWarning(e, "Exception disposing database connection {ConnectionType}", connectionType);
+        }
     }
 
     public static IDbCommand CreateCommand(this IDbConnection connection, string? commandText, CommandType? commandType = null, int? commandTimeout = null)

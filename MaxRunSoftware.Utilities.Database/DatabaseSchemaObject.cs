@@ -14,26 +14,23 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-public abstract class SqlSchemaObject
-{
-    protected static int Hash(params string?[] values) => Util.HashEnumerable(values.Select(o => o?.ToUpperInvariant()));
-}
+public abstract class DatabaseSchemaObject { }
 
-public class SqlSchemaDatabase : SqlSchemaObject, IEquatable<SqlSchemaDatabase>
+
+public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>
 {
     private readonly int hashCode;
     public string DatabaseName { get; }
 
-    public SqlSchemaDatabase(string? databaseName)
+    public DatabaseSchemaDatabase(string databaseName)
     {
-        DatabaseName = databaseName.CheckNotNullTrimmed();
-
-        hashCode = Hash(DatabaseName);
+        DatabaseName = databaseName;
+        hashCode = Util.Hash(DatabaseName.ToUpperInvariant());
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SqlSchemaDatabase);
+    public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaDatabase);
 
-    public bool Equals(SqlSchemaDatabase? other)
+    public bool Equals(DatabaseSchemaDatabase? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -47,28 +44,30 @@ public class SqlSchemaDatabase : SqlSchemaObject, IEquatable<SqlSchemaDatabase>
     public override string ToString() => DatabaseName;
 }
 
-public class SqlSchemaSchema : SqlSchemaObject, IEquatable<SqlSchemaSchema>
+public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSchemaSchema>
 {
     private readonly int hashCode;
-    public string DatabaseName { get; }
+    public DatabaseSchemaDatabase Database { get; }
     public string SchemaName { get; }
 
-    public SqlSchemaSchema(string? databaseName, string? schemaName)
-    {
-        DatabaseName = databaseName.CheckNotNullTrimmed();
-        SchemaName = schemaName.CheckNotNullTrimmed();
+    public DatabaseSchemaSchema(string databaseName, string schemaName) : this(new DatabaseSchemaDatabase(databaseName), schemaName) { }
 
-        hashCode = Hash(DatabaseName, SchemaName);
+    public DatabaseSchemaSchema(DatabaseSchemaDatabase database, string schemaName)
+    {
+        Database = database;
+        SchemaName = schemaName;
+
+        hashCode = Util.Hash(Database, SchemaName.ToUpperInvariant());
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SqlSchemaSchema);
+    public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaSchema);
 
-    public bool Equals(SqlSchemaSchema? other)
+    public bool Equals(DatabaseSchemaSchema? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqualCaseInsensitive(DatabaseName, other.DatabaseName)) return false;
+        if (!Util.IsEqual(Database, other.Database)) return false;
         if (!Util.IsEqualCaseInsensitive(SchemaName, other.SchemaName)) return false;
         return true;
     }
@@ -78,31 +77,30 @@ public class SqlSchemaSchema : SqlSchemaObject, IEquatable<SqlSchemaSchema>
     public override string ToString() => SchemaName;
 }
 
-public class SqlSchemaTable : SqlSchemaObject, IEquatable<SqlSchemaTable>
+public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>
 {
     private readonly int hashCode;
-    public string DatabaseName { get; }
-    public string SchemaName { get; }
+    public DatabaseSchemaSchema Schema { get; }
     public string TableName { get; }
 
-    public SqlSchemaTable(string? databaseName, string? schemaName, string? tableName)
-    {
-        DatabaseName = databaseName.CheckNotNullTrimmed();
-        SchemaName = schemaName.CheckNotNullTrimmed();
-        TableName = tableName.CheckNotNullTrimmed();
+    public DatabaseSchemaTable(string databaseName, string schemaName, string tableName) : this(new DatabaseSchemaSchema(databaseName, schemaName), tableName) { }
 
-        hashCode = Hash(DatabaseName, SchemaName, TableName);
+    public DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName)
+    {
+        Schema = schema;
+        TableName = tableName;
+
+        hashCode = Util.Hash(Schema, TableName.ToUpperInvariant());
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SqlSchemaTable);
+    public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaTable);
 
-    public bool Equals(SqlSchemaTable? other)
+    public bool Equals(DatabaseSchemaTable? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqualCaseInsensitive(DatabaseName, other.DatabaseName)) return false;
-        if (!Util.IsEqualCaseInsensitive(SchemaName, other.SchemaName)) return false;
+        if (!Util.IsEqual(Schema, other.Schema)) return false;
         if (!Util.IsEqualCaseInsensitive(TableName, other.TableName)) return false;
         return true;
     }
@@ -112,12 +110,11 @@ public class SqlSchemaTable : SqlSchemaObject, IEquatable<SqlSchemaTable>
     public override string ToString() => TableName;
 }
 
-public class SqlSchemaTableColumn : SqlSchemaObject, IEquatable<SqlSchemaTableColumn>
+public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<DatabaseSchemaTableColumn>
 {
     private readonly int hashCode;
-    public string DatabaseName { get; }
-    public string SchemaName { get; }
-    public string TableName { get; }
+    public DatabaseSchemaTable Table { get; }
+
     public string ColumnName { get; }
     public string ColumnType { get; }
 
@@ -129,12 +126,10 @@ public class SqlSchemaTableColumn : SqlSchemaObject, IEquatable<SqlSchemaTableCo
     public int? NumericScale { get; }
     public string? ColumnDefault { get; }
 
-    public SqlSchemaTableColumn(
-        string? databaseName,
-        string? schemaName,
-        string? tableName,
-        string? columnName,
-        string? columnType,
+    public DatabaseSchemaTableColumn(
+        DatabaseSchemaTable table,
+        string columnName,
+        string columnType,
         DbType columnDbType,
         bool isNullable,
         int ordinal,
@@ -144,9 +139,7 @@ public class SqlSchemaTableColumn : SqlSchemaObject, IEquatable<SqlSchemaTableCo
         string? columnDefault = null
     )
     {
-        DatabaseName = databaseName.CheckNotNullTrimmed();
-        SchemaName = schemaName.CheckNotNullTrimmed();
-        TableName = tableName.CheckNotNullTrimmed();
+        Table = table;
         ColumnName = columnName.CheckNotNullTrimmed();
         ColumnType = columnType.CheckNotNullTrimmed();
 
@@ -158,19 +151,17 @@ public class SqlSchemaTableColumn : SqlSchemaObject, IEquatable<SqlSchemaTableCo
         NumericScale = numericScale;
         ColumnDefault = columnDefault;
 
-        hashCode = Hash(DatabaseName, SchemaName, TableName, ColumnName, Ordinal.ToString());
+        hashCode = Util.Hash(Table, ColumnName.ToUpperInvariant(), Ordinal);
     }
 
-    public override bool Equals(object? obj) => Equals(obj as SqlSchemaTableColumn);
+    public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaTableColumn);
 
-    public bool Equals(SqlSchemaTableColumn? other)
+    public bool Equals(DatabaseSchemaTableColumn? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqualCaseInsensitive(DatabaseName, other.DatabaseName)) return false;
-        if (!Util.IsEqualCaseInsensitive(SchemaName, other.SchemaName)) return false;
-        if (!Util.IsEqualCaseInsensitive(TableName, other.TableName)) return false;
+        if (!Util.IsEqual(Table, other.Table)) return false;
         if (!Util.IsEqualCaseInsensitive(ColumnName, other.ColumnName)) return false;
         if (Ordinal != other.Ordinal) return false;
 

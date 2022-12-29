@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-public class SqlDialectSettings : ICloneable
+public class DatabaseDialectSettings : ICloneable
 {
     public string DefaultDataTypeString { get; set; } = "TEXT";
     public string DefaultDataTypeInteger { get; set; } = "INT";
@@ -24,20 +24,20 @@ public class SqlDialectSettings : ICloneable
     public char? EscapeRight { get; set; }
 
     public ISet<string> ExcludedDatabases { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    public SqlDialectSettings AddDatabaseUserExcluded(params string[] values) => Add(ExcludedDatabases, values);
+    public DatabaseDialectSettings AddDatabaseUserExcluded(params string[] values) => Add(ExcludedDatabases, values);
 
     public ISet<string> ExcludedSchemas { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    public SqlDialectSettings AddSchemaUserExcluded(params string[] values) => Add(ExcludedSchemas, values);
+    public DatabaseDialectSettings AddSchemaUserExcluded(params string[] values) => Add(ExcludedSchemas, values);
 
     public ISet<char> IdentifierCharactersValid { get; } = new HashSet<char>(Constant.CharComparer_OrdinalIgnoreCase);
-    public SqlDialectSettings AddIdentifierCharactersValid(params char[] values) => Add(IdentifierCharactersValid, values);
+    public DatabaseDialectSettings AddIdentifierCharactersValid(params char[] values) => Add(IdentifierCharactersValid, values);
 
     public ISet<string> ReservedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    public SqlDialectSettings AddReservedWords(params string[] values) => Add(ReservedWords, values.SelectMany(ReservedWordsParse).ToArray());
+    public DatabaseDialectSettings AddReservedWords(params string[] values) => Add(ReservedWords, values.SelectMany(ReservedWordsParse).ToArray());
 
     protected static HashSet<string> ReservedWordsParse(string words) => words.SplitOnWhiteSpace().TrimOrNull().WhereNotNull().ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-    private SqlDialectSettings Add<T>(ICollection<T> collection, params T[] values)
+    private DatabaseDialectSettings Add<T>(ICollection<T> collection, params T[] values)
     {
         foreach(var value in values) collection.Add(value);
         return this;
@@ -45,7 +45,7 @@ public class SqlDialectSettings : ICloneable
 
 
 
-    public SqlDialectSettings Copy() => Utils.CopyShallow(this);
+    public DatabaseDialectSettings Copy() => Utils.CopyShallow(this);
     public object Clone() => Copy();
 }
 
@@ -54,7 +54,7 @@ public static class SqlDialectSettingsExtensions
 {
     #region Escape / Format
 
-    public static bool NeedsEscaping(this SqlDialectSettings settings, string objectThatMightNeedEscaping)
+    public static bool NeedsEscaping(this DatabaseDialectSettings settings, string objectThatMightNeedEscaping)
     {
         if (settings.ReservedWords.Contains(objectThatMightNeedEscaping)) return true;
 
@@ -63,7 +63,7 @@ public static class SqlDialectSettingsExtensions
         return false;
     }
 
-    public static string Escape(this SqlDialectSettings settings, string objectToEscape)
+    public static string Escape(this DatabaseDialectSettings settings, string objectToEscape)
     {
         if (!settings.NeedsEscaping(objectToEscape)) return objectToEscape;
 
@@ -76,7 +76,7 @@ public static class SqlDialectSettingsExtensions
         return objectToEscape;
     }
 
-    public static string Unescape(this SqlDialectSettings settings, string objectToUnescape)
+    public static string Unescape(this DatabaseDialectSettings settings, string objectToUnescape)
     {
         var el = settings.EscapeLeft;
         if (el != null)
@@ -99,7 +99,14 @@ public static class SqlDialectSettingsExtensions
         return objectToUnescape;
     }
 
-    //public abstract string Escape(string database, string schema, string table);
-
     #endregion Escape / Format
+
+    public static  bool IsExcludedDatabase(this DatabaseDialectSettings settings, string databaseName) => settings.ExcludedDatabases.Contains(databaseName);
+    public static  bool IsExcludedSchema(this DatabaseDialectSettings settings, string schemaName) => settings.ExcludedSchemas.Contains(schemaName);
+
+    public static bool IsExcluded(this DatabaseDialectSettings settings, DatabaseSchemaDatabase database) => settings.IsExcludedDatabase(database.DatabaseName);
+    public static  bool IsExcluded(this DatabaseDialectSettings settings, DatabaseSchemaSchema schema) => settings.IsExcluded(schema.Database) || settings.IsExcludedSchema(schema.SchemaName);
+    public static bool IsExcluded(this DatabaseDialectSettings settings, DatabaseSchemaTable table) => settings.IsExcluded(table.Schema);
+    public static  bool IsExcluded(this DatabaseDialectSettings settings, DatabaseSchemaTableColumn column) => settings.IsExcluded(column.Table);
+
 }

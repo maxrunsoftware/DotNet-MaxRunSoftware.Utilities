@@ -26,42 +26,22 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
     private readonly FieldInfo info;
     public IEnumerable<Attribute> Attributes => info.GetCustomAttributes();
 
-    public EnumItem(Type enumType, string itemName)
+    private EnumItem(TypeSlim typeSlim, string name, object item, int index, FieldInfo info)
     {
-        enumType.CheckIsEnum();
-        TypeSlim = new TypeSlim(enumType);
-
-        var possibleNames = Enum.GetNames(enumType).ToHashSet();
-        var actualItemName = possibleNames.FirstOrDefault(o => string.Equals(itemName, o, StringComparison.Ordinal));
-
-        if (actualItemName == null)
-        {
-            var d = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
-            foreach (var possibleName in possibleNames) d.AddToList(possibleName, possibleName);
-            if (d.TryGetValue(itemName, out var list2))
-            {
-                if (list2.Count > 1) throw new ArgumentException($"{enumType.FullNameFormatted()} contains multiple possible '{itemName}' values but none matching exact case: " + list2.ToStringDelimited(", "), nameof(itemName));
-                actualItemName = list2[0];
-            }
-        }
-
-        Name = actualItemName ?? throw new ArgumentException($"{enumType.FullNameFormatted()} does not contain item '{itemName}'", nameof(itemName));
-        Item = Enum.Parse(enumType, Name);
-
-        // https://stackoverflow.com/questions/6819348/enum-getnames-results-in-unexpected-order-with-negative-enum-constants
-        var itemInfo = enumType
-                .GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Where(fieldInfo => possibleNames.Contains(fieldInfo.Name))
-                .Select((fieldInfo, i) => (FieldName: fieldInfo.Name, FieldInfo: fieldInfo, Index: i))
-                .First(o => o.FieldName == Name);
-            ;
-
-        Index = itemInfo.Index;
-        info = itemInfo.FieldInfo;
-        getHashCode = Util.Hash(TypeSlim.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
+        TypeSlim = typeSlim;
+        Name = name;
+        Item = item;
+        Index = index;
+        this.info = info;
+        getHashCode = GetHashCodeCreate();
     }
 
+
+
+
     #region Override
+
+    private int GetHashCodeCreate() => Util.Hash(TypeSlim.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
 
     public override int GetHashCode() => getHashCode;
 
@@ -101,9 +81,65 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
 
     #region Static
 
+    public static ImmutableArray<EnumItem> Get(Type enumType)
+    {
+        enumType.CheckIsEnum();
+        var typeSlim = new TypeSlim(enumType);
+        var names = Enum.GetNames(enumType).ToHashSet();
 
+        // https://stackoverflow.com/questions/6819348/enum-getnames-results-in-unexpected-order-with-negative-enum-constants
+        return enumType
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(fieldInfo => names.Contains(fieldInfo.Name))
+                .Select((fieldInfo, i) => new EnumItem(
+                    typeSlim: typeSlim,
+                    name: fieldInfo.Name,
+                    item: Enum.Parse(enumType, fieldInfo.Name),
+                    index: i,
+                    info: fieldInfo
+                ))
+                .ToImmutableArray()
+            ;
+    }
+
+    public static ImmutableArray<EnumItem> Get<T>() where T : struct, Enum => Get(typeof(T));
+
+    public static EnumItem Get<T>(T enumItem) where T : struct, Enum
+    {
+        var name = Enum.GetName(enumItem);
+        return Get<T>().First(item => string.Equals(item.Name, name, StringComparison.Ordinal));
+    }
+
+    public static EnumItem Get(object enumItem)
+    {
+        var enumType = enumItem.GetType();
+        enumType.CheckIsEnum();
+        var name = Enum.GetName(enumType, enumItem);
+        return Get(enumType).First(item => string.Equals(item.Name, name, StringComparison.Ordinal));
+    }
+
+    public static EnumItem Get(Type enumType, string enumItemName)
+    {
+        var enumItems = Get(enumType);
+        var d = new Dictionary<string, List<EnumItem>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var enumItem in enumItems) d.AddToList(enumItem.Name, enumItem);
+        if (!d.TryGetValue(enumItemName, out var list)) throw new ArgumentException($"{enumType.FullNameFormatted()} does not contain item '{enumItemName}'", nameof(enumItemName));
+        if (list.Count == 1) return list[0];
+        var item = list.FirstOrDefault(listItem => string.Equals(listItem.Name, enumItemName, StringComparison.Ordinal));
+        if (item != null) return item;
+        throw new ArgumentException($"{enumType.FullNameFormatted()} contains multiple possible '{enumItemName}' values but none matching exact case: " + list.Select(o => o.Name).ToStringDelimited(", "), nameof(enumItemName));
+    }
+
+    public static EnumItem Get<T>(string enumItemName) where T : struct, Enum => Get(typeof(T), enumItemName);
 
     #endregion Static
+}
 
+public static class EnumItemExtensions
+{
+    public static IEnumerable<T> GetAttributes<T>(this EnumItem item) where T : Attribute => item.Attributes.Select(o => o as T).WhereNotNull();
 
+    public static T? GetAttribute<T>(this EnumItem item) where T : Attribute => item.GetAttributes<T>().FirstOrDefault();
+
+    public static EnumItem ToEnumItem<T>(this T enumItem) where T : struct, Enum => EnumItem.Get(enumItem);
 }

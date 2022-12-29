@@ -99,10 +99,10 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
     #region Implicit / Explicit
 
     public static implicit operator Type(TypeSlim typeSlim) => typeSlim.Type;
-    public static explicit operator TypeSlim(Type type) => new(type);
+    public static implicit operator TypeSlim(Type type) => new(type);
 
     public static implicit operator TypeInfo(TypeSlim typeSlim) => typeSlim.TypeInfo;
-    public static explicit operator TypeSlim(TypeInfo typeInfo) => new(typeInfo);
+    public static implicit operator TypeSlim(TypeInfo typeInfo) => new(typeInfo);
 
     #endregion Implicit / Explicit
 }
