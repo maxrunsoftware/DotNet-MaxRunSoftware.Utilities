@@ -25,7 +25,7 @@ public class MicrosoftSql : SqlBase
             DefaultDataTypeDateTime = DatabaseTypes.Get(MicrosoftSqlType.DateTime).TypeName, // GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;
             EscapeLeft = '[',
             EscapeRight = ']',
-        }.AddDatabaseUserExcluded("master", "model", "msdb", "tempdb")
+        } //.AddDatabaseUserExcluded("master", "model", "msdb", "tempdb")
         // https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
         // https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql
