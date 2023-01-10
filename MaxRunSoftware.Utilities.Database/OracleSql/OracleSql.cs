@@ -13,11 +13,17 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
+using Oracle.ManagedDataAccess.Client;
 
 namespace MaxRunSoftware.Utilities.Database;
 
-public class OracleSql : SqlBase
+// ReSharper disable RedundantStringInterpolation
+
+public class OracleSql : Sql
 {
+    public static OracleConnection CreateConnection(string connectionString) => new(connectionString);
+
+    public OracleSql(string connectionString) : this(CreateConnection(connectionString)) { }
     public OracleSql(IDbConnection connection) : base(connection) { }
 
     public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
@@ -26,7 +32,7 @@ public class OracleSql : SqlBase
             DefaultDataTypeInteger = DatabaseTypes.Get(OracleSqlType.Int32).TypeName,
             DefaultDataTypeDateTime = DatabaseTypes.Get(OracleSqlType.DateTime).TypeName,
             EscapeLeft = '"',
-            EscapeRight = '"',
+            EscapeRight = '"'
         }
         // https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements008.htm
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "$_#").ToCharArray())
@@ -92,7 +98,7 @@ public class OracleSql : SqlBase
             "select global_name from global_name",
             "select ora_database_name from dual",
             "select pdb_name FROM DBA_PDBS",
-            "select name from v$database",
+            "select name from v$database"
         };
         // ReSharper restore StringLiteralTypo
 
@@ -131,7 +137,7 @@ public class OracleSql : SqlBase
         {
             "select SYS_CONTEXT('USERENV','CURRENT_SCHEMA') from dual",
             "select user from dual",
-            "select SYS_CONTEXT('USERENV','SESSION_USER') from dual",
+            "select SYS_CONTEXT('USERENV','SESSION_USER') from dual"
         };
         // ReSharper restore StringLiteralTypo
 
@@ -155,7 +161,6 @@ public class OracleSql : SqlBase
     }
 
 
-
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
         if (GetCurrentDatabase(errors, out var currentDatabase))
@@ -164,7 +169,7 @@ public class OracleSql : SqlBase
         }
     }
 
-    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, DatabaseSchemaDatabase database)
+    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         // TODO: whole method is expensive operation
 
@@ -177,17 +182,14 @@ public class OracleSql : SqlBase
             new[] { "SELECT DISTINCT owner FROM dba_objects", "owner" },
             new[] { "SELECT DISTINCT owner FROM dba_segments", "owner" },
             new[] { "SELECT DISTINCT OWNER FROM dba_tables", "OWNER" },
-            new[] { "SELECT DISTINCT OWNER FROM all_tables", "OWNER" },
+            new[] { "SELECT DISTINCT OWNER FROM all_tables", "OWNER" }
         };
 
-        static DatabaseSchemaSchema Parse(DatabaseSchemaDatabase database, string?[] row, string columnName)
-        {
-
-            return new DatabaseSchemaSchema(
-                database: database,
-                schemaName: row[0].CheckNotNullTrimmed(columnName)
+        static DatabaseSchemaSchema Parse(DatabaseSchemaDatabase database, string?[] row, string columnName) =>
+            new DatabaseSchemaSchema(
+                database,
+                row[0].CheckNotNullTrimmed(columnName)
             );
-        }
 
         var objsFound = new HashSet<DatabaseSchemaSchema>();
         foreach (var sql in sqls)
@@ -197,11 +199,9 @@ public class OracleSql : SqlBase
                 if (objsFound.Add(obj)) yield return obj;
             }
         }
-
-
     }
 
-    protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetTablesFilter filter)
+    protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         // TODO: whole method is expensive operation
 
@@ -216,11 +216,11 @@ public class OracleSql : SqlBase
 
         DatabaseSchemaTable Parse(string?[] row)
         {
-            var schemaName = row[0].TrimOrNull() ?? currentSchema.SchemaName;
+            var schemaName = row[0].TrimOrNull() ?? currentSchema.Name;
             var tableName = row[1].CheckNotNullTrimmed("TABLE_NAME");
             return new DatabaseSchemaTable(
-                schema: new DatabaseSchemaSchema(currentSchema.Database, schemaName),
-                tableName: tableName
+                new DatabaseSchemaSchema(currentSchema.Database, schemaName),
+                tableName
             );
         }
 
@@ -233,11 +233,10 @@ public class OracleSql : SqlBase
                 if (objsFound.Add(obj)) yield return obj;
             }
         }
-
     }
 
 
-    protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetTableColumnsFilter filter)
+    protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         // TODO: whole method is expensive operation
 
@@ -255,7 +254,7 @@ public class OracleSql : SqlBase
             [7] = "NULLABLE",
             [8] = "COLUMN_ID",
             [9] = "DATA_DEFAULT",
-            [10] = "CHAR_LENGTH",
+            [10] = "CHAR_LENGTH"
         };
 
         var sqls = new[]
@@ -273,22 +272,20 @@ public class OracleSql : SqlBase
             // ReSharper restore InconsistentNaming
 
             return new DatabaseSchemaTableColumn(
-                table: new DatabaseSchemaTable(
-                    databaseName: currentSchema.Database.DatabaseName,
-                    schemaName: row[0].TrimOrNull() ?? currentSchema.SchemaName,
-                    tableName: row[1].CheckNotNullTrimmed(colsDict[1])
+                new DatabaseSchemaTable(
+                    currentSchema.Database.Name,
+                    row[0].TrimOrNull() ?? currentSchema.Name,
+                    row[1].CheckNotNullTrimmed(colsDict[1])
                 ),
-                columnName: row[2].CheckNotNullTrimmed(colsDict[2]),
-                columnType: row[3].CheckNotNullTrimmed(colsDict[3]),
-                columnDbType: GetDbType(row[3].CheckNotNullTrimmed(colsDict[3])) ?? DbType.String,
-
-                isNullable: row[7]!.ToBool(),
-                ordinal: row[8]!.ToInt(),
-
-                characterLengthMax: CHAR_LENGTH > 0 ? CHAR_LENGTH : DATA_LENGTH,
-                numericPrecision: row[5].ToIntNullable(),
-                numericScale: row[6].ToIntNullable(),
-                columnDefault: StringComparer.OrdinalIgnoreCase.Equals(row[9].TrimOrNull(), "null") ? null : row[9]
+                row[2].CheckNotNullTrimmed(colsDict[2]),
+                row[3].CheckNotNullTrimmed(colsDict[3]),
+                GetDbType(row[3].CheckNotNullTrimmed(colsDict[3])) ?? DbType.String,
+                row[7]!.ToBool(),
+                row[8]!.ToInt(),
+                CHAR_LENGTH > 0 ? CHAR_LENGTH : DATA_LENGTH,
+                row[5].ToIntNullable(),
+                row[6].ToIntNullable(),
+                StringComparer.OrdinalIgnoreCase.Equals(row[9].TrimOrNull(), "null") ? null : row[9]
             );
         }
 
@@ -304,24 +301,25 @@ public class OracleSql : SqlBase
     }
 
     public override bool DropTable(DatabaseSchemaTable table)
+    {
+        if (!GetTableExists(table)) return false;
+
+        var dst = Escape(table);
+        var sql = new StringBuilder();
+        sql.Append($" DROP TABLE {dst}");
+        if (DropTableCascadeConstraints) sql.Append(" CASCADE CONSTRAINTS");
+        if (DropTablePurge) sql.Append(" PURGE");
+
+        using (var cmd = CreateCommand())
         {
-            if (!GetTableExists(table)) return false;
-
-            var dst = Escape(table.Schema.SchemaName, table.TableName);
-            var sql = new StringBuilder();
-            sql.Append($" DROP TABLE {dst}");
-            if (DropTableCascadeConstraints) sql.Append(" CASCADE CONSTRAINTS");
-            if (DropTablePurge) sql.Append(" PURGE");
-
-            using (var cmd = CreateCommand())
-            {
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandText = sql.ToString();
-                cmd.ExecuteNonQuery();
-            }
-
-            return true;
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = sql.ToString();
+            cmd.ExecuteNonQuery();
         }
 
+        return true;
+    }
+
+    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name);
 
 }

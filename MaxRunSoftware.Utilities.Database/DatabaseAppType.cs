@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Data.SqlClient;
-using MySql.Data.MySqlClient;
-using Npgsql;
-using Oracle.ManagedDataAccess.Client;
-
 namespace MaxRunSoftware.Utilities.Database;
 
 // ReSharper disable CommentTypo
@@ -54,14 +49,16 @@ public enum DatabaseAppType
 
 public static class DatabaseAppTypeExtensions
 {
-    public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) => connectionType switch
+    public static ImmutableDictionary<DatabaseAppType, Func<string, IDbConnection>> ConnectionFactories { get; } = new Dictionary<DatabaseAppType, Func<string, IDbConnection>>
     {
-        DatabaseAppType.MicrosoftSql => new SqlConnection(connectionString),
-        DatabaseAppType.OracleSql => new OracleConnection(connectionString),
-        DatabaseAppType.MySql => new MySqlConnection(connectionString),
-        DatabaseAppType.PostgreSql => new NpgsqlConnection(connectionString),
-        _ => throw new NotImplementedException(connectionType.ToString())
-    };
+        [DatabaseAppType.MicrosoftSql] = MicrosoftSql.CreateConnection,
+        [DatabaseAppType.OracleSql] = OracleSql.CreateConnection,
+        [DatabaseAppType.MySql] = MySql.CreateConnection,
+        [DatabaseAppType.PostgreSql] = PostgreSql.CreateConnection,
+    }.ToImmutableDictionary();
+
+    public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
+        ConnectionFactories[connectionType](connectionString);
 
     public static IDbConnection OpenConnection(this DatabaseAppType connectionType, string connectionString)
     {

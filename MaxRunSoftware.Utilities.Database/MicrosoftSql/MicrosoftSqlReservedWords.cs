@@ -14,6 +14,8 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
+// ReSharper disable StringLiteralTypo
+
 /// <summary>
 ///     <see href="https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql">
 ///     Reserved Words

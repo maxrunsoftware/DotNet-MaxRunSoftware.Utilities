@@ -14,6 +14,8 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
+// ReSharper disable StringLiteralTypo
+
 /// <summary>
 /// https://dev.mysql.com/doc/refman/8.0/en/keywords.html
 /// </summary>

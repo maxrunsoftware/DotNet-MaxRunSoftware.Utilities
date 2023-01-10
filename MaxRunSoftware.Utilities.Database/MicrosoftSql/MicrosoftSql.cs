@@ -12,10 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Data.SqlClient;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Smo;
+
 namespace MaxRunSoftware.Utilities.Database;
 
-public class MicrosoftSql : SqlBase
+// ReSharper disable RedundantStringInterpolation
+// ReSharper disable StringLiteralTypo
+
+public class MicrosoftSql : Sql
 {
+    public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
+
+    public MicrosoftSql(string connectionString) : this(CreateConnection(connectionString)) { }
     public MicrosoftSql(IDbConnection connection) : base(connection) { }
 
     public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
@@ -24,7 +34,7 @@ public class MicrosoftSql : SqlBase
             DefaultDataTypeInteger = DatabaseTypes.Get(MicrosoftSqlType.Int).TypeName, // GetSqlDbType(SqlMsSqlType.Int).SqlTypeName;
             DefaultDataTypeDateTime = DatabaseTypes.Get(MicrosoftSqlType.DateTime).TypeName, // GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;
             EscapeLeft = '[',
-            EscapeRight = ']',
+            EscapeRight = ']'
         } //.AddDatabaseUserExcluded("master", "model", "msdb", "tempdb")
         // https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
@@ -35,59 +45,73 @@ public class MicrosoftSql : SqlBase
     protected override Type DatabaseTypesEnum => typeof(MicrosoftSqlType);
     public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
 
+    public MicrosoftSqlServerProperties GetServerProperties() => new(this);
+
     #region Schema
 
-    public override DatabaseSchemaSchema GetCurrentSchema() => this.QueryStrings("SELECT DB_NAME(),SCHEMA_NAME();")
-            .Select(row => new DatabaseSchemaSchema(row[0].CheckNotNull("DB_NAME()"), row[1].CheckNotNull("SCHEMA_NAME()")))
+    public override DatabaseSchemaSchema GetCurrentSchema()
+    {
+        var cols = new Dictionary<int, string>
+        {
+            [0] = "DB_NAME()",
+            [1] = "SCHEMA_NAME()",
+        };
+        return this.QueryStrings($"SELECT {EscapeColumns(cols, true)};")
+            .Select(row => new DatabaseSchemaSchema(row, cols))
             .First();
+    }
 
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
+        var cols = new Dictionary<int, string>
+        {
+            [0] = "name",
+        };
         var sql = new StringBuilder();
-        sql.Append("SELECT DISTINCT [name] FROM sys.databases;");
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(
-            row[0].CheckNotNull("sys.databases.name")
-        ));
+        sql.Append($"SELECT DISTINCT {EscapeColumns(cols)} FROM sys.databases;");
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(row, cols));
     }
 
 
-    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, DatabaseSchemaDatabase database)
+    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
-            var sql = new StringBuilder();
-            sql.Append($" SELECT DISTINCT [CATALOG_NAME],[SCHEMA_NAME]");
-            sql.Append($" FROM {Escape(database.DatabaseName)}.INFORMATION_SCHEMA.SCHEMATA");
-            sql.Append($" WHERE CATALOG_NAME='{Unescape(database.DatabaseName)}'");
-            sql.Append(';');
-
-            return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(
-                databaseName: row[0].CheckNotNullTrimmed("CATALOG_NAME"),
-                schemaName: row[1].CheckNotNullTrimmed("SCHEMA_NAME")
-            ));
-    }
-
-    protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetTablesFilter filter)
-    {
-
-
+        var cols = new Dictionary<int, string>
+        {
+            [0] = "CATALOG_NAME",
+            [1] = "SCHEMA_NAME",
+        };
         var sql = new StringBuilder();
-        sql.Append($" SELECT DISTINCT [TABLE_CATALOG],[TABLE_SCHEMA],[TABLE_NAME]");
-        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES");
-        sql.Append($" WHERE TABLE_TYPE='BASE TABLE'");
-        sql.Append($" AND TABLE_CATALOG='{filter.DatabaseName}'");
-        if (filter.SchemaName != null) sql.Append($" AND TABLE_SCHEMA='{filter.SchemaName}'");
+        sql.Append($" SELECT DISTINCT {EscapeColumns(cols)}");
+        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.SCHEMATA");
+        sql.Append($" WHERE CATALOG_NAME='{filter.DatabaseNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(
-            databaseName: row[0].CheckNotNullTrimmed("TABLE_CATALOG"),
-            schemaName: row[1].CheckNotNullTrimmed("TABLE_SCHEMA"),
-            tableName: row[2].CheckNotNullTrimmed("TABLE_NAME")
-        ));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(row, cols));
     }
 
-    protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetTableColumnsFilter filter)
+    protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         var sql = new StringBuilder();
-        var colsDict = new Dictionary<int, string> // Just using dict<int> to document index of each column
+        var cols = new Dictionary<int, string> // Just using dict<int> to document index of each column
+        {
+            [0] = "TABLE_CATALOG",
+            [1] = "TABLE_SCHEMA",
+            [2] = "TABLE_NAME",
+        };
+        sql.Append($" SELECT DISTINCT {EscapeColumns(cols)}");
+        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES");
+        sql.Append($" WHERE TABLE_TYPE='BASE TABLE'");
+        sql.Append($" AND TABLE_CATALOG='{filter.DatabaseNameUnescaped}'");
+        if (filter.SchemaNameUnescaped != null) sql.Append($" AND TABLE_SCHEMA='{filter.SchemaNameUnescaped}'");
+        sql.Append(';');
+
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(row, cols));
+    }
+
+    protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter)
+    {
+        var sql = new StringBuilder();
+        var cols = new Dictionary<int, string> // Just using dict<int> to document index of each column
         {
             [0] = "TABLE_CATALOG",
             [1] = "TABLE_SCHEMA",
@@ -99,54 +123,219 @@ public class MicrosoftSql : SqlBase
             [7] = "CHARACTER_MAXIMUM_LENGTH",
             [8] = "NUMERIC_PRECISION",
             [9] = "NUMERIC_SCALE",
-            [10] = "COLUMN_DEFAULT",
+            [10] = "COLUMN_DEFAULT"
         };
-        var cols = colsDict.OrderBy(kvp => kvp.Key).Select(o => $"c.{Escape(o.Value)}").ToStringDelimited(",");
-        sql.Append($" SELECT DISTINCT {cols}");
+        sql.Append($" SELECT DISTINCT {EscapeColumns("c",cols)}");
         sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.COLUMNS c");
         sql.Append($" INNER JOIN {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES t ON t.TABLE_CATALOG=c.TABLE_CATALOG AND t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME");
         sql.Append($" WHERE t.TABLE_TYPE='BASE TABLE'");
-        sql.Append($" AND c.TABLE_CATALOG='{filter.DatabaseName}'");
-        if (filter.SchemaName != null) sql.Append($" AND c.TABLE_SCHEMA='{filter.SchemaName}'");
-        if (filter.TableName != null) sql.Append($" AND c.TABLE_NAME='{filter.TableName}'");
+        sql.Append($" AND c.TABLE_CATALOG='{filter.DatabaseNameUnescaped}'");
+        if (filter.SchemaNameUnescaped != null) sql.Append($" AND c.TABLE_SCHEMA='{filter.SchemaNameUnescaped}'");
+        if (filter.TableNameUnescaped != null) sql.Append($" AND c.TABLE_NAME='{filter.TableNameUnescaped}'");
         sql.Append(';');
 
 
-
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            table: new DatabaseSchemaTable(
-                databaseName: row[0].CheckNotNullTrimmed(colsDict[0]),
-                schemaName: row[1].CheckNotNullTrimmed(colsDict[1]),
-                tableName: row[2].CheckNotNullTrimmed(colsDict[2])
-                ),
-            columnName: row[3].CheckNotNullTrimmed(colsDict[3]),
-            columnType: row[4].CheckNotNullTrimmed(colsDict[4]),
-            columnDbType: GetDbType(row[4].CheckNotNullTrimmed(colsDict[4])) ?? DbType.String,
-            isNullable: row[5]!.ToBool(),
-            ordinal: row[6]!.ToInt(),
-            characterLengthMax: row[7].ToLongNullable(),
-            numericPrecision: row[8].ToIntNullable(),
-            numericScale: row[9].ToIntNullable(),
-            columnDefault: row[10]
+            new DatabaseSchemaTable(row, cols),
+            row[3].CheckNotNullTrimmed(cols[3]),
+            row[4].CheckNotNullTrimmed(cols[4]),
+            GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
+            row[5]!.ToBool(),
+            row[6]!.ToInt(),
+            row[7].ToLongNullable(),
+            row[8].ToIntNullable(),
+            row[9].ToIntNullable(),
+            row[10]
         ));
-
-
     }
 
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
 
-        var dst = Escape(table.Schema.Database.DatabaseName, table.Schema.SchemaName, table.TableName);
+        var dst = Escape(table);
         using (var cmd = CreateCommand())
         {
             cmd.CommandType = CommandType.Text;
             cmd.CommandText = $"DROP TABLE {dst};";
             cmd.ExecuteNonQuery();
         }
+
         return true;
     }
 
+    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name, schema.Name);
+
     #endregion Schema
 
+
+    #region ServerProperties
+
+    #endregion ServerProperty
+
+    public virtual bool DropDatabase(string database)
+    {
+        var databaseEscaped = this.Escape(database);
+        var databaseUnescaped = this.Unescape(database);
+
+        var sql = @$"
+        IF EXISTS (SELECT * FROM master.sys.databases WHERE NAME=N'{databaseUnescaped}')
+        BEGIN
+            ALTER DATABASE {databaseEscaped} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+            DROP DATABASE {databaseEscaped};
+            SELECT CAST(1 AS BIT);
+        END
+        ELSE
+        BEGIN
+            SELECT CAST(0 AS BIT);
+        END
+        ";
+
+        var o = QueryScalar(sql);
+        if (o == null) throw new NullReferenceException();
+        if (o is bool oBool) return oBool;
+        return o.ToString()!.ToBool();
+    }
+
+
+    /*
+    public string DefaultDatabasePathMDF
+    {
+        get
+        {
+
+        }
+    }
+
+    private (string PathMDF, string PathLDF) GetDatabasePaths()
+    {
+        string? ExecuteScalarIgnoreException(string sqls)
+        {
+            foreach (var sql in sqls.SplitOnNewline().TrimOrNull().WhereNotNull())
+            {
+                try
+                {
+                    var o = this.QueryScalarString(sql).TrimOrNull();
+                    if (o != null) return o;
+                }
+                catch (Exception e)
+                {
+                    log.LogTrace(e, nameof(GetDatabasePaths) + "." + nameof(ExecuteScalarIgnoreException) + " failed: {Sql}", sql);
+                }
+            }
+            return null;
+        }
+
+        string? RemoveDatabaseFileName(string? path)
+        {
+            if (path == null) return null;
+            var countW = path.CountOccurrences("\\");
+            var countL = path.CountOccurrences("/");
+
+        }
+
+        var pathMDF = ServerProperties.InstanceDefaultDataPath.TrimOrNull();
+        var pathLDF = ServerProperties.InstanceDefaultLogPath.TrimOrNull();
+
+        if (pathMDF != null && pathLDF == null) pathLDF = pathMDF;
+        if (pathMDF == null && pathLDF != null) pathMDF = pathLDF;
+
+        if (pathMDF == null || pathLDF == null)
+        {
+            var databaseIdNullable = ExecuteScalarIgnoreException(@"
+                SELECT database_id FROM master.sys.databases WHERE name='master'
+                SELECT MIN(database_id) FROM master.sys.master_files WHERE name='master'
+                SELECT MIN(database_id) FROM master.sys.master_files
+            ").TrimOrNull().ToIntNullable();
+            if (databaseIdNullable == null) throw new Exception("Could not determine 'master' database_id");
+            var databaseId = databaseIdNullable.Value;
+
+            if (pathMDF == null)
+            {
+                pathMDF = ExecuteScalarIgnoreException(@$"
+                    SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='ROWS' AND database_id={databaseId} ORDER BY file_id
+                    SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='ROWS' AND name='master' ORDER BY file_id
+                ").TrimOrNull();
+                if (pathMDF != null)
+                {
+
+                }
+            }
+
+
+        }
+        if (path == null)
+        {
+
+
+        }
+    }
+    public virtual void CreateDatabase(
+        string database,
+        string? mdfFileName = null,
+        string? mdfFileDirectory = null,
+        string? ldfFileName = null,
+        string? ldfFileDirectory = null
+    ) {
+
+
+
+        if (pathData == null)
+        {
+
+        }
+        var sqls = @"
+
+
+            SELECT SERVERPROPERTY('InstanceDefaultDataPath')
+            SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='ROWS' AND database_id=@database_id ORDER BY file_id
+            SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='ROWS' AND name='master' ORDER BY file_id
+
+            SELECT SERVERPROPERTY('InstanceDefaultLogPath')
+            SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='LOG' AND database_id=@database_id ORDER BY file_id
+            SELECT TOP 1 physical_name FROM master.sys.master_files WHERE type_desc='LOG' AND name='mastlog' ORDER BY file_id
+        ";
+        var databaseEscaped = this.Escape(database);
+        var databaseUnescaped = this.Unescape(database);
+
+        var sqlsMasterDatabaseFiles
+        var sql1 = "SELECT * FROM master.sys.master_files WHERE database_id=1 AND file_id=1;";
+        SELECT * FROM master.sys.master_files WHERE name='master' AND type_desc='ROWS';
+        "
+        var dataPath = ServerProperties.InstanceDefaultDataPath.TrimOrNull();
+        var logPath = ServerProperties.InstanceDefaultLogPath.TrimOrNull();
+
+
+
+        var sql = @$"
+            DECLARE @path_mdf NVARCHAR(4000) = CAST(SERVERPROPERTY('InstanceDefaultDataPath') AS NVARCHAR(4000))
+            DECLARE @path_ldf NVARCHAR(4000) = CAST(SERVERPROPERTY('InstanceDefaultLogPath') AS NVARCHAR(4000))
+
+            SET @path_mdf = COALESCE(@path_mdf, @path_ldf)
+            SET @path_ldf = COALESCE(@path_ldf, @path_mdf)
+
+            IF @path_mdf IS NULL AND @path_ldf IS NULL
+            BEGIN
+                SET @path_mdf = ( SELECT SUBSTRING(filename, 1, CHARINDEX(N'master.mdf', LOWER(filename)) - 1) FROM master.sys.sysaltfiles WHERE dbid=1 AND fileid=1 )
+                SET @path_ldf = @path_mdf
+            END
+            IF @path_mdf IS NOT NULL AND LEN(@path_mdf) > 0 AND RIGHT(@path_mdf, 1) NOT IN ('/', '\') SET @path_mdf = @path_mdf + '/'
+            IF @path_ldf IS NOT NULL AND LEN(@path_ldf) > 0 AND RIGHT(@path_ldf, 1) NOT IN ('/', '\') SET @path_ldf = @path_ldf + '/'
+
+            SET @path_mdf = COALESCE(@path_mdf, '') + '{db}.mdf'
+            SET @path_ldf = COALESCE(@path_ldf, '') + '{db}.ldf'
+
+            DECLARE @SQL_CREATE NVARCHAR(MAX) = N'
+              CREATE DATABASE [{db}]
+                  ON PRIMARY (NAME = N''{db}''     , FILENAME = N''$MDF$'' , SIZE = 16MB, FILEGROWTH = 16MB)
+              LOG ON         (NAME = N''{db}_log'' , FILENAME = N''$LDF$'' , SIZE = 16MB, FILEGROWTH = 16MB)
+            '
+            SET @SQL_CREATE = REPLACE(@SQL_CREATE, '$MDF$', @path_mdf)
+            SET @SQL_CREATE = REPLACE(@SQL_CREATE, '$LDF$', @path_ldf)
+            SET @SQL_CREATE = TRIM(@SQL_CREATE)
+
+            EXEC(@SQL_CREATE);
+        ";
+    }
+    */
 }

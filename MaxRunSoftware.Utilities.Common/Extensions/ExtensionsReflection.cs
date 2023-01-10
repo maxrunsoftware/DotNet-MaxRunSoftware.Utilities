@@ -346,4 +346,23 @@ public static class ExtensionsReflection
     }
 
     #endregion IComparable
+
+    #region EmbeddedResource
+
+    public static string[] GetEmbeddedResourceNames(this Assembly assembly) => assembly.GetManifestResourceNames();
+
+    public static byte[] GetEmbeddedResource(this Assembly assembly, string filename)
+    {
+        var resourceNames = assembly.GetEmbeddedResourceNames();
+        var resourceName = resourceNames.Single(o => o.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
+        if (resourceName == null) throw new Exception($"Could not find resource file: {filename}");
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream == null) throw new Exception($"Could not open stream for resource: {resourceName}  {filename}");
+        return stream.ReadAll();
+    }
+
+    public static string GetEmbeddedResource(this Assembly assembly, string filename, Encoding encoding) =>
+        encoding.GetString(assembly.GetEmbeddedResource(filename));
+
+    #endregion EmbeddedResource
 }

@@ -16,6 +16,44 @@ using MaxRunSoftware.Utilities.Common;
 
 namespace MaxRunSoftware.Utilities.Database.Tests;
 
+
+/// <summary>
+/// https://xunit.net/docs/shared-context
+/// </summary>
+public abstract class DatabaseFixture : IDisposable
+{
+    protected DatabaseFixture()
+    {
+        // ReSharper disable once VirtualMemberCallInConstructor
+        Setup();
+    }
+
+    protected abstract void Setup();
+    protected abstract void Teardown();
+
+    public void Dispose()
+    {
+        Teardown();
+    }
+
+    protected int ExecuteNonQuery(DatabaseAppType appType, string connectionString, string sql, int timeoutSeconds = 60 * 5)
+    {
+        using var c = appType.OpenConnection(connectionString);
+        using var cmd = c.CreateCommand();
+        cmd.CommandType = CommandType.Text;
+        cmd.CommandTimeout = timeoutSeconds;
+        cmd.CommandText = sql;
+        return cmd.ExecuteNonQuery();
+    }
+}
+
+public abstract class DatabaseFixtureCollection<T> : ICollectionFixture<T> where T : DatabaseFixture
+{
+    // This class has no code, and is never created. Its purpose is simply
+    // to be the place to apply [CollectionDefinition] and all the
+    // ICollectionFixture<> interfaces.
+}
+
 public abstract class DatabaseTests : TestBase, IDisposable
 {
     protected readonly Sql sql;
@@ -79,10 +117,26 @@ public abstract class DatabaseTests : TestBase, IDisposable
         WriteLine(nameof(sql.GetTableColumns), o);
     }
 
+    [Fact]
+    public void GetTableExists()
+    {
+        var tables = sql.GetTables().OrderBy(o => o).ToArray();
+        Assert.NotNull(tables);
+        Assert.NotEmpty(tables);
+        foreach (var table in tables)
+        {
+            var result = sql.GetTableExists(table);
+            WriteLine(nameof(sql.GetTableExists), $"{table.NameFull} -> {result}");
+            Assert.True(result);
+        }
+
+    }
+
     protected void WriteLine(string methodName, object? outData)
     {
         output.WriteLine($"[{sql.DatabaseAppType}] {methodName}: {ToStringParse(outData)}");
     }
+
     protected void WriteLine<T>(string methodName, T?[] outData)
     {
         for (var i = 0; i < outData.Length; i++)

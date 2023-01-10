@@ -20,6 +20,8 @@ public class DatabaseTypesAttribute : Attribute
     public DatabaseAppType DatabaseAppType { get; }
 
     public DatabaseTypesAttribute(DatabaseAppType databaseAppType) { DatabaseAppType = databaseAppType; }
+
+    public Type? ExternalEnum { get; set; }
 }
 
 public class DatabaseTypes

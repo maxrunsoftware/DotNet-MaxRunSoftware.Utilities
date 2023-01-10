@@ -26,4 +26,9 @@
       <ProjectReference Include="..\MaxRunSoftware.Utilities.Database\MaxRunSoftware.Utilities.Database.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="MicrosoftSql.sql" />
+      <None Remove="MicrosoftSql.Northwind.1.sql" />
+    </ItemGroup>
+
 </Project>

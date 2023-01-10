@@ -21,27 +21,27 @@ namespace MaxRunSoftware.Utilities.Database.Tests;
 /// <summary>
 /// https://xunit.net/docs/shared-context
 /// </summary>
-public class MicrosoftSqlFixture : DatabaseFixture
+public class MySqlFixture : DatabaseFixture
 {
     protected override void Setup() { }
     protected override void Teardown() { }
 }
 
-[CollectionDefinition(nameof(MicrosoftSql))]
-public class MicrosoftSqlFixtureCollection : DatabaseFixtureCollection<MicrosoftSqlFixture> { }
+[CollectionDefinition(nameof(MySql))]
+public class MySqlFixtureCollection : DatabaseFixtureCollection<MySqlFixture> { }
 
-[Collection(nameof(MicrosoftSql))]
-public class MicrosoftSqlTests : DatabaseTests
+[Collection(nameof(MySql))]
+public class MySqlTests : DatabaseTests
 {
-    public MicrosoftSqlTests(ITestOutputHelper testOutputHelper) :
-        base(testOutputHelper, new MicrosoftSql(Constants.MicrosoftSql_ConnectionString_Master))
+    public MySqlTests(ITestOutputHelper testOutputHelper) :
+        base(testOutputHelper, new MySql(Constants.MySql_ConnectionString_Test))
     { }
 
     [Fact]
     public void GetServerProperties()
     {
-        var props = ((MicrosoftSql)sql).GetServerProperties();
-        Assert.NotNull(props);
-        WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
+        //var props = ((MicrosoftSql)sql).GetServerProperties();
+        //Assert.NotNull(props);
+        //WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
     }
 }

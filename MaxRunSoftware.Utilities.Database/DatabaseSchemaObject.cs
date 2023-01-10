@@ -14,108 +14,127 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-public abstract class DatabaseSchemaObject { }
-
-
-public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>
+public abstract class DatabaseSchemaObject
 {
-    private readonly int hashCode;
-    public string DatabaseName { get; }
-
-    public DatabaseSchemaDatabase(string databaseName)
+    protected DatabaseSchemaObject(string name, DatabaseSchemaObject? parent = null)
     {
-        DatabaseName = databaseName;
-        hashCode = Util.Hash(DatabaseName.ToUpperInvariant());
+        Name = name;
+        Parent = parent;
+        NameFullParts = Parent == null
+            ? ImmutableArray.Create(Name)
+            : Parent.NameFullParts.Add(Name);
+        NameFull = NameFullParts.ToStringDelimited(".");
+        getHashCode = new Lzy<int>(GetHashCodeCreateIndirect);
     }
+    public ImmutableArray<string> NameFullParts { get; }
+    protected DatabaseSchemaObject? Parent { get; }
+    public string Name { get; }
+    public string NameFull { get; }
+    public override string ToString() => Name;
+    private readonly Lzy<int> getHashCode;
+    protected int GetHashCodeValue => getHashCode.Value;
+    protected virtual int GetHashCodeCreate() => Util.Hash(Parent, Name.ToUpperInvariant());
+    private int GetHashCodeCreateIndirect() => GetHashCodeCreate();
+}
 
+
+public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>, IComparable<DatabaseSchemaDatabase>
+{
+    public DatabaseSchemaDatabase(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0])) { }
+    public DatabaseSchemaDatabase(string databaseName) : base(databaseName) {}
+
+    public int CompareTo(DatabaseSchemaDatabase? other)
+    {
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(this, other)) return 0;
+
+        int c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
+        return c;
+    }
     public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaDatabase);
-
+    public override int GetHashCode() => GetHashCodeValue;
     public bool Equals(DatabaseSchemaDatabase? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqualCaseInsensitive(DatabaseName, other.DatabaseName)) return false;
+        if (!Util.IsEqualCaseInsensitive(Name, other.Name)) return false;
         return true;
     }
-
-    public override int GetHashCode() => hashCode;
-
-    public override string ToString() => DatabaseName;
 }
 
-public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSchemaSchema>
+public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSchemaSchema>, IComparable<DatabaseSchemaSchema>
 {
-    private readonly int hashCode;
-    public DatabaseSchemaDatabase Database { get; }
-    public string SchemaName { get; }
+    public DatabaseSchemaDatabase Database => (DatabaseSchemaDatabase)Parent! ?? throw new NullReferenceException();
 
+    public DatabaseSchemaSchema(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0]), row[1].CheckNotNull(columns[1])) { }
     public DatabaseSchemaSchema(string databaseName, string schemaName) : this(new DatabaseSchemaDatabase(databaseName), schemaName) { }
+    public DatabaseSchemaSchema(DatabaseSchemaDatabase database, string schemaName) : base(schemaName, database) {}
 
-    public DatabaseSchemaSchema(DatabaseSchemaDatabase database, string schemaName)
+    public int CompareTo(DatabaseSchemaSchema? other)
     {
-        Database = database;
-        SchemaName = schemaName;
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(this, other)) return 0;
 
-        hashCode = Util.Hash(Database, SchemaName.ToUpperInvariant());
+        int c;
+        if (0 != (c = Database.CompareTo(other.Database))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
+        return c;
     }
 
     public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaSchema);
-
+    public override int GetHashCode() => GetHashCodeValue;
     public bool Equals(DatabaseSchemaSchema? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqual(Database, other.Database)) return false;
-        if (!Util.IsEqualCaseInsensitive(SchemaName, other.SchemaName)) return false;
+        if (!Util.IsEqual(Parent, other.Parent)) return false;
+        if (!Util.IsEqualCaseInsensitive(Name, other.Name)) return false;
         return true;
     }
 
-    public override int GetHashCode() => hashCode;
 
-    public override string ToString() => SchemaName;
 }
 
-public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>
+public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>, IComparable<DatabaseSchemaTable>
 {
-    private readonly int hashCode;
-    public DatabaseSchemaSchema Schema { get; }
-    public string TableName { get; }
+    public DatabaseSchemaSchema Schema => (DatabaseSchemaSchema)Parent! ?? throw new NullReferenceException();
 
+    public DatabaseSchemaTable(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0]), row[1].CheckNotNull(columns[1]), row[2].CheckNotNull(columns[2])) { }
     public DatabaseSchemaTable(string databaseName, string schemaName, string tableName) : this(new DatabaseSchemaSchema(databaseName, schemaName), tableName) { }
 
-    public DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName)
+    public DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName) : base(tableName, schema) {}
+
+    public int CompareTo(DatabaseSchemaTable? other)
     {
-        Schema = schema;
-        TableName = tableName;
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(this, other)) return 0;
 
-        hashCode = Util.Hash(Schema, TableName.ToUpperInvariant());
+        int c;
+        if (0 != (c = Schema.CompareTo(other.Schema))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
+        return c;
     }
-
     public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaTable);
-
+    public override int GetHashCode() => GetHashCodeValue;
     public bool Equals(DatabaseSchemaTable? other)
     {
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqual(Schema, other.Schema)) return false;
-        if (!Util.IsEqualCaseInsensitive(TableName, other.TableName)) return false;
+        if (!Util.IsEqual(Parent, other.Parent)) return false;
+        if (!Util.IsEqualCaseInsensitive(Name, other.Name)) return false;
         return true;
     }
 
-    public override int GetHashCode() => hashCode;
-
-    public override string ToString() => TableName;
 }
 
-public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<DatabaseSchemaTableColumn>
+public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<DatabaseSchemaTableColumn>, IComparable<DatabaseSchemaTableColumn>
 {
-    private readonly int hashCode;
-    public DatabaseSchemaTable Table { get; }
+    public DatabaseSchemaTable Table => (DatabaseSchemaTable)Parent! ?? throw new NullReferenceException();
 
-    public string ColumnName { get; }
     public string ColumnType { get; }
 
     public DbType ColumnDbType { get; }
@@ -137,10 +156,8 @@ public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<Databa
         int? numericPrecision = null,
         int? numericScale = null,
         string? columnDefault = null
-    )
+    ) : base(columnName, table)
     {
-        Table = table;
-        ColumnName = columnName.CheckNotNullTrimmed();
         ColumnType = columnType.CheckNotNullTrimmed();
 
         ColumnDbType = columnDbType;
@@ -150,10 +167,23 @@ public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<Databa
         NumericPrecision = numericPrecision;
         NumericScale = numericScale;
         ColumnDefault = columnDefault;
-
-        hashCode = Util.Hash(Table, ColumnName.ToUpperInvariant(), Ordinal);
     }
+    protected override int GetHashCodeCreate() => Util.Hash(base.GetHashCodeCreate(), Ordinal);
 
+    public int CompareTo(DatabaseSchemaTableColumn? other)
+    {
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(this, other)) return 0;
+
+        int c;
+        if (0 != (c = Table.CompareTo(other.Table))) return c;
+        if (0 != (c = Ordinal.CompareTo(other.Ordinal))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(ColumnType, other.ColumnType))) return c;
+        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(ColumnDbType, other.ColumnDbType))) return c;
+        if (0 != (c = IsNullable.CompareTo(other.IsNullable))) return c;
+        return c;
+    }
     public override bool Equals(object? obj) => Equals(obj as DatabaseSchemaTableColumn);
 
     public bool Equals(DatabaseSchemaTableColumn? other)
@@ -161,14 +191,13 @@ public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<Databa
         if (other == null) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetHashCode() != other.GetHashCode()) return false;
-        if (!Util.IsEqual(Table, other.Table)) return false;
-        if (!Util.IsEqualCaseInsensitive(ColumnName, other.ColumnName)) return false;
+        if (!Util.IsEqual(Parent, other.Parent)) return false;
+        if (!Util.IsEqualCaseInsensitive(Name, other.Name)) return false;
         if (Ordinal != other.Ordinal) return false;
 
         return true;
     }
 
-    public override int GetHashCode() => hashCode;
+    public override int GetHashCode() => GetHashCodeValue;
 
-    public override string ToString() => ColumnName;
 }

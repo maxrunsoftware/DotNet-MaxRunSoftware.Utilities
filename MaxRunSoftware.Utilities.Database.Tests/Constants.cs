@@ -12,11 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ReSharper disable InconsistentNaming
-
 namespace MaxRunSoftware.Utilities.Database.Tests;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable StringLiteralTypo
 
 public static class Constants
 {
-    public static readonly string ConnectionString_MicrosoftSql = "Server=172.16.46.16;Database=master;User Id=sa;Password=testPass1!;";
+    public static readonly string MicrosoftSql_TestDatabase = "MRSTEST";
+    public static readonly string MicrosoftSql_ConnectionString_Master = "Server=172.16.46.16;Database=master;User Id=sa;Password=testPass1!;";
+    public static readonly string MicrosoftSql_ConnectionString_Test = $"Server=172.16.46.16;Database={MicrosoftSql_TestDatabase};User Id=sa;Password=testPass1!;";
+
+    //public static readonly string MySql_ConnectionString_Test = $"Server=172.16.46.16;Database=mysql;Uid=root;Pwd=testPass1!;";
+    public static readonly string MySql_ConnectionString_Test = "Server=172.16.46.16;Port=3306;User Id=root;Password=testPass1!;";
+    //public static readonly string MySql_ConnectionString_Test = "Server=172.16.46.16;Port=3306;Database=testdb;Uid=root;Pwd=testPass1!;";
+    //Server=myServerAddress;Port=1234;Database=myDataBase;Uid=myUsername;Pwd=myPassword;
+
 }

@@ -14,256 +14,30 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-
-public class DbParameter
-{
-    public DbParameter(string name, DbType type = DbType.String)
-    {
-        Name = name;
-        Type = type;
-    }
-
-    public string Name { get; }
-    public DbType Type { get; }
-}
-public class DbParameterValue : DbParameter
-{
-    public DbParameterValue(string name, object? value, DbType type = DbType.String) : base(name: name, type: type)
-    {
-        Value = value;
-    }
-
-    public object? Value { get; }
-}
-
-public abstract class SqlBase : Sql
-{
-    protected readonly ILogger log;
-    protected SqlBase(IDbConnection connection) : base(connection)
-    {
-        log = Constant.GetLogger(GetType());
-    }
-
-    #region Schema
-
-    public override DatabaseSchemaDatabase GetCurrentDatabase() => GetCurrentSchema().Database;
-
-    protected IEnumerable<T> GetSchemaObjects<T>(List<SqlError> errors, StringBuilder sql, Func<string?[], T> converter) where T : DatabaseSchemaObject =>
-        GetSchemaObjects(errors, sql.ToString(), converter);
-
-    protected IEnumerable<T> GetSchemaObjects<T>(List<SqlError> errors, string sql, Func<string?[], T> converter) where T : DatabaseSchemaObject
-    {
-        var tbl = this.QueryStrings(sql, out var exception);
-        if (exception != null)
-        {
-            errors.Add(new SqlError(sql, exception));
-            yield break;
-        }
-
-        foreach (var row in tbl)
-        {
-            T? so = null;
-            try
-            {
-                so = converter(row);
-            }
-            catch (Exception e)
-            {
-                errors.Add(new SqlError(sql, e));
-            }
-
-            if (so != null) yield return so;
-        }
-    }
-
-    #region GetDatabases
-
-    public override IEnumerable<DatabaseSchemaDatabase> GetDatabases()
-    {
-        var errors = new List<SqlError>();
-        foreach (var soDatabase in GetDatabases(errors))
-        {
-            if (DialectSettings.IsExcluded(soDatabase)) continue;
-            yield return soDatabase;
-        }
-
-        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
-    }
-    protected abstract IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors);
-
-    #endregion GetDatabases
-
-    #region GetSchemas
-    public override IEnumerable<DatabaseSchemaSchema> GetSchemas() => GetSchemas(GetDatabases());
-    public override IEnumerable<DatabaseSchemaSchema> GetSchemas(DatabaseSchemaDatabase database) => GetSchemas(new []{ database });
-
-    private IEnumerable<DatabaseSchemaSchema> GetSchemas(IEnumerable<DatabaseSchemaDatabase> databases)
-    {
-        var errors = new List<SqlError>();
-        foreach (var soDatabase in databases)
-        {
-            if (DialectSettings.IsExcluded(soDatabase)) continue;
-            foreach (var soSchema in GetSchemas(errors, soDatabase))
-            {
-                if (DialectSettings.IsExcluded(soSchema)) continue;
-                yield return soSchema;
-            }
-        }
-
-        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
-    }
-    protected abstract IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, DatabaseSchemaDatabase database);
-
-    #endregion GetSchemas
-
-    protected virtual DbType? GetDbType(string? typeName)
-    {
-        typeName = typeName.TrimOrNull();
-        if (typeName == null) return null;
-        var type = DatabaseTypes.TypeNames.GetValueNullable(typeName);
-        return type?.DbType;
-    }
-
-    #region GetTables
-
-    protected class GetTablesFilter
-    {
-        public GetTablesFilter(Sql sql, DatabaseSchemaDatabase? database, DatabaseSchemaSchema? schema)
-        {
-            Database = database;
-            Schema = schema;
-
-            DatabaseName =
-                Schema?.Database.DatabaseName
-                ?? Database?.DatabaseName
-                ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.DatabaseName) + " cannot be null");
-            DatabaseNameEscaped = sql.Escape(DatabaseName);
-
-            SchemaName = Schema?.SchemaName;
-            SchemaNameEscaped = SchemaName == null ? null : sql.Escape(SchemaName);
-
-
-        }
-
-        public DatabaseSchemaDatabase? Database { get; }
-        public DatabaseSchemaSchema? Schema { get; }
-
-        public string DatabaseName { get; }
-        public string DatabaseNameEscaped { get; }
-
-        public string? SchemaName { get; }
-        public string? SchemaNameEscaped { get; }
-
-    }
-
-    public override IEnumerable<DatabaseSchemaTable> GetTables() => GetTables(GetDatabases().Select(o => new GetTablesFilter(this, o, null)).ToArray());
-    public override IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaDatabase database) => GetTables(new GetTablesFilter(this, database, null));
-    public override IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaSchema schema) => GetTables(new GetTablesFilter(this, null, schema));
-
-    private IEnumerable<DatabaseSchemaTable> GetTables(params GetTablesFilter[] filters)
-    {
-        var errors = new List<SqlError>();
-        foreach (var filter in filters)
-        {
-            if (filter.Database == null && filter.Schema == null) throw new NotImplementedException();
-            if (filter.Database != null && DialectSettings.IsExcluded(filter.Database)) continue;
-            if (filter.Schema != null && DialectSettings.IsExcluded(filter.Schema)) continue;
-
-            foreach (var soTable in GetTables(errors, filter))
-            {
-                if (DialectSettings.IsExcluded(soTable)) continue;
-                yield return soTable;
-            }
-        }
-
-        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
-    }
-    protected abstract IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetTablesFilter filter);
-
-    #endregion GetTables
-
-    #region GetTableColumns
-    protected class GetTableColumnsFilter
-    {
-        public GetTableColumnsFilter(Sql sql, DatabaseSchemaDatabase? database, DatabaseSchemaSchema? schema, DatabaseSchemaTable? table)
-        {
-            Database = database;
-            Schema = schema;
-            Table = table;
-
-            DatabaseName =
-                Table?.Schema.Database.DatabaseName
-                ?? Schema?.Database.DatabaseName
-                ?? Database?.DatabaseName
-                ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.DatabaseName) + " cannot be null");
-            DatabaseNameEscaped = sql.Escape(DatabaseName);
-
-            SchemaName =
-                Table?.Schema.SchemaName
-                ?? Schema?.SchemaName;
-            SchemaNameEscaped = SchemaName == null ? null : sql.Escape(SchemaName);
-
-            TableName = Table?.TableName;
-            TableNameEscaped = TableName == null ? null : sql.Escape(TableName);
-        }
-
-        public DatabaseSchemaDatabase? Database { get; }
-        public DatabaseSchemaSchema? Schema { get; }
-        public DatabaseSchemaTable? Table { get; }
-
-        public string DatabaseName { get; }
-        public string DatabaseNameEscaped { get; }
-
-        public string? SchemaName { get; }
-        public string? SchemaNameEscaped { get; }
-
-        public string? TableName { get; }
-        public string? TableNameEscaped { get; }
-    }
-
-    public override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns() => GetTableColumns(GetDatabases().Select(o => new GetTableColumnsFilter(this, o, null, null)).ToArray());
-    public override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaDatabase database) => GetTableColumns(new GetTableColumnsFilter(this, database, null, null));
-    public override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaSchema schema) => GetTableColumns(new GetTableColumnsFilter(this, null, schema, null));
-    public override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaTable table) => GetTableColumns(new GetTableColumnsFilter(this, null, null, table));
-
-    private IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(params GetTableColumnsFilter[] filters)
-    {
-        var errors = new List<SqlError>();
-        foreach (var filter in filters)
-        {
-            if (filter.Database == null && filter.Schema == null && filter.Table == null) throw new NotImplementedException();
-            if (filter.Database != null && DialectSettings.IsExcluded(filter.Database)) continue;
-            if (filter.Schema != null && DialectSettings.IsExcluded(filter.Schema)) continue;
-            if (filter.Table != null && DialectSettings.IsExcluded(filter.Table)) continue;
-
-            foreach (var soColumn in GetTableColumns(errors, filter))
-            {
-                if (DialectSettings.IsExcluded(soColumn)) continue;
-                yield return soColumn;
-            }
-        }
-
-        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
-    }
-    protected abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetTableColumnsFilter filter);
-
-    #endregion GetTableColumns
-    #endregion Schema
-}
-
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
+
 public abstract class Sql : IDisposable
 {
-    private readonly ILogger log = Constant.GetLogger<Sql>();
+    protected readonly ILogger log;
     private readonly SingleUse isDisposed = new();
-    public virtual IDbConnection Connection { get; }
+    private IDbConnection? connection;
+    public virtual IDbConnection Connection
+    {
+        get
+        {
+            var c = connection;
+            if (isDisposed.IsUsed || c == null) throw new ObjectDisposedException(nameof(Connection));
+            if (c.State == ConnectionState.Closed) c.Open();
+            return c;
+        }
+    }
 
     protected Sql(IDbConnection connection)
     {
-        Connection = connection;
+        log = Constant.GetLogger(GetType());
+        this.connection = connection;
     }
 
-    protected record class SqlError(string Sql, Exception Error);
 
     public abstract DatabaseAppType DatabaseAppType { get; }
     public bool ExceptionShowFullSql { get; set; }
@@ -282,7 +56,9 @@ public abstract class Sql : IDisposable
         {
             if (isDisposed.TryUse())
             {
-                Connection.DisposeSafely(log);
+                var c = connection;
+                connection = null;
+                c?.DisposeSafely(log);
             }
         }
     }
@@ -325,22 +101,161 @@ public abstract class Sql : IDisposable
 
     #region Schema
 
-    public abstract DatabaseSchemaDatabase GetCurrentDatabase();
+    protected virtual DbType? GetDbType(string? typeName)
+    {
+        typeName = typeName.TrimOrNull();
+        if (typeName == null) return null;
+        var type = DatabaseTypes.TypeNames.GetValueNullable(typeName);
+        return type?.DbType;
+    }
+
+    protected class GetSchemaInfoFilter
+    {
+        public GetSchemaInfoFilter(Sql sql, DatabaseSchemaDatabase? database, DatabaseSchemaSchema? schema = null, DatabaseSchemaTable? table = null)
+        {
+            Database = database;
+            Schema = schema;
+            Table = table;
+
+            DatabaseName =
+                Table?.Schema.Database.Name
+                ?? Schema?.Database.Name
+                ?? Database?.Name
+                ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.Name) + " cannot be null");
+            DatabaseNameEscaped = sql.Escape(DatabaseName);
+            DatabaseNameUnescaped = sql.Unescape(DatabaseName);
+
+            SchemaName =
+                Table?.Schema.Name
+                ?? Schema?.Name;
+            SchemaNameEscaped = SchemaName == null ? null : sql.Escape(SchemaName);
+            SchemaNameUnescaped = SchemaName == null ? null : sql.Unescape(SchemaName);
+
+            TableName = Table?.Name;
+            TableNameEscaped = TableName == null ? null : sql.Escape(TableName);
+            TableNameUnescaped = TableName == null ? null : sql.Unescape(TableName);
+        }
+
+        public DatabaseSchemaDatabase? Database { get; }
+        public DatabaseSchemaSchema? Schema { get; }
+        public DatabaseSchemaTable? Table { get; }
+
+        public string DatabaseName { get; }
+        public string DatabaseNameEscaped { get; }
+        public string DatabaseNameUnescaped { get; }
+
+        public string? SchemaName { get; }
+        public string? SchemaNameEscaped { get; }
+        public string? SchemaNameUnescaped { get; }
+
+        public string? TableName { get; }
+        public string? TableNameEscaped { get; }
+        public string? TableNameUnescaped { get; }
+    }
+
+
+
+    #region Helpers
+
+    protected IEnumerable<T> GetSchemaObjects<T>(List<SqlError> errors, StringBuilder sql, Func<string?[], T> converter) where T : DatabaseSchemaObject =>
+        GetSchemaObjects(errors, sql.ToString(), converter);
+
+    protected IEnumerable<T> GetSchemaObjects<T>(List<SqlError> errors, string sql, Func<string?[], T> converter) where T : DatabaseSchemaObject
+    {
+        var tbl = this.QueryStrings(sql, out var exception);
+        if (exception != null)
+        {
+            errors.Add(new SqlError(sql, exception));
+            yield break;
+        }
+
+        foreach (var row in tbl)
+        {
+            T? so = null;
+            try
+            {
+                so = converter(row);
+            }
+            catch (Exception e)
+            {
+                errors.Add(new SqlError(sql, e));
+            }
+
+            if (so != null) yield return so;
+        }
+    }
+
+    private IEnumerable<T> GetSchemaObjects<T>(Func<List<SqlError>, GetSchemaInfoFilter, IEnumerable<T>> func, params GetSchemaInfoFilter[] filters) where T : DatabaseSchemaObject
+    {
+        var errors = new List<SqlError>();
+        foreach (var filter in filters)
+        {
+            if (filter.Database == null && filter.Schema == null && filter.Table == null) throw new NotImplementedException();
+            if (filter.Database != null && DialectSettings.IsExcluded(filter.Database)) continue;
+            if (filter.Schema != null && DialectSettings.IsExcluded(filter.Schema)) continue;
+            if (filter.Table != null && DialectSettings.IsExcluded(filter.Table)) continue;
+
+            foreach (var obj in func(errors, filter))
+            {
+                if (DialectSettings.IsExcluded(obj)) continue;
+                yield return obj;
+            }
+        }
+
+        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
+    }
+
+    #endregion Helpers
+
+    public virtual DatabaseSchemaDatabase GetCurrentDatabase() => GetCurrentSchema().Database;
     public abstract DatabaseSchemaSchema GetCurrentSchema();
 
-    public abstract IEnumerable<DatabaseSchemaDatabase> GetDatabases();
+    #region GetDatabases
 
-    public abstract IEnumerable<DatabaseSchemaSchema> GetSchemas();
-    public abstract IEnumerable<DatabaseSchemaSchema> GetSchemas(DatabaseSchemaDatabase database);
+    public virtual IEnumerable<DatabaseSchemaDatabase> GetDatabases()
+    {
+        var errors = new List<SqlError>();
+        foreach (var soDatabase in GetDatabases(errors))
+        {
+            if (DialectSettings.IsExcluded(soDatabase)) continue;
+            yield return soDatabase;
+        }
 
-    public abstract IEnumerable<DatabaseSchemaTable> GetTables();
-    public abstract IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaDatabase database);
-    public abstract IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaSchema schema);
+        if (errors.IsNotEmpty()) throw CreateExceptionInSqlStatements(errors);
+    }
+    protected abstract IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors);
 
-    public abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns();
-    public abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaDatabase database);
-    public abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaSchema schema);
-    public abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaTable table);
+    #endregion GetDatabases
+
+    #region GetSchemas
+
+    public virtual IEnumerable<DatabaseSchemaSchema> GetSchemas() => GetSchemaObjects(GetSchemas, GetDatabases().Select(o => new GetSchemaInfoFilter(this, o)).ToArray());
+    public virtual IEnumerable<DatabaseSchemaSchema> GetSchemas(DatabaseSchemaDatabase database) => GetSchemaObjects(GetSchemas, new GetSchemaInfoFilter(this, database));
+
+    protected abstract IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter);
+
+    #endregion GetSchemas
+
+    #region GetTables
+
+    public virtual IEnumerable<DatabaseSchemaTable> GetTables() => GetSchemaObjects(GetTables, GetDatabases().Select(o => new GetSchemaInfoFilter(this, o)).ToArray());
+    public virtual IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaDatabase database) => GetSchemaObjects(GetTables, new GetSchemaInfoFilter(this, database));
+    public virtual IEnumerable<DatabaseSchemaTable> GetTables(DatabaseSchemaSchema schema) => GetSchemaObjects(GetTables, new GetSchemaInfoFilter(this, null, schema));
+
+    protected abstract IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter);
+
+    #endregion GetTables
+
+    #region GetTableColumns
+
+    public virtual IEnumerable<DatabaseSchemaTableColumn> GetTableColumns() => GetSchemaObjects(GetTableColumns, GetDatabases().Select(o => new GetSchemaInfoFilter(this, o)).ToArray());
+    public virtual IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaDatabase database) => GetSchemaObjects(GetTableColumns, new GetSchemaInfoFilter(this, database));
+    public virtual IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaSchema schema) => GetSchemaObjects(GetTableColumns, new GetSchemaInfoFilter(this, null, schema));
+    public virtual IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(DatabaseSchemaTable table) => GetSchemaObjects(GetTableColumns, new GetSchemaInfoFilter(this, null, null, table));
+
+    protected abstract IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter);
+
+    #endregion GetTableColumns
 
     public virtual bool GetTableExists(DatabaseSchemaTable table) => !GetTableColumns(table).IsEmpty();
 
@@ -349,6 +264,8 @@ public abstract class Sql : IDisposable
     #endregion Schema
 
     #region Helpers
+
+    protected record SqlError(string Sql, Exception Error);
 
     protected virtual AggregateException CreateExceptionInSqlStatements(IEnumerable<SqlError> errors)
     {
@@ -366,46 +283,57 @@ public abstract class Sql : IDisposable
         return new AggregateException(sb.ToString(), valuesArray.Select(o => o.Error));
     }
 
-    public virtual string Escape(params string?[] objectsToEscape)
-    {
-        if (objectsToEscape.Length == 0) return string.Empty;
-        if (objectsToEscape.Length == 1) return objectsToEscape[0] == null ? string.Empty : DialectSettings.Escape(objectsToEscape[0]!);
+    public virtual string Escape(DatabaseSchemaDatabase database) => DialectSettings.Escape(database.Name);
+    public abstract string Escape(DatabaseSchemaSchema schema);
+    public virtual string Escape(DatabaseSchemaTable table) => Escape('.', new[] { Escape(table.Schema), DialectSettings.Escape(table.Name) });
 
-        Func<string, string> esc = DialectSettings.Escape;
+    public virtual string Escape(char delimiter, IReadOnlyList<string?> objectsToEscape)
+    {
+        if (objectsToEscape.Count == 0) return string.Empty;
+        if (objectsToEscape.Count == 1) return objectsToEscape[0] == null ? string.Empty : DialectSettings.Escape(objectsToEscape[0]!);
+
+        var esc = DialectSettings.Escape;
 
         var sb = new StringBuilder();
 
         foreach (var obj in objectsToEscape)
         {
             if (obj == null) continue;
-            var objEscaped = esc(obj).TrimOrNull();
-            if (objEscaped == null) continue;
-            if (sb.Length > 0) sb.Append('.');
+            var objEscaped = esc(obj);
+            if (sb.Length > 0) sb.Append(delimiter);
             sb.Append(objEscaped);
         }
 
         return sb.ToString();
     }
 
+    protected string EscapeColumns(Dictionary<int, string> columns, bool skipEscaping = false) => EscapeColumns(null, columns, skipEscaping);
+    protected virtual string EscapeColumns(string? tableAlias, Dictionary<int, string> columns, bool skipEscaping = false)
+    {
+        if (string.IsNullOrEmpty(tableAlias)) tableAlias = string.Empty;
+        else if (!tableAlias.EndsWith(".")) tableAlias += ".";
+
+        return columns.OrderBy(kvp => kvp.Key)
+            .Select(o => tableAlias + (skipEscaping ? o.Value : this.Escape(o.Value)))
+            .ToStringDelimited(",");
+    }
+
     public virtual string Unescape(string objectToUnescape) => DialectSettings.Unescape(objectToUnescape);
-
-
-    public virtual string[] GenerateParameterNames(int count) => Enumerable.Range(0, count).Select(GenerateParameterName).ToArray();
-
-    public virtual string GenerateParameterName(int index) => "@p" + index;
-
 
 
     #region CreateCommand
 
+    public IDbCommand CreateCommand() => CreateCommand(string.Empty, Array.Empty<DatabaseParameter>()).Command;
 
-    protected virtual Tuple<IDbCommand, IDbDataParameter[]> CreateCommand<TParameter>(string sql, IReadOnlyList<TParameter> parameters)
-    where TParameter : DbParameter
+    protected virtual (IDbCommand Command, IDbDataParameter[] Parameters) CreateCommand<TParameter>(string sql, IReadOnlyList<TParameter> parameters)
+    where TParameter : DatabaseParameter
     {
         var command = Connection.CreateCommand();
         command.CommandType = CommandType.Text;
         command.CommandText = sql;
         command.CommandTimeout = CommandTimeout;
+        if (parameters.Count == 0) return (command, Array.Empty<IDbDataParameter>());
+
         var ps = new List<IDbDataParameter>();
         for (var i = 0; i < parameters.Count; i++)
         {
@@ -413,193 +341,95 @@ public abstract class Sql : IDisposable
             var p = command.CreateParameter();
             p.ParameterName = parameter.Name;
             p.DbType = parameter.Type;
-            if (parameter is DbParameterValue parameterValue)
-            {
-                p.Value = parameterValue.Value;
-            }
+            if (parameter is DatabaseParameterValue parameterValue) p.Value = parameterValue.Value;
             ps.Add(p);
         }
-        return new Tuple<IDbCommand, IDbDataParameter[]>(command, ps.ToArray());
+        return (command, ps.ToArray());
     }
-
-    public IDbCommand CreateCommand() => CreateCommand(string.Empty, Array.Empty<DbParameter>()).Item1;
-
-    public Tuple<IDbCommand, IDbDataParameter[]> CreateCommandWithParameters(string sql, params DbParameter[] parameters) =>
-        CreateCommand(sql, parameters);
-
-    public Tuple<IDbCommand, IDbDataParameter[]> CreateCommandWithValues(string sql, params DbParameterValue[] values) =>
-        CreateCommand(sql, values.Select(o => (DbParameter)o).ToArray());
 
 
     #endregion CreateCommand
 
-    #region Query
+    #region Execute
 
-    public virtual object? QueryScalar(string sql, params DbParameterValue[] values)
+    public virtual object? QueryScalar(string sql, params DatabaseParameterValue[] values)
     {
         log.LogTrace(nameof(QueryScalar) + ": {Sql}", sql);
-
-        var tpl = CreateCommandWithValues(sql, values);
-        using var command = tpl.Item1;
+        var tpl = CreateCommand(sql, values);
+        using var command = tpl.Command;
         var result = command.ExecuteScalar();
         return result == DBNull.Value ? null : result;
     }
 
-    public virtual  List<object?[]> Query(string sql, params DbParameterValue[] values)
+    public virtual DataReaderResult? Query(string sql, params DatabaseParameterValue[] values)
     {
         log.LogTrace(nameof(Query) + ": {Sql}", sql);
-
-        var tpl = CreateCommandWithValues(sql, values);
-        using var command = tpl.Item1;
-        var result = command.ExecuteReaderResult();
-        return result == null ? new List<object?[]>() : new List<object?[]>(result.Rows.Select(row => row.ToArray()));
+        var tpl = CreateCommand(sql, values);
+        using var command = tpl.Command;
+        return command.ExecuteReaderResult();
     }
 
-    #endregion Query
-
-    #region NonQuery
-
-    public virtual int NonQuery(string sql, params DbParameterValue[] values)
+    public virtual int NonQuery(string sql, params DatabaseParameterValue[] values)
     {
         log.LogTrace(nameof(NonQuery) + ": {Sql}", sql);
-
-        var tpl = CreateCommandWithValues(sql, values);
+        var tpl = CreateCommand(sql, values);
         using var command = tpl.Item1;
         return command.ExecuteNonQuery();
     }
 
-    public virtual  int NonQuery(string sql, out Exception? exception, params DbParameterValue[] values)
-    {
-        try
-        {
-            exception = null;
-            return NonQuery(sql, values);
-        }
-        catch (Exception e)
-        {
-            log.LogDebug(e, "Error Executing SQL: {Sql}", sql);
-            exception = e;
-            return 0;
-        }
-    }
 
-    #endregion NonQuery
+    #endregion Execute
 
     #endregion Helpers
 
     #region Insert
 
-    public virtual int Insert(string? database, string? schema, string table, params DbParameterValue[] values)
+    public virtual int Insert(DatabaseSchemaTable table, IReadOnlyList<(string ColumnName, DbType? ColumnType)> columns, IEnumerable<object?[]> values)
     {
-        var dst = Escape(database, schema, table);
-        values.CheckNotEmpty();
-        values = values.Select(o => new DbParameterValue(Escape(o.Name), o.Value, o.Type)).ToArray();
-        var parameterNames = GenerateParameterNames(values.Length);
+        // https://stackoverflow.com/questions/2972974/how-should-i-multiple-insert-multiple-records
 
-        var sqlColumnNames = values.Select(o => o.Name).ToStringDelimited(",");
-        var sqlParameters = parameterNames.ToStringDelimited(",");
-        var sql = $"INSERT INTO {dst} ({sqlColumnNames}) VALUES ({sqlParameters})";
-        //sql += ";"; // breaks Oracle
-        var tuple = CreateCommand(sql, values);
-        using var command = tuple.Item1;
+        var databaseParameters = new List<DatabaseParameter>();
+        var columnNames = new List<string>();
+        var parameterNames = new List<string>();
 
-        for (var i = 0; i < values.Length; i++)
+        for (var i = 0; i < columns.Count; i++)
         {
-            command.AddParameter(
-                parameterName: parameterNames[i],
-                value: values[i].Value,
-                dbType: DbType.String
-                );
+            var (columnName, columnType) = columns[i];
+            columnName = this.Escape(columnName);
+            var p = new DatabaseParameter(DialectSettings.GenerateParameterName(i), columnType ?? DbType.String);
+            databaseParameters.Add(p);
+            parameterNames.Add(p.Name);
+            columnNames.Add(columnName);
         }
 
-        return command.ExecuteNonQuery();
+        var sql = $"INSERT INTO {Escape(table)} ({columnNames}) VALUES ({parameterNames})";
+        //sql += ";"; // breaks Oracle
+
+        var cp = CreateCommand(sql, databaseParameters);
+        using var command = cp.Command;
+        var parameters = cp.Parameters;
+
+        var resultCount = 0;
+        foreach (var row in values)
+        {
+            for (var i = 0; i < parameters.Length; i++)
+            {
+                var p = (IDbDataParameter?)command.Parameters[i];
+                if (p == null) throw new NullReferenceException($"Parameter {parameters[i].ParameterName} does not exist on command"); // should not happen
+                p.Value = row[i] ?? DBNull.Value;
+            }
+
+            resultCount += command.ExecuteNonQuery();
+        }
+
+        return resultCount;
     }
 
-    public virtual int Insert(string? database, string? schema, string table, IDictionary<string, object?> values) => Insert(
-        database: database,
-        schema: schema,
-        table: table,
-        values: values.Select(kvp => new DbParameterValue(kvp.Key, kvp.Value)).ToArray()
-    );
-
-    public virtual int Insert(string? database, string? schema, string table, IDictionary<string, string?> values) => Insert(
-        database: database,
-        schema: schema,
-        table: table,
-        values: values.Select(kvp => new DbParameterValue(kvp.Key, kvp.Value)).ToArray()
-    );
 
     #endregion Insert
 
 
 
 
-
-}
-
-
-public static class SqlExtensions
-{
-    private static string? ConvertToStringDefault(object? obj) => obj.ToStringGuessFormat();
-
-
-
-    #region Query
-
-
-    public static List<object?[]> Query(this Sql instance, string sql, out Exception? exception, params DbParameterValue[] values)
-    {
-        try
-        {
-            exception = null;
-            return instance.Query(sql, values);
-        }
-        catch (Exception e)
-        {
-            Constant.GetLogger(typeof(Sql)).LogDebug(e, "Error Executing SQL: {Sql}", sql);
-            exception = e;
-            return new List<object?[]>();
-        }
-    }
-
-    public static List<string?[]> QueryStrings(this Sql instance, string sql, params DbParameterValue[] values) => instance.QueryStrings(sql, ConvertToStringDefault, values);
-    public static  List<string?[]> QueryStrings(this Sql instance, string sql, Func<object?, string?> converter, params DbParameterValue[] values) =>
-        instance.Query(sql, values).Select(o => o.Select(converter).ToArray()).ToList();
-
-    public static List<string?[]> QueryStrings(this Sql instance, string sql, out Exception? exception, params DbParameterValue[] values) => instance.QueryStrings(sql, out exception, ConvertToStringDefault, values);
-    public static  List<string?[]> QueryStrings(this Sql instance, string sql, out Exception? exception, Func<object?, string?> converter, params DbParameterValue[] values) =>
-        instance.Query(sql, out exception, values).Select(o => o.Select(converter).ToArray()).ToList();
-
-
-    #endregion Query
-
-    #region QueryScalar
-
-    public static string? QueryScalarString(this Sql instance, string sql, params DbParameterValue[] values) => instance.QueryScalarString(sql, ConvertToStringDefault, values);
-    public static string? QueryScalarString(this Sql instance, string sql, Func<object?, string?> converter, params DbParameterValue[] values) => converter(instance.QueryScalar(sql, values));
-
-
-
-    #endregion QueryScalar
-
-    #region QueryColumn
-
-    public static  List<object?> QueryColumn(this Sql instance, string sql, int columnIndex, params DbParameterValue[] values) =>
-        instance.Query(sql, values).Select(o => o[columnIndex]).ToList();
-
-    public static List<object?> QueryColumn(this Sql instance, string sql, int columnIndex, out Exception? exception, params DbParameterValue[] values) =>
-        instance.Query(sql, out exception, values).Select(o => o[columnIndex]).ToList();
-
-    public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, params DbParameterValue[] values) => instance.QueryColumnStrings(sql, columnIndex, ConvertToStringDefault, values);
-
-    public static  List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, Func<object?, string?> converter, params DbParameterValue[] values) =>
-        instance.QueryColumn(sql, columnIndex, values).Select(converter).ToList();
-
-    public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, out Exception? exception, params DbParameterValue[] values) => instance.QueryColumnStrings(sql, columnIndex, out exception, ConvertToStringDefault, values);
-
-    public static  List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, out Exception? exception, Func<object?, string?> converter, params DbParameterValue[] values) =>
-        instance.QueryColumn(sql, columnIndex, out exception, values).Select(converter).ToList();
-
-    #endregion QueryColumn
 
 }

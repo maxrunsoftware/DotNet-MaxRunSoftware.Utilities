@@ -17,7 +17,7 @@ using System.Diagnostics;
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<AssemblySlim>, IComparable
+public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<AssemblySlim>, IComparable, IEquatable<Assembly>, IComparable<Assembly>
 {
     public Assembly Assembly { get; }
     public string NameFull { get; }
@@ -34,7 +34,26 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
 
     public override int GetHashCode() => getHashCode;
 
-    public override bool Equals(object? obj) => Equals(obj as AssemblySlim);
+    public override string ToString() => NameFull;
+
+    #region Equals
+
+    public override bool Equals(object? obj) => obj switch
+    {
+        null => false,
+        AssemblySlim slim => Equals(slim),
+        Assembly other => Equals(other),
+        _ => false
+    };
+
+    public bool Equals(Assembly? other)
+    {
+        if (ReferenceEquals(other, null)) return false;
+        if (ReferenceEquals(Assembly, other)) return true;
+        return Equals(new AssemblySlim(other));
+    }
+
+
     public bool Equals(AssemblySlim? other)
     {
         if (ReferenceEquals(other, null)) return false;
@@ -46,7 +65,26 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
         return true;
     }
 
-    public int CompareTo(object? obj) => CompareTo(obj as AssemblySlim);
+    #endregion Equals
+
+    #region CompareTo
+
+
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        AssemblySlim slim => CompareTo(slim),
+        Assembly other => CompareTo(other),
+        _ => 1
+    };
+
+    public int CompareTo(Assembly? other)
+    {
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(Assembly, other)) return 0;
+        return CompareTo(new AssemblySlim(other));
+    }
+
     public int CompareTo(AssemblySlim? other)
     {
         if (ReferenceEquals(other, null)) return 1;
@@ -55,7 +93,8 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
         return Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(NameFull, other.NameFull);
     }
 
-    public override string ToString() => NameFull;
+
+    #endregion CompareTo
 
     #endregion Override
 
@@ -165,6 +204,22 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
     #endregion Static
 
     #region Implicit / Explicit
+
+    private static bool Equals(AssemblySlim? left, AssemblySlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
+    private static bool Equals(AssemblySlim? left, Assembly? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
+
+    // ReSharper disable ArrangeStaticMemberQualifier
+
+    public static bool operator ==(AssemblySlim? left, AssemblySlim? right) => AssemblySlim.Equals(left, right);
+    public static bool operator !=(AssemblySlim? left, AssemblySlim? right) => !AssemblySlim.Equals(left, right);
+
+    public static bool operator ==(AssemblySlim? left, Assembly? right) => AssemblySlim.Equals(left, right);
+    public static bool operator !=(AssemblySlim? left, Assembly? right) => !AssemblySlim.Equals(left, right);
+
+    public static bool operator ==(Assembly? left, AssemblySlim? right) => AssemblySlim.Equals(right, left);
+    public static bool operator !=(Assembly? left, AssemblySlim? right) => !AssemblySlim.Equals(right, left);
+
+    // ReSharper restore ArrangeStaticMemberQualifier
 
     public static implicit operator Assembly(AssemblySlim assemblySlim) => assemblySlim.Assembly;
     public static implicit operator AssemblySlim(Assembly assembly) => new(assembly);

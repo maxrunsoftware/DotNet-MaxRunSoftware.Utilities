@@ -58,6 +58,16 @@ public static class ExtensionsStream
         return totalRead;
     }
 
+    public static byte[] ReadAll(this Stream stream)
+    {
+        // https://stackoverflow.com/a/33611922
+
+        if (stream is MemoryStream ms) return ms.ToArray();
+        using var memoryStream = new MemoryStream();
+        stream.CopyTo(memoryStream);
+        return memoryStream.ToArray();
+    }
+
     /// <summary>
     /// Reads all the bytes from the current stream and writes them to the destination stream
     /// with the specified buffer size.

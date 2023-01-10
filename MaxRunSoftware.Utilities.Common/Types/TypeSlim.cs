@@ -15,7 +15,7 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, IComparable
+public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, IComparable, IEquatable<Type>, IComparable<Type>
 {
     public string NameFull { get; }
     public Type Type { get; }
@@ -37,8 +37,25 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
     #region Override
 
     public override int GetHashCode() => getHashCode;
+    public override string ToString() => NameFull;
 
-    public override bool Equals(object? obj) => Equals(obj as TypeSlim);
+    #region Equals
+
+    public override bool Equals(object? obj) => obj switch
+    {
+        null => false,
+        TypeSlim slim => Equals(slim),
+        Type other => Equals(other),
+        _ => false
+    };
+
+    public bool Equals(Type? other)
+    {
+        if (ReferenceEquals(other, null)) return false;
+        if (ReferenceEquals(Type, other)) return true;
+        return Equals(new TypeSlim(other));
+    }
+
     public bool Equals(TypeSlim? other)
     {
         if (ReferenceEquals(other, null)) return false;
@@ -53,7 +70,25 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
         return true;
     }
 
-    public int CompareTo(object? obj) => CompareTo(obj as TypeSlim);
+    #endregion Equals
+
+    #region CompareTo
+
+    public int CompareTo(object? obj) => obj switch
+    {
+        null => 1,
+        TypeSlim slim => CompareTo(slim),
+        Type other => CompareTo(other),
+        _ => 1
+    };
+
+    public int CompareTo(Type? other)
+    {
+        if (ReferenceEquals(other, null)) return 1;
+        if (ReferenceEquals(Type, other)) return 0;
+        return CompareTo(new TypeSlim(other));
+    }
+
     public int CompareTo(TypeSlim? other)
     {
         if (ReferenceEquals(other, null)) return 1;
@@ -67,7 +102,10 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
         return c;
     }
 
-    public override string ToString() => NameFull;
+
+
+    #endregion CompareTo
+
 
     #endregion Override
 
@@ -97,6 +135,22 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
     #endregion Static
 
     #region Implicit / Explicit
+
+    private static bool Equals(TypeSlim? left, TypeSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
+    private static bool Equals(TypeSlim? left, Type? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
+
+    // ReSharper disable ArrangeStaticMemberQualifier
+
+    public static bool operator ==(TypeSlim? left, TypeSlim? right) => TypeSlim.Equals(left, right);
+    public static bool operator !=(TypeSlim? left, TypeSlim? right) => !TypeSlim.Equals(left, right);
+
+    public static bool operator ==(TypeSlim? left, Type? right) => TypeSlim.Equals(left, right);
+    public static bool operator !=(TypeSlim? left, Type? right) => !TypeSlim.Equals(left, right);
+
+    public static bool operator ==(Type? left, TypeSlim? right) => TypeSlim.Equals(right, left);
+    public static bool operator !=(Type? left, TypeSlim? right) => !TypeSlim.Equals(right, left);
+
+    // ReSharper restore ArrangeStaticMemberQualifier
 
     public static implicit operator Type(TypeSlim typeSlim) => typeSlim.Type;
     public static implicit operator TypeSlim(Type type) => new(type);
