@@ -23,27 +23,25 @@ public class MySql : Sql
     // https://dev.mysql.com/doc/refman/8.0/en/information-schema-columns-table.html
 
     public static MySqlConnection CreateConnection(string connectionString) => new(connectionString);
-    public static MySql Create(string connectionString) => new(connectionString);
 
     public MySql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public MySql(IDbConnection connection) : base(connection) { }
+    public MySql(IDbConnection connection) : base(connection)
+    {
+        DefaultDataTypeString = DatabaseTypes.Get(MySqlType.LongText).TypeName;
+        DefaultDataTypeInteger = DatabaseTypes.Get(MySqlType.Int32).TypeName;
+        DefaultDataTypeDateTime = DatabaseTypes.Get(MySqlType.DateTime).TypeName;
+        DialectEscapeLeft = '`';
+        DialectEscapeRight = '`';
 
-    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
-        {
-            DefaultDataTypeString = DatabaseTypes.Get(MySqlType.LongText).TypeName,
-            DefaultDataTypeInteger = DatabaseTypes.Get(MySqlType.Int32).TypeName,
-            DefaultDataTypeDateTime = DatabaseTypes.Get(MySqlType.DateTime).TypeName,
-            DialectEscapeLeft = '`',
-            DialectEscapeRight = '`'
-        }
         // https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
-        .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "$_").ToCharArray())
+        IdentifierCharactersValid.AddRange((Constant.Chars_Alphanumeric_String + "$_").ToCharArray());
+
         // https://dev.mysql.com/doc/refman/8.0/en/keywords.html
-        .AddReservedWords(MicrosoftSqlReservedWords.WORDS);
+        ReservedWords.AddRange(ReservedWordsParse(MySqlReservedWords.WORDS));
+    }
 
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.MySql;
     protected override Type DatabaseTypesEnum => typeof(MySqlType);
-    public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
 
     #region Schema
 
@@ -136,7 +134,7 @@ public class MySql : Sql
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
+        NonQuery($"DROP TABLE {Escape(table)};");
         return true;
     }
 

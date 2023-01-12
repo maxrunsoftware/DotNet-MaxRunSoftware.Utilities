@@ -112,7 +112,6 @@ public static class SqlExtensions
 
     #endregion QueryColumn
 
-
     #region Insert
 
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<(string ColumnName, object? ColumnValue)> values)
@@ -181,7 +180,7 @@ public static class SqlExtensions
         foreach (var name in names)
         {
             var n = name;
-            if (n != null) n = instance.DialectSettings.Unescape(n);
+            if (n != null) n = instance.Unescape(n);
             list.Add(instance.NextParameter(n));
         }
         return list.ToArray();

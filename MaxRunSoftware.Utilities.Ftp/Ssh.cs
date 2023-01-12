@@ -76,11 +76,8 @@ public class Ssh : IDisposable
 {
     public Ssh(SshConfig config)
     {
-        log = GetLogger();
         client = CreateClient<SshClient>(config);
     }
-
-    private readonly ILogger log;
 
     private SshClient? client;
 

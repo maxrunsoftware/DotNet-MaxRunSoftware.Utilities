@@ -16,6 +16,7 @@ namespace MaxRunSoftware.Utilities.Database;
 
 internal static class Utils
 {
+
     public static T CopyShallow<T>(T obj) where T : class, new()
     {
         var copy = Activator.CreateInstance(obj.GetType()).CheckNotNull();
@@ -72,7 +73,7 @@ internal static class Utils
             return;
         }
 
-		Tuple<MethodInfo, bool> GetMethodAdd(object obj) {
+		Tuple<MethodInfo, bool>? GetMethodAdd(object obj) {
 			var t = 	obj.GetType();
 			foreach(var m in t.GetMethods(BindingFlags.Public | BindingFlags.Instance)) {
 
@@ -92,8 +93,8 @@ internal static class Utils
         foreach (var item in (IEnumerable)value)
         {
 			if (addMethod.Item2) {
-				var key = item.GetType().GetProperty(nameof(KeyValuePair<object, object>.Key)).GetValue(item);
-				var val = item.GetType().GetProperty(nameof(KeyValuePair<object, object>.Value)).GetValue(item);
+				var key = item.GetType().GetProperty(nameof(KeyValuePair<object, object>.Key))!.GetValue(item);
+				var val = item.GetType().GetProperty(nameof(KeyValuePair<object, object>.Value))!.GetValue(item);
 				addMethod.Item1.Invoke(targetCollection, new[] { key, val });
 			}
 			else {

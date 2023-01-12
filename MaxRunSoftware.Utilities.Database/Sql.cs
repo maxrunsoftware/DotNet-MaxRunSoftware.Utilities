@@ -42,6 +42,123 @@ public abstract class Sql : IDisposable
     public abstract DatabaseAppType DatabaseAppType { get; }
     public bool ExceptionShowFullSql { get; set; }
 
+    protected virtual T GetServerProperties<T>() where T : DatabaseServerProperties, new()
+    {
+        var o = new T();
+        o.Load(this);
+        return o;
+    }
+    #region Dialect
+
+    public string DefaultDataTypeString { get; set; } = "TEXT";
+    public string DefaultDataTypeInteger { get; set; } = "INT";
+    public string DefaultDataTypeDateTime { get; set; } = "DATETIME";
+
+    public char? DialectEscapeLeft { get; set; }
+    public char? DialectEscapeRight { get; set; }
+
+    public ISet<DatabaseSchemaDatabase> ExcludedDatabases { get; } = new HashSet<DatabaseSchemaDatabase>();
+    public ISet<DatabaseSchemaSchema> ExcludedSchemas { get; } = new HashSet<DatabaseSchemaSchema>();
+    public ISet<string> ExcludedSchemasGlobal { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public ISet<DatabaseSchemaTable> ExcludedTables { get; } = new HashSet<DatabaseSchemaTable>();
+    public ISet<string> ExcludedTablesGlobal { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    public ISet<char> IdentifierCharactersValid { get; } = new HashSet<char>(Constant.CharComparer_OrdinalIgnoreCase);
+    public ISet<string> ReservedWords { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    public virtual string GenerateParameterName(int parameterIndex) => "@p" + parameterIndex;
+
+    protected static HashSet<string> ReservedWordsParse(string words) => words.SplitOnWhiteSpace().TrimOrNull().WhereNotNull().ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    #region Escape
+
+    public virtual bool NeedsEscaping(string objectThatMightNeedEscaping)
+    {
+        if (ReservedWords.Contains(objectThatMightNeedEscaping)) return true;
+
+        if (!objectThatMightNeedEscaping.ContainsOnly(IdentifierCharactersValid)) return true;
+
+        return false;
+    }
+
+    public virtual string Escape(string objectToEscape)
+    {
+        if (!NeedsEscaping(objectToEscape)) return objectToEscape;
+
+        var el = DialectEscapeLeft;
+        if (el != null && !objectToEscape.StartsWith(el.Value)) objectToEscape = el.Value + objectToEscape;
+
+        var er = DialectEscapeRight;
+        if (er != null && !objectToEscape.EndsWith(er.Value)) objectToEscape += er.Value;
+
+        return objectToEscape;
+    }
+
+    public virtual string Unescape(string objectToUnescape)
+    {
+        var el = DialectEscapeLeft;
+        if (el != null)
+        {
+            while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.StartsWith(el.Value))
+            {
+                objectToUnescape = objectToUnescape.RemoveLeft(1);
+            }
+        }
+
+        var er = DialectEscapeRight;
+        if (er != null)
+        {
+            while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.EndsWith(er.Value))
+            {
+                objectToUnescape = objectToUnescape.RemoveRight(1);
+            }
+        }
+
+        return objectToUnescape;
+    }
+
+    public virtual string Escape(DatabaseSchemaDatabase database) => Escape(database.DatabaseName);
+    public virtual string Escape(DatabaseSchemaSchema schema) => Escape(schema.Database.DatabaseName, schema.SchemaName);
+    public virtual string Escape(DatabaseSchemaTable table) => Escape(table.Schema.Database.DatabaseName, table.Schema.SchemaName, table.TableName);
+
+    public virtual string Escape(params string?[] objectsToEscape) => Escape((IReadOnlyList<string?>)objectsToEscape);
+
+    public virtual string Escape(IReadOnlyList<string?> objectsToEscape)
+    {
+        var sb = new StringBuilder();
+        foreach (var obj in objectsToEscape)
+        {
+            if (obj == null) continue;
+            var objUnescaped = Unescape(obj);
+            if (objUnescaped.TrimOrNull() == null) continue;
+            var objEscaped = Escape(objUnescaped);
+            if (sb.Length > 0) sb.Append('.');
+            sb.Append(objEscaped);
+        }
+        return sb.ToString();
+    }
+
+    #endregion Escape
+
+    #region IsExcluded
+
+    public virtual bool IsExcluded(DatabaseSchemaObject obj) => obj switch
+    {
+        DatabaseSchemaTableColumn tableColumn => IsExcluded(tableColumn),
+        DatabaseSchemaTable table => IsExcluded(table),
+        DatabaseSchemaSchema schema => IsExcluded(schema),
+        DatabaseSchemaDatabase database => IsExcluded(database),
+        _ => throw new NotImplementedException()
+    };
+
+    public virtual bool IsExcluded(DatabaseSchemaDatabase database) => ExcludedDatabases.Contains(database);
+    public virtual bool IsExcluded(DatabaseSchemaSchema schema) => IsExcluded(schema.Database) || ExcludedSchemas.Contains(schema) || (schema.SchemaName != null && ExcludedSchemasGlobal.Contains(schema.SchemaName));
+    public virtual bool IsExcluded(DatabaseSchemaTable table) => IsExcluded(table.Schema) || ExcludedTables.Contains(table) || ExcludedTablesGlobal.Contains(table.TableName);
+    public virtual bool IsExcluded(DatabaseSchemaTableColumn column) => IsExcluded(column.Table);
+
+    #endregion IsExcluded
+
+    #endregion Dialect
+
     #region DatabaseTypes
 
     protected abstract Type DatabaseTypesEnum { get; }
@@ -70,19 +187,6 @@ public abstract class Sql : IDisposable
     }
 
     #endregion IDisposable
-
-    #region SqlDialectSettings
-
-    public abstract DatabaseDialectSettings DialectSettingsDefault { get; }
-
-    private DatabaseDialectSettings? dialectSettings;
-    public DatabaseDialectSettings DialectSettings
-    {
-        get => dialectSettings ??= DialectSettingsDefault.Copy();
-        set => dialectSettings = value;
-    }
-
-    #endregion SqlDialectSettings
 
     #region CommandSettings
 
@@ -121,18 +225,18 @@ public abstract class Sql : IDisposable
                 ?? Schema?.Database.DatabaseName
                 ?? Database?.DatabaseName
                 ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.DatabaseName) + " cannot be null");
-            DatabaseNameEscaped = sql.DialectSettings.Escape(DatabaseName);
-            DatabaseNameUnescaped = sql.DialectSettings.Unescape(DatabaseName);
+            DatabaseNameEscaped = sql.Escape(DatabaseName);
+            DatabaseNameUnescaped = sql.Unescape(DatabaseName);
 
             SchemaName =
                 Table?.Schema.SchemaName
                 ?? Schema?.SchemaName;
-            SchemaNameEscaped = SchemaName == null ? null : sql.DialectSettings.Escape(SchemaName);
-            SchemaNameUnescaped = SchemaName == null ? null : sql.DialectSettings.Unescape(SchemaName);
+            SchemaNameEscaped = SchemaName == null ? null : sql.Escape(SchemaName);
+            SchemaNameUnescaped = SchemaName == null ? null : sql.Unescape(SchemaName);
 
             TableName = Table?.TableName;
-            TableNameEscaped = TableName == null ? null : sql.DialectSettings.Escape(TableName);
-            TableNameUnescaped = TableName == null ? null : sql.DialectSettings.Unescape(TableName);
+            TableNameEscaped = TableName == null ? null : sql.Escape(TableName);
+            TableNameUnescaped = TableName == null ? null : sql.Unescape(TableName);
         }
 
         public DatabaseSchemaDatabase? Database { get; }
@@ -191,13 +295,13 @@ public abstract class Sql : IDisposable
         foreach (var filter in filters)
         {
             if (filter.Database == null && filter.Schema == null && filter.Table == null) throw new NotImplementedException();
-            if (filter.Database != null && DialectSettings.IsExcluded(filter.Database)) continue;
-            if (filter.Schema != null && DialectSettings.IsExcluded(filter.Schema)) continue;
-            if (filter.Table != null && DialectSettings.IsExcluded(filter.Table)) continue;
+            if (filter.Database != null && IsExcluded(filter.Database)) continue;
+            if (filter.Schema != null && IsExcluded(filter.Schema)) continue;
+            if (filter.Table != null && IsExcluded(filter.Table)) continue;
 
             foreach (var obj in func(errors, filter))
             {
-                if (DialectSettings.IsExcluded(obj)) continue;
+                if (IsExcluded(obj)) continue;
                 if (!items.Add(obj)) continue;
                 yield return obj;
             }
@@ -249,7 +353,7 @@ public abstract class Sql : IDisposable
         var errors = new List<SqlError>();
         foreach (var soDatabase in GetDatabases(errors))
         {
-            if (DialectSettings.IsExcluded(soDatabase)) continue;
+            if (IsExcluded(soDatabase)) continue;
             yield return soDatabase;
         }
 
@@ -328,7 +432,7 @@ public abstract class Sql : IDisposable
         else if (!tableAlias.EndsWith(".")) tableAlias += ".";
 
         return columns.OrderBy(kvp => kvp.Key)
-            .Select(o => tableAlias + (skipEscaping ? o.Value : DialectSettings.Escape(o.Value)))
+            .Select(o => tableAlias + (skipEscaping ? o.Value : Escape(o.Value)))
             .ToStringDelimited(",");
     }
 
@@ -373,12 +477,14 @@ public abstract class Sql : IDisposable
         return result == DBNull.Value ? null : result;
     }
 
-    public virtual DataReaderResult? Query(string sql, params DatabaseParameterValue[] values)
+    public virtual DataReaderResult? Query(string sql, params DatabaseParameterValue[] values) => QueryMultiple(sql, values).FirstOrDefault();
+
+    public virtual List<DataReaderResult> QueryMultiple(string sql, params DatabaseParameterValue[] values)
     {
-        log.LogTrace(nameof(Query) + ": {Sql}", sql);
+        log.LogTrace(nameof(QueryMultiple) + ": {Sql}", sql);
         var tpl = CreateCommand(sql, values);
         using var command = tpl.Command;
-        return command.ExecuteReaderResult();
+        return command.ExecuteReaderResults().ToList();
     }
 
     public virtual int NonQuery(string sql, params DatabaseParameterValue[] values)
@@ -407,14 +513,14 @@ public abstract class Sql : IDisposable
         for (var i = 0; i < columns.Count; i++)
         {
             var (columnName, columnType) = columns[i];
-            columnName = DialectSettings.Escape(columnName);
-            var p = new DatabaseParameter(DialectSettings.GenerateParameterName(i), columnType ?? DbType.String);
+            columnName = Escape(columnName);
+            var p = new DatabaseParameter(GenerateParameterName(i), columnType ?? DbType.String);
             databaseParameters.Add(p);
             parameterNames.Add(p.Name);
             columnNames.Add(columnName);
         }
 
-        var sql = $"INSERT INTO {DialectSettings.Escape(table)} ({columnNames}) VALUES ({parameterNames})";
+        var sql = $"INSERT INTO {Escape(table)} ({columnNames}) VALUES ({parameterNames})";
         //sql += ";"; // breaks Oracle
 
         var cp = CreateCommand(sql, databaseParameters);
@@ -443,8 +549,8 @@ public abstract class Sql : IDisposable
 
     private volatile int parameterCounter;
 
-    public virtual DatabaseParameter NextParameter(DbType type) => new(DialectSettings.GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type);
-    public virtual DatabaseParameterValue NextParameter(object? value, DbType type) => new(DialectSettings.GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type, value);
+    public virtual DatabaseParameter NextParameter(DbType type) => new(GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type);
+    public virtual DatabaseParameterValue NextParameter(object? value, DbType type) => new(GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type, value);
 
     #endregion DatabaseParameter
 

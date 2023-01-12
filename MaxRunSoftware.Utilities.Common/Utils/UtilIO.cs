@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Extensions.Logging;
-// ReSharper disable InconsistentNaming
 
 namespace MaxRunSoftware.Utilities.Common;
 
+// ReSharper disable InconsistentNaming
 public static partial class Util
 {
     #region File

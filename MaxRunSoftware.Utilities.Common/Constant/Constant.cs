@@ -48,7 +48,7 @@ public static partial class Constant
 
     private static ImmutableHashSet<T> CreateHashSet<T>(params T[]? items) => CreateHashSetInternal(null, items);
 
-    private static ImmutableHashSet<T> CreateHashSet<T>(IEqualityComparer<T> comparer, params T[]? items) => CreateHashSetInternal(comparer, items);
+    //private static ImmutableHashSet<T> CreateHashSet<T>(IEqualityComparer<T> comparer, params T[]? items) => CreateHashSetInternal(comparer, items);
 
     private static ImmutableHashSet<T> CreateHashSetInternal<T>(IEqualityComparer<T>? comparer, params T[]? items)
     {

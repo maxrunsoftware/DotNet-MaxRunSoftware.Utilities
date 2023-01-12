@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Security.Cryptography.X509Certificates;
-
 namespace MaxRunSoftware.Utilities.Common.Tests;
 
 public class TestBase

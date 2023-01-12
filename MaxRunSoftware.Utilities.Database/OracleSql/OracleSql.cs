@@ -23,30 +23,29 @@ public class OracleSql : Sql
     public static OracleConnection CreateConnection(string connectionString) => new(connectionString);
 
     public OracleSql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public OracleSql(IDbConnection connection) : base(connection) { }
-
-    private class OracleSqlDialectSettings : DatabaseDialectSettings
+    public OracleSql(IDbConnection connection) : base(connection)
     {
-        public override string Escape(string objectToEscape) => base.Escape(objectToEscape).ToUpperInvariant();
-        public override string GenerateParameterName(int parameterIndex) => ":p" + parameterIndex; // https://stackoverflow.com/questions/22694334/ora-00936-missing-expression
+        DefaultDataTypeString = DatabaseTypes.Get(OracleSqlType.NClob).TypeName;
+        DefaultDataTypeInteger = DatabaseTypes.Get(OracleSqlType.Int32).TypeName;
+        DefaultDataTypeDateTime = DatabaseTypes.Get(OracleSqlType.DateTime).TypeName;
+        DialectEscapeLeft = '"';
+        DialectEscapeRight = '"';
+
+        // https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements008.htm
+        IdentifierCharactersValid.AddRange((Constant.Chars_Alphanumeric_String + "$_#").ToCharArray());
+
+        // https://docs.oracle.com/cd/B19306_01/em.102/b40103/app_oracle_reserved_words.htm
+        ReservedWords.AddRange(ReservedWordsParse(OracleSqlReservedWords.WORDS));
     }
 
-    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new OracleSqlDialectSettings
-        {
-            DefaultDataTypeString = DatabaseTypes.Get(OracleSqlType.NClob).TypeName,
-            DefaultDataTypeInteger = DatabaseTypes.Get(OracleSqlType.Int32).TypeName,
-            DefaultDataTypeDateTime = DatabaseTypes.Get(OracleSqlType.DateTime).TypeName,
-            DialectEscapeLeft = '"',
-            DialectEscapeRight = '"'
-        }
-        // https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements008.htm
-        .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "$_#").ToCharArray())
-        // https://docs.oracle.com/cd/B19306_01/em.102/b40103/app_oracle_reserved_words.htm
-        .AddReservedWords(OracleSqlReservedWords.WORDS);
+    public override string GenerateParameterName(int parameterIndex) => ":p" + parameterIndex; // https://stackoverflow.com/questions/22694334/ora-00936-missing-expression
+
+    public override string Escape(string objectToEscape) => base.Escape(objectToEscape).ToUpperInvariant();
 
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.OracleSql;
     protected override Type DatabaseTypesEnum => typeof(OracleSqlType);
-    public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
+
+    public OracleSqlServerProperties GetServerProperties() => GetServerProperties<OracleSqlServerProperties>();
 
     private string? GetCurrentDatabaseName(List<SqlError> errors)
     {
@@ -332,7 +331,7 @@ public class OracleSql : Sql
     {
         if (!GetTableExists(table)) return false;
         var sql = new StringBuilder();
-        sql.Append($"DROP TABLE {DialectSettings.Escape(table)}");
+        sql.Append($"DROP TABLE {Escape(table)}");
         if (cascadeConstraints) sql.Append(" CASCADE CONSTRAINTS");
         if (purge) sql.Append(" PURGE");
         NonQuery(sql.ToString());

@@ -155,7 +155,7 @@ public static class Check
     /// <param name="callerMemberName">COMPILER GENERATED</param>
     /// <param name="callerArgumentExpression">COMPILER GENERATED</param>
     /// <returns>The value</returns>
-    [return: System.Diagnostics.CodeAnalysis.NotNull]
+    //[return: System.Diagnostics.CodeAnalysis.NotNull]
     [ContractAnnotation("obj: null => halt")]
     public static T?[] CheckNotEmpty<T>(
         this T?[]? obj,

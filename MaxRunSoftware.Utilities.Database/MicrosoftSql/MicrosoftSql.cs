@@ -22,29 +22,30 @@ namespace MaxRunSoftware.Utilities.Database;
 public class MicrosoftSql : Sql
 {
     public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
-    public static MicrosoftSql Create(string connectionString) => new(connectionString);
 
     public MicrosoftSql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public MicrosoftSql(IDbConnection connection) : base(connection) { }
+    public MicrosoftSql(IDbConnection connection) : base(connection)
+    {
+        DefaultDataTypeString = DatabaseTypes.Get(MicrosoftSqlType.NVarChar).TypeName + "(MAX)";
+        DefaultDataTypeInteger = DatabaseTypes.Get(MicrosoftSqlType.Int).TypeName;
+        DefaultDataTypeDateTime = DatabaseTypes.Get(MicrosoftSqlType.DateTime).TypeName;
+        DialectEscapeLeft = '[';
+        DialectEscapeRight = ']';
 
-    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
-        {
-            DefaultDataTypeString = DatabaseTypes.Get(MicrosoftSqlType.NVarChar).TypeName + "(MAX)", // GetSqlDbType(SqlMsSqlType.NVarChar).SqlTypeName + "(MAX)";
-            DefaultDataTypeInteger = DatabaseTypes.Get(MicrosoftSqlType.Int).TypeName, // GetSqlDbType(SqlMsSqlType.Int).SqlTypeName;
-            DefaultDataTypeDateTime = DatabaseTypes.Get(MicrosoftSqlType.DateTime).TypeName, // GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;
-            DialectEscapeLeft = '[',
-            DialectEscapeRight = ']'
-        } //.AddDatabaseUserExcluded("master", "model", "msdb", "tempdb")
+        //ExcludedDatabases.AddRange(new[] {"master", "model", "msdb", "tempdb"}.Select(o => new DatabaseSchemaDatabase(o)));
+
         // https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
-        .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
+        IdentifierCharactersValid.AddRange((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray());
+
         // https://docs.microsoft.com/en-us/sql/t-sql/language-elements/reserved-keywords-transact-sql
-        .AddReservedWords(MicrosoftSqlReservedWords.WORDS);
+        ReservedWords.AddRange(ReservedWordsParse(MicrosoftSqlReservedWords.WORDS));
+    }
 
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.MicrosoftSql;
-    protected override Type DatabaseTypesEnum => typeof(MicrosoftSqlType);
-    public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
 
-    public MicrosoftSqlServerProperties GetServerProperties() => new(this);
+    protected override Type DatabaseTypesEnum => typeof(MicrosoftSqlType);
+
+    public MicrosoftSqlServerProperties GetServerProperties() => GetServerProperties<MicrosoftSqlServerProperties>();
 
     #region Schema
 
@@ -158,7 +159,7 @@ public class MicrosoftSql : Sql
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
+        NonQuery($"DROP TABLE {Escape(table)};");
         return true;
     }
 
@@ -169,7 +170,7 @@ public class MicrosoftSql : Sql
 
         var sql = new StringBuilder();
         sql.Append($" SELECT COUNT(*)");
-        sql.Append($" FROM {DialectSettings.Escape(table.Schema.Database)}.INFORMATION_SCHEMA.TABLES");
+        sql.Append($" FROM {Escape(table.Schema.Database)}.INFORMATION_SCHEMA.TABLES");
         sql.Append($" WHERE TABLE_NAME={ps.Table.Name}");
         if (table.Schema.SchemaName != null)
         {
@@ -182,15 +183,10 @@ public class MicrosoftSql : Sql
 
     #endregion Schema
 
-
-    #region ServerProperties
-
-    #endregion ServerProperty
-
     public virtual bool DropDatabase(string database)
     {
-        var databaseEscaped = DialectSettings.Escape(database);
-        var databaseUnescaped = DialectSettings.Unescape(database);
+        var databaseEscaped = Escape(database);
+        var databaseUnescaped = Unescape(database);
 
         var sql = @$"
         IF EXISTS (SELECT * FROM master.sys.databases WHERE NAME=N'{databaseUnescaped}')

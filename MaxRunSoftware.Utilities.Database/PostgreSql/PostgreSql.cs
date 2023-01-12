@@ -24,24 +24,23 @@ public class PostgreSql : Sql
     public static NpgsqlConnection CreateConnection(string connectionString) => new(connectionString);
 
     public PostgreSql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public PostgreSql(IDbConnection connection) : base(connection) { }
+    public PostgreSql(IDbConnection connection) : base(connection)
+    {
+        DefaultDataTypeString = DatabaseTypes.Get(PostgreSqlType.Text).TypeName;
+        DefaultDataTypeInteger = DatabaseTypes.Get(PostgreSqlType.Integer).TypeName;
+        DefaultDataTypeDateTime = DatabaseTypes.Get(PostgreSqlType.Timestamp).TypeName;
+        DialectEscapeLeft = '"';
+        DialectEscapeRight = '"';
 
-    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
-        {
-            DefaultDataTypeString = DatabaseTypes.Get(PostgreSqlType.Text).TypeName,
-            DefaultDataTypeInteger = DatabaseTypes.Get(PostgreSqlType.Integer).TypeName,
-            DefaultDataTypeDateTime = DatabaseTypes.Get(PostgreSqlType.Timestamp).TypeName,
-            DialectEscapeLeft = '"',
-            DialectEscapeRight = '"',
-        }
         // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
-        .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
+        IdentifierCharactersValid.AddRange((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray());
+
         // https://www.postgresql.org/docs/current/sql-keywords-appendix.html
-        .AddReservedWords(PostgreSqlReservedWords.WORDS);
+        ReservedWords.AddRange(ReservedWordsParse(PostgreSqlReservedWords.WORDS));
+    }
 
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.PostgreSql;
     protected override Type DatabaseTypesEnum => typeof(PostgreSqlType);
-    public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
 
     #region Schema
 
@@ -155,7 +154,7 @@ public class PostgreSql : Sql
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
+        NonQuery($"DROP TABLE {Escape(table)};");
         return true;
     }
 

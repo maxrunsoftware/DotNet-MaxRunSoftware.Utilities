@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ReSharper disable UnusedParameter.Global
+// ReSharper disable UnusedVariable
 namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
 public class ExtensionsReflectionTests : TestBase

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 
 namespace MaxRunSoftware.Utilities.Common;
 
