@@ -16,6 +16,7 @@ namespace MaxRunSoftware.Utilities.Database;
 
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
 
+[PublicAPI]
 public abstract class Sql : IDisposable
 {
     protected readonly ILogger log;
