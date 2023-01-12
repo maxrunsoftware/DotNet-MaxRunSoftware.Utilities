@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System.Data.SqlClient;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Smo;
 
 namespace MaxRunSoftware.Utilities.Database;
 
@@ -24,6 +22,7 @@ namespace MaxRunSoftware.Utilities.Database;
 public class MicrosoftSql : Sql
 {
     public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
+    public static MicrosoftSql Create(string connectionString) => new(connectionString);
 
     public MicrosoftSql(string connectionString) : this(CreateConnection(connectionString)) { }
     public MicrosoftSql(IDbConnection connection) : base(connection) { }
@@ -33,8 +32,8 @@ public class MicrosoftSql : Sql
             DefaultDataTypeString = DatabaseTypes.Get(MicrosoftSqlType.NVarChar).TypeName + "(MAX)", // GetSqlDbType(SqlMsSqlType.NVarChar).SqlTypeName + "(MAX)";
             DefaultDataTypeInteger = DatabaseTypes.Get(MicrosoftSqlType.Int).TypeName, // GetSqlDbType(SqlMsSqlType.Int).SqlTypeName;
             DefaultDataTypeDateTime = DatabaseTypes.Get(MicrosoftSqlType.DateTime).TypeName, // GetSqlDbType(SqlMsSqlType.DateTime).SqlTypeName;
-            EscapeLeft = '[',
-            EscapeRight = ']'
+            DialectEscapeLeft = '[',
+            DialectEscapeRight = ']'
         } //.AddDatabaseUserExcluded("master", "model", "msdb", "tempdb")
         // https://docs.microsoft.com/en-us/sql/relational-databases/databases/database-identifiers?view=sql-server-ver16
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
@@ -49,17 +48,9 @@ public class MicrosoftSql : Sql
 
     #region Schema
 
-    public override DatabaseSchemaSchema GetCurrentSchema()
-    {
-        var cols = new Dictionary<int, string>
-        {
-            [0] = "DB_NAME()",
-            [1] = "SCHEMA_NAME()",
-        };
-        return this.QueryStrings($"SELECT {EscapeColumns(cols, true)};")
-            .Select(row => new DatabaseSchemaSchema(row, cols))
-            .First();
-    }
+    protected override string? GetCurrentDatabaseName() => this.QueryScalarString($"SELECT DB_NAME();");
+
+    protected override string? GetCurrentSchemaName() => this.QueryScalarString($"SELECT SCHEMA_NAME();");
 
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
@@ -69,7 +60,10 @@ public class MicrosoftSql : Sql
         };
         var sql = new StringBuilder();
         sql.Append($"SELECT DISTINCT {EscapeColumns(cols)} FROM sys.databases;");
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(row, cols));
+
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(
+            row[0].CheckNotNull(cols[0])
+        ));
     }
 
 
@@ -86,7 +80,10 @@ public class MicrosoftSql : Sql
         sql.Append($" WHERE CATALOG_NAME='{filter.DatabaseNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(row, cols));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(
+            row[0].CheckNotNull(cols[0]),
+            row[1]
+        ));
     }
 
     protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -105,7 +102,11 @@ public class MicrosoftSql : Sql
         if (filter.SchemaNameUnescaped != null) sql.Append($" AND TABLE_SCHEMA='{filter.SchemaNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(row, cols));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(
+            row[0].CheckNotNull(cols[0]),
+            row[1],
+            row[2].CheckNotNull(cols[2])
+        ));
     }
 
     protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -136,35 +137,48 @@ public class MicrosoftSql : Sql
 
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(row, cols),
-            row[3].CheckNotNullTrimmed(cols[3]),
-            row[4].CheckNotNullTrimmed(cols[4]),
-            GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
-            row[5]!.ToBool(),
-            row[6]!.ToInt(),
-            row[7].ToLongNullable(),
-            row[8].ToIntNullable(),
-            row[9].ToIntNullable(),
-            row[10]
-        ));
+            new DatabaseSchemaTable(
+                row[0].CheckNotNull(cols[0]),
+                row[1],
+                row[2].CheckNotNull(cols[2])
+            ),
+            new DatabaseSchemaColumn(
+                row[3].CheckNotNullTrimmed(cols[3]),
+                row[4].CheckNotNullTrimmed(cols[4]),
+                GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
+                row[5]!.ToBool(),
+                row[6]!.ToInt(),
+                row[7].ToLongNullable(),
+                row[8].ToIntNullable(),
+                row[9].ToIntNullable(),
+                row[10]
+            )));
     }
 
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-
-        var dst = Escape(table);
-        using (var cmd = CreateCommand())
-        {
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = $"DROP TABLE {dst};";
-            cmd.ExecuteNonQuery();
-        }
-
+        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
         return true;
     }
 
-    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name, schema.Name);
+    public override bool GetTableExists(DatabaseSchemaTable table)
+    {
+        var ps = this.NextParameter(table);
+        var values = new List<DatabaseParameterValue> { ps.Table };
+
+        var sql = new StringBuilder();
+        sql.Append($" SELECT COUNT(*)");
+        sql.Append($" FROM {DialectSettings.Escape(table.Schema.Database)}.INFORMATION_SCHEMA.TABLES");
+        sql.Append($" WHERE TABLE_NAME={ps.Table.Name}");
+        if (table.Schema.SchemaName != null)
+        {
+            values.Add(ps.Schema);
+            sql.Append($" AND TABLE_SCHEMA={ps.Schema.Name}");
+        }
+
+        return this.QueryScalarInt(sql.ToString(), values.ToArray()).CheckNotNull("COUNT") > 0;
+    }
 
     #endregion Schema
 
@@ -175,8 +189,8 @@ public class MicrosoftSql : Sql
 
     public virtual bool DropDatabase(string database)
     {
-        var databaseEscaped = this.Escape(database);
-        var databaseUnescaped = this.Unescape(database);
+        var databaseEscaped = DialectSettings.Escape(database);
+        var databaseUnescaped = DialectSettings.Unescape(database);
 
         var sql = @$"
         IF EXISTS (SELECT * FROM master.sys.databases WHERE NAME=N'{databaseUnescaped}')

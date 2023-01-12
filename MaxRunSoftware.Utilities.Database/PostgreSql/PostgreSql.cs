@@ -17,6 +17,7 @@ using Npgsql;
 namespace MaxRunSoftware.Utilities.Database;
 
 // ReSharper disable RedundantStringInterpolation
+// ReSharper disable StringLiteralTypo
 
 public class PostgreSql : Sql
 {
@@ -30,8 +31,8 @@ public class PostgreSql : Sql
             DefaultDataTypeString = DatabaseTypes.Get(PostgreSqlType.Text).TypeName,
             DefaultDataTypeInteger = DatabaseTypes.Get(PostgreSqlType.Integer).TypeName,
             DefaultDataTypeDateTime = DatabaseTypes.Get(PostgreSqlType.Timestamp).TypeName,
-            EscapeLeft = '"',
-            EscapeRight = '"'
+            DialectEscapeLeft = '"',
+            DialectEscapeRight = '"',
         }
         // https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "@$#_").ToCharArray())
@@ -44,27 +45,22 @@ public class PostgreSql : Sql
 
     #region Schema
 
-    public override DatabaseSchemaSchema GetCurrentSchema()
-    {
-        var cols = new Dictionary<int, string>
-        {
-            [0] = "DB_NAME()",
-            [1] = "SCHEMA_NAME()",
-        };
-        return this.QueryStrings($"SELECT {EscapeColumns(cols, true)};")
-            .Select(row => new DatabaseSchemaSchema(row, cols))
-            .First();
-    }
+    protected override string? GetCurrentDatabaseName() => this.QueryScalarString($"SELECT current_database();");
 
-    protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
+    protected override string? GetCurrentSchemaName() => this.QueryScalarString($"SELECT current_schema();");
+
+        protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
         var cols = new Dictionary<int, string>
         {
-            [0] = "name",
+            [0] = "datname",
         };
         var sql = new StringBuilder();
-        sql.Append($"SELECT DISTINCT {EscapeColumns(cols)} FROM sys.databases;");
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(row, cols));
+        sql.Append($"SELECT DISTINCT {EscapeColumns(cols)} FROM pg_catalog.pg_database WHERE datistemplate=false AND datallowconn=true;");
+
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(
+            row[0].CheckNotNull(cols[0])
+        ));
     }
 
 
@@ -72,16 +68,19 @@ public class PostgreSql : Sql
     {
         var cols = new Dictionary<int, string>
         {
-            [0] = "CATALOG_NAME",
-            [1] = "SCHEMA_NAME",
+            [0] = "catalog_name",
+            [1] = "schema_name",
         };
         var sql = new StringBuilder();
         sql.Append($" SELECT DISTINCT {EscapeColumns(cols)}");
-        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.SCHEMATA");
-        sql.Append($" WHERE CATALOG_NAME='{filter.DatabaseNameUnescaped}'");
+        sql.Append($" FROM {filter.DatabaseNameEscaped}.information_schema.schemata");
+        sql.Append($" WHERE catalog_name='{filter.DatabaseNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(row, cols));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaSchema(
+            row[0].CheckNotNull(cols[0]),
+            row[1]
+        ));
     }
 
     protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -89,18 +88,22 @@ public class PostgreSql : Sql
         var sql = new StringBuilder();
         var cols = new Dictionary<int, string> // Just using dict<int> to document index of each column
         {
-            [0] = "TABLE_CATALOG",
-            [1] = "TABLE_SCHEMA",
-            [2] = "TABLE_NAME",
+            [0] = "table_catalog",
+            [1] = "table_schema",
+            [2] = "table_name",
         };
         sql.Append($" SELECT DISTINCT {EscapeColumns(cols)}");
-        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES");
-        sql.Append($" WHERE TABLE_TYPE='BASE TABLE'");
-        sql.Append($" AND TABLE_CATALOG='{filter.DatabaseNameUnescaped}'");
-        if (filter.SchemaNameUnescaped != null) sql.Append($" AND TABLE_SCHEMA='{filter.SchemaNameUnescaped}'");
+        sql.Append($" FROM {filter.DatabaseNameEscaped}.information_schema.tables");
+        sql.Append($" WHERE table_type='BASE TABLE'");
+        sql.Append($" AND table_catalog='{filter.DatabaseNameUnescaped}'");
+        if (filter.SchemaNameUnescaped != null) sql.Append($" AND table_schema='{filter.SchemaNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(row, cols));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(
+            row[0].CheckNotNull(cols[0]),
+            row[1],
+            row[2].CheckNotNull(cols[2])
+        ));
     }
 
     protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -108,59 +111,54 @@ public class PostgreSql : Sql
         var sql = new StringBuilder();
         var cols = new Dictionary<int, string> // Just using dict<int> to document index of each column
         {
-            [0] = "TABLE_CATALOG",
-            [1] = "TABLE_SCHEMA",
-            [2] = "TABLE_NAME",
-            [3] = "COLUMN_NAME",
-            [4] = "DATA_TYPE",
-            [5] = "IS_NULLABLE",
-            [6] = "ORDINAL_POSITION",
-            [7] = "CHARACTER_MAXIMUM_LENGTH",
-            [8] = "NUMERIC_PRECISION",
-            [9] = "NUMERIC_SCALE",
-            [10] = "COLUMN_DEFAULT"
+            [0] = "table_catalog",
+            [1] = "table_schema",
+            [2] = "table_name",
+            [3] = "column_name",
+            [4] = "data_type",
+            [5] = "is_nullable",
+            [6] = "ordinal_position",
+            [7] = "character_maximum_length",
+            [8] = "numeric_precision",
+            [9] = "numeric_scale",
+            [10] = "column_default",
         };
         sql.Append($" SELECT DISTINCT {EscapeColumns("c",cols)}");
-        sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.COLUMNS c");
-        sql.Append($" INNER JOIN {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES t ON t.TABLE_CATALOG=c.TABLE_CATALOG AND t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME");
+        sql.Append($" FROM {filter.DatabaseNameEscaped}.information_schema.columns c");
+        sql.Append($" INNER JOIN {filter.DatabaseNameEscaped}.information_schema.tables t ON t.table_catalog=c.table_catalog and t.table_schema=c.table_schema and t.table_name=c.table_name");
         sql.Append($" WHERE t.TABLE_TYPE='BASE TABLE'");
         sql.Append($" AND c.TABLE_CATALOG='{filter.DatabaseNameUnescaped}'");
-        if (filter.SchemaNameUnescaped != null) sql.Append($" AND c.TABLE_SCHEMA='{filter.SchemaNameUnescaped}'");
-        if (filter.TableNameUnescaped != null) sql.Append($" AND c.TABLE_NAME='{filter.TableNameUnescaped}'");
+        if (filter.SchemaNameUnescaped != null) sql.Append($" AND c.table_schema='{filter.SchemaNameUnescaped}'");
+        if (filter.TableNameUnescaped != null) sql.Append($" AND c.table_name='{filter.TableNameUnescaped}'");
         sql.Append(';');
 
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(row, cols),
-            row[3].CheckNotNullTrimmed(cols[3]),
-            row[4].CheckNotNullTrimmed(cols[4]),
-            GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
-            row[5]!.ToBool(),
-            row[6]!.ToInt(),
-            row[7].ToLongNullable(),
-            row[8].ToIntNullable(),
-            row[9].ToIntNullable(),
-            row[10]
-        ));
+            new DatabaseSchemaTable(
+                row[0].CheckNotNull(cols[0]),
+                row[1],
+                row[2].CheckNotNull(cols[2])
+            ),
+            new DatabaseSchemaColumn(
+                row[3].CheckNotNullTrimmed(cols[3]),
+                row[4].CheckNotNullTrimmed(cols[4]),
+                GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
+                row[5]!.ToBool(),
+                row[6]!.ToInt(),
+                row[7].ToLongNullable(),
+                row[8].ToIntNullable(),
+                row[9].ToIntNullable(),
+                row[10]
+            )));
     }
 
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-
-        var dst = Escape(table);
-        using (var cmd = CreateCommand())
-        {
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = $"DROP TABLE {dst};";
-            cmd.ExecuteNonQuery();
-        }
-
+        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
         return true;
     }
 
-    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name, schema.Name);
-
-
     #endregion Schema
+
 }

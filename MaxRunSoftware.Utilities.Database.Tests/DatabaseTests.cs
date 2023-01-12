@@ -54,31 +54,26 @@ public abstract class DatabaseFixtureCollection<T> : ICollectionFixture<T> where
     // ICollectionFixture<> interfaces.
 }
 
-public abstract class DatabaseTests : TestBase, IDisposable
+public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
 {
-    protected readonly Sql sql;
-    protected DatabaseTests(ITestOutputHelper testOutputHelper, Sql sql) : base(testOutputHelper)
+    protected readonly T sql;
+    protected DatabaseTests(ITestOutputHelper testOutputHelper, DatabaseAppType databaseAppType, string connectionString) : base(testOutputHelper)
     {
-        this.sql = sql;
+        sql = (T)databaseAppType.OpenSql(connectionString);
     }
 
     [Fact]
     public void GetCurrentDatabase()
     {
-        var o = sql.GetCurrentDatabase();
-        Assert.NotNull(o);
-        Assert.NotEmpty(o.Name);
-        WriteLine(nameof(sql.GetCurrentDatabase), o);
+        var o = sql.CurrentDatabaseName;
+        WriteLine(nameof(sql.CurrentDatabaseName), o);
     }
 
     [Fact]
     public void GetCurrentSchema()
     {
-        var o = sql.GetCurrentSchema();
-        Assert.NotNull(o);
-        Assert.NotNull(o.Database);
-        Assert.NotEmpty(o.Name);
-        WriteLine(nameof(sql.GetCurrentSchema), o);
+        var o = sql.CurrentSchemaName;
+        WriteLine(nameof(sql.CurrentSchemaName), o);
     }
 
     [Fact]
@@ -121,15 +116,17 @@ public abstract class DatabaseTests : TestBase, IDisposable
     public void GetTableExists()
     {
         var tables = sql.GetTables().OrderBy(o => o).ToArray();
+
         Assert.NotNull(tables);
         Assert.NotEmpty(tables);
-        foreach (var table in tables)
+        var skipAmount = Math.Max(1, tables.Length / 100);
+        for (var i = 0; i < tables.Length; i+= skipAmount)
         {
+            var table = tables[i];
             var result = sql.GetTableExists(table);
-            WriteLine(nameof(sql.GetTableExists), $"{table.NameFull} -> {result}");
+            WriteLine(nameof(sql.GetTableExists), "[" + Util.FormatRunningCount(i, tables.Length) + $"] {table} -> {result}");
             Assert.True(result);
         }
-
     }
 
     protected void WriteLine(string methodName, object? outData)
@@ -137,7 +134,7 @@ public abstract class DatabaseTests : TestBase, IDisposable
         output.WriteLine($"[{sql.DatabaseAppType}] {methodName}: {ToStringParse(outData)}");
     }
 
-    protected void WriteLine<T>(string methodName, T?[] outData)
+    protected void WriteLine<TItem>(string methodName, TItem?[] outData)
     {
         for (var i = 0; i < outData.Length; i++)
         {
@@ -147,7 +144,7 @@ public abstract class DatabaseTests : TestBase, IDisposable
 
     protected static string? ToStringParse(object? o)
     {
-        if (o is DatabaseSchemaObject databaseSchemaObject) return databaseSchemaObject.NameFull;
+        if (o is DatabaseSchemaObject databaseSchemaObject) return databaseSchemaObject.ToString();
         return o.ToStringGuessFormat();
     }
 

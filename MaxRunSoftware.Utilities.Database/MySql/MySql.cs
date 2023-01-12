@@ -23,6 +23,7 @@ public class MySql : Sql
     // https://dev.mysql.com/doc/refman/8.0/en/information-schema-columns-table.html
 
     public static MySqlConnection CreateConnection(string connectionString) => new(connectionString);
+    public static MySql Create(string connectionString) => new(connectionString);
 
     public MySql(string connectionString) : this(CreateConnection(connectionString)) { }
     public MySql(IDbConnection connection) : base(connection) { }
@@ -32,8 +33,8 @@ public class MySql : Sql
             DefaultDataTypeString = DatabaseTypes.Get(MySqlType.LongText).TypeName,
             DefaultDataTypeInteger = DatabaseTypes.Get(MySqlType.Int32).TypeName,
             DefaultDataTypeDateTime = DatabaseTypes.Get(MySqlType.DateTime).TypeName,
-            EscapeLeft = '`',
-            EscapeRight = '`'
+            DialectEscapeLeft = '`',
+            DialectEscapeRight = '`'
         }
         // https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "$_").ToCharArray())
@@ -46,18 +47,9 @@ public class MySql : Sql
 
     #region Schema
 
-    public override DatabaseSchemaSchema GetCurrentSchema()
-    {
-        var cols = new Dictionary<int, string>
-        {
-            [0] = "DATABASE()",
-            [1] = "DATABASE()",
-        };
-        return this.QueryStrings($"SELECT {EscapeColumns(cols, true)};")
-            .Select(row => new DatabaseSchemaSchema(row, cols))
-            .First();
-    }
+    protected override string? GetCurrentDatabaseName() => this.QueryScalarString($"SELECT DATABASE();");
 
+    protected override string? GetCurrentSchemaName() => this.QueryScalarString($"SELECT SCHEMA();");
 
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
@@ -67,10 +59,13 @@ public class MySql : Sql
         };
         var sql = new StringBuilder();
         sql.Append($"SELECT DISTINCT {EscapeColumns(cols)} FROM information_schema.schemata;");
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(row, cols));
+
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaDatabase(
+            row[0].CheckNotNull(cols[0])
+        ));
     }
 
-    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter) => GetDatabases(errors).Select(o => new DatabaseSchemaSchema(o.Name, o.Name));
+    protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter) => GetDatabases(errors).Select(o => new DatabaseSchemaSchema(o.DatabaseName, null));
 
     protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
@@ -87,7 +82,11 @@ public class MySql : Sql
         sql.Append($" AND TABLE_SCHEMA='{filter.DatabaseNameUnescaped}'");
         sql.Append(';');
 
-        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(row, cols));
+        return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTable(
+            row[0].CheckNotNull(cols[0]),
+            null,
+            row[2].CheckNotNull(cols[2])
+        ));
     }
 
     protected override IEnumerable<DatabaseSchemaTableColumn> GetTableColumns(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -105,45 +104,41 @@ public class MySql : Sql
             [7] = "CHARACTER_MAXIMUM_LENGTH",
             [8] = "NUMERIC_PRECISION",
             [9] = "NUMERIC_SCALE",
-            [10] = "COLUMN_DEFAULT"
+            [10] = "COLUMN_DEFAULT",
         };
         sql.Append($" SELECT DISTINCT {EscapeColumns("c", cols)}");
         sql.Append($" FROM information_schema.columns c");
         sql.Append($" INNER JOIN information_schema.tables t ON t.TABLE_CATALOG=c.TABLE_CATALOG AND t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME");
         sql.Append($" WHERE t.TABLE_TYPE='BASE TABLE'");
         sql.Append($" AND c.TABLE_SCHEMA='{filter.DatabaseNameUnescaped}'");
+        if (filter.TableNameUnescaped != null) sql.Append($" AND c.TABLE_NAME='{filter.TableNameUnescaped}'");
         sql.Append(';');
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(row, cols),
-            row[2].CheckNotNullTrimmed(cols[3]),
-            row[3].CheckNotNullTrimmed(cols[4]),
-            GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
-            row[5]!.ToBool(),
-            row[6]!.ToInt(),
-            row[7].ToLongNullable(),
-            row[8].ToIntNullable(),
-            row[9].ToIntNullable(),
-            row[10]
-        ));
+            new DatabaseSchemaTable(
+                row[0].CheckNotNull(cols[0]),
+                null,
+                row[2].CheckNotNull(cols[2])
+            ),
+            new DatabaseSchemaColumn(
+                row[3].CheckNotNullTrimmed(cols[3]),
+                row[4].CheckNotNullTrimmed(cols[4]),
+                GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
+                row[5]!.ToBool(),
+                row[6]!.ToInt(),
+                row[7].ToLongNullable(),
+                row[8].ToIntNullable(),
+                row[9].ToIntNullable(),
+                row[10]
+            )));
     }
 
     public override bool DropTable(DatabaseSchemaTable table)
     {
         if (!GetTableExists(table)) return false;
-
-        var dst = Escape(table);
-        using (var cmd = CreateCommand())
-        {
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = $"DROP TABLE {dst};";
-            cmd.ExecuteNonQuery();
-        }
-
+        NonQuery($"DROP TABLE {DialectSettings.Escape(table)};");
         return true;
     }
-
-    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name);
 
     #endregion Schema
 }

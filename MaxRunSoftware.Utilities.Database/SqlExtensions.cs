@@ -17,15 +17,7 @@ namespace MaxRunSoftware.Utilities.Database;
 public static class SqlExtensions
 {
     private static string? ConvertToStringDefault(object? obj) => obj.ToStringGuessFormat();
-
-    #region Escape
-
-    public static string Escape(this Sql instance, IReadOnlyList<string?> objectsToEscape) => instance.Escape('.', objectsToEscape);
-    public static string Escape(this Sql instance, params string?[] objectsToEscape) => instance.Escape('.', objectsToEscape);
-    public static string Escape(this Sql instance, char delimiter, params string?[] objectsToEscape) => instance.Escape(delimiter, (IReadOnlyList<string?>)objectsToEscape);
-
-    #endregion Escape
-
+    private static int? ConvertToIntDefault(object? obj) => ConvertToStringDefault(obj).TrimOrNull().ToIntNullable();
 
     #region Query
 
@@ -95,7 +87,8 @@ public static class SqlExtensions
     public static string? QueryScalarString(this Sql instance, string sql, params DatabaseParameterValue[] values) => instance.QueryScalarString(sql, ConvertToStringDefault, values);
     public static string? QueryScalarString(this Sql instance, string sql, Func<object?, string?> converter, params DatabaseParameterValue[] values) => converter(instance.QueryScalar(sql, values));
 
-
+    public static int? QueryScalarInt(this Sql instance, string sql, params DatabaseParameterValue[] values) => instance.QueryScalarInt(sql, ConvertToIntDefault, values);
+    public static int? QueryScalarInt(this Sql instance, string sql, Func<object?, int?> converter, params DatabaseParameterValue[] values) => converter(instance.QueryScalar(sql, values));
 
     #endregion QueryScalar
 
@@ -143,8 +136,11 @@ public static class SqlExtensions
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, string?> values) =>
         instance.Insert(table, values.Select(o => (o.Key, (object?)o.Value)));
 
-    private static DatabaseSchemaTable InsertCreateTable(Sql instance, string? database, string? schema, string table) =>
-        new(database ?? instance.GetCurrentDatabase().Name, schema ?? instance.GetCurrentSchema().Name, table);
+    private static DatabaseSchemaTable InsertCreateTable(Sql instance, string? database, string? schema, string table) => new(
+        database ?? instance.CurrentDatabaseName ?? throw new ArgumentException("No database name provided and could not determine current database name"),
+        schema ?? instance.CurrentSchemaName,
+        table
+    );
 
     public static int Insert(this Sql instance, string? database, string? schema, string table, IDictionary<string, object?> values) =>
         instance.Insert(InsertCreateTable(instance, database, schema, table), values);
@@ -154,4 +150,43 @@ public static class SqlExtensions
 
 
     #endregion Insert
+
+    #region DatabaseParameter
+
+    public static DatabaseParameterValue NextParameter(this Sql instance, string? value) => instance.NextParameter(value, DbType.String);
+
+    public static DatabaseParameterValue NextParameter(this Sql instance, DatabaseSchemaDatabase database)
+    {
+        var o = NextParameterSchema(instance, database.DatabaseName);
+        return o[0];
+    }
+
+    public static (DatabaseParameterValue Database, DatabaseParameterValue Schema)
+        NextParameter(this Sql instance, DatabaseSchemaSchema schema)
+    {
+        var o = NextParameterSchema(instance, schema.Database.DatabaseName, schema.SchemaName);
+        return (o[0], o[1]);
+    }
+
+    public static (DatabaseParameterValue Database, DatabaseParameterValue Schema, DatabaseParameterValue Table)
+        NextParameter(this Sql instance, DatabaseSchemaTable table)
+    {
+        var o = NextParameterSchema(instance, table.Schema.Database.DatabaseName, table.Schema.SchemaName, table.TableName);
+        return (o[0], o[1], o[2]);
+    }
+
+    private static DatabaseParameterValue[] NextParameterSchema(this Sql instance, params string?[] names)
+    {
+        var list = new List<DatabaseParameterValue>();
+        foreach (var name in names)
+        {
+            var n = name;
+            if (n != null) n = instance.DialectSettings.Unescape(n);
+            list.Add(instance.NextParameter(n));
+        }
+        return list.ToArray();
+    }
+
+    #endregion DatabaseParameter
+
 }

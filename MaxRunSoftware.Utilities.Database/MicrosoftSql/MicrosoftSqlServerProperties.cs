@@ -43,7 +43,7 @@ public class MicrosoftSqlServerProperties
 
     public MicrosoftSqlServerProperties(Sql sql)
     {
-        var sqlStatement = "SELECT " + properties.Select(o => $"SERVERPROPERTY('{sql.Unescape(o.Name)}') AS {sql.Escape(o.Name)}").ToStringDelimited(", ") + ";";
+        var sqlStatement = "SELECT " + properties.Select(o => $"SERVERPROPERTY('{sql.DialectSettings.Unescape(o.Name)}') AS {sql.DialectSettings.Escape(o.Name)}").ToStringDelimited(", ") + ";";
         var result = sql.QueryStrings(sqlStatement).First();
 
         static object? ConvertValue(PropertyInfo property, string? value)

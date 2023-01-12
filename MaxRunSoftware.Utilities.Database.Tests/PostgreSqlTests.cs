@@ -18,22 +18,19 @@ namespace MaxRunSoftware.Utilities.Database.Tests;
 
 // ReSharper disable StringLiteralTypo
 
-/// <summary>
-/// https://xunit.net/docs/shared-context
-/// </summary>
-public class MySqlFixture : DatabaseFixture
+public class PostgreSqlFixture : DatabaseFixture
 {
     protected override void Setup() { }
     protected override void Teardown() { }
 }
 
-[CollectionDefinition(nameof(MySql))]
-public class MySqlFixtureCollection : DatabaseFixtureCollection<MySqlFixture> { }
+[CollectionDefinition(nameof(PostgreSql))]
+public class PostgreSqlFixtureCollection : DatabaseFixtureCollection<PostgreSqlFixture> { }
 
-[Collection(nameof(MySql))]
-public class MySqlTests : DatabaseTests<MySql>
+[Collection(nameof(PostgreSql))]
+public class PostgreSqlTests : DatabaseTests<PostgreSql>
 {
-    public MySqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test) { }
+    public PostgreSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.PostgreSql, Constants.PostgreSql_ConnectionString_Test) { }
 
     [Fact]
     public void GetServerProperties()

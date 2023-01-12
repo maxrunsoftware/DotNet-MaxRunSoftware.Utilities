@@ -71,7 +71,6 @@ public abstract class Sql : IDisposable
 
     #endregion IDisposable
 
-
     #region SqlDialectSettings
 
     public abstract DatabaseDialectSettings DialectSettingsDefault { get; }
@@ -118,22 +117,22 @@ public abstract class Sql : IDisposable
             Table = table;
 
             DatabaseName =
-                Table?.Schema.Database.Name
-                ?? Schema?.Database.Name
-                ?? Database?.Name
-                ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.Name) + " cannot be null");
-            DatabaseNameEscaped = sql.Escape(DatabaseName);
-            DatabaseNameUnescaped = sql.Unescape(DatabaseName);
+                Table?.Schema.Database.DatabaseName
+                ?? Schema?.Database.DatabaseName
+                ?? Database?.DatabaseName
+                ?? throw new NullReferenceException(nameof(DatabaseSchemaDatabase.DatabaseName) + " cannot be null");
+            DatabaseNameEscaped = sql.DialectSettings.Escape(DatabaseName);
+            DatabaseNameUnescaped = sql.DialectSettings.Unescape(DatabaseName);
 
             SchemaName =
-                Table?.Schema.Name
-                ?? Schema?.Name;
-            SchemaNameEscaped = SchemaName == null ? null : sql.Escape(SchemaName);
-            SchemaNameUnescaped = SchemaName == null ? null : sql.Unescape(SchemaName);
+                Table?.Schema.SchemaName
+                ?? Schema?.SchemaName;
+            SchemaNameEscaped = SchemaName == null ? null : sql.DialectSettings.Escape(SchemaName);
+            SchemaNameUnescaped = SchemaName == null ? null : sql.DialectSettings.Unescape(SchemaName);
 
-            TableName = Table?.Name;
-            TableNameEscaped = TableName == null ? null : sql.Escape(TableName);
-            TableNameUnescaped = TableName == null ? null : sql.Unescape(TableName);
+            TableName = Table?.TableName;
+            TableNameEscaped = TableName == null ? null : sql.DialectSettings.Escape(TableName);
+            TableNameUnescaped = TableName == null ? null : sql.DialectSettings.Unescape(TableName);
         }
 
         public DatabaseSchemaDatabase? Database { get; }
@@ -187,6 +186,7 @@ public abstract class Sql : IDisposable
 
     private IEnumerable<T> GetSchemaObjects<T>(Func<List<SqlError>, GetSchemaInfoFilter, IEnumerable<T>> func, params GetSchemaInfoFilter[] filters) where T : DatabaseSchemaObject
     {
+        var items = new HashSet<T>();
         var errors = new List<SqlError>();
         foreach (var filter in filters)
         {
@@ -198,6 +198,7 @@ public abstract class Sql : IDisposable
             foreach (var obj in func(errors, filter))
             {
                 if (DialectSettings.IsExcluded(obj)) continue;
+                if (!items.Add(obj)) continue;
                 yield return obj;
             }
         }
@@ -207,8 +208,39 @@ public abstract class Sql : IDisposable
 
     #endregion Helpers
 
-    public virtual DatabaseSchemaDatabase GetCurrentDatabase() => GetCurrentSchema().Database;
-    public abstract DatabaseSchemaSchema GetCurrentSchema();
+    public bool CacheCurrentDatabaseName { get; set; } = true;
+    private bool currentDatabaseNameIsCached;
+    private string? currentDatabaseNameCached;
+    public string? CurrentDatabaseName
+    {
+        get
+        {
+            if (!CacheCurrentDatabaseName) return GetCurrentDatabaseName();
+            if (currentDatabaseNameIsCached) return currentDatabaseNameCached;
+            currentDatabaseNameCached = GetCurrentDatabaseName();
+            currentDatabaseNameIsCached = true;
+            return currentDatabaseNameCached;
+
+        }
+    }
+    protected abstract string? GetCurrentDatabaseName();
+
+    public bool CacheCurrentSchemaName { get; set; } = true;
+    private bool currentSchemaNameIsCached;
+    private string? currentSchemaNameCached;
+    public string? CurrentSchemaName
+    {
+        get
+        {
+            if (!CacheCurrentSchemaName) return GetCurrentSchemaName();
+            if (currentSchemaNameIsCached) return currentSchemaNameCached;
+            currentSchemaNameCached = GetCurrentSchemaName();
+            currentSchemaNameIsCached = true;
+            return currentSchemaNameCached;
+
+        }
+    }
+    protected abstract string? GetCurrentSchemaName();
 
     #region GetDatabases
 
@@ -257,7 +289,10 @@ public abstract class Sql : IDisposable
 
     #endregion GetTableColumns
 
-    public virtual bool GetTableExists(DatabaseSchemaTable table) => !GetTableColumns(table).IsEmpty();
+    public virtual bool GetTableExists(DatabaseSchemaTable table) =>
+        GetTables(table.Schema)
+            .FirstOrDefault(o => StringComparer.OrdinalIgnoreCase.Equals(o.TableName, table.TableName)) != null
+        ;
 
     public abstract bool DropTable(DatabaseSchemaTable table);
 
@@ -283,29 +318,8 @@ public abstract class Sql : IDisposable
         return new AggregateException(sb.ToString(), valuesArray.Select(o => o.Error));
     }
 
-    public virtual string Escape(DatabaseSchemaDatabase database) => DialectSettings.Escape(database.Name);
-    public abstract string Escape(DatabaseSchemaSchema schema);
-    public virtual string Escape(DatabaseSchemaTable table) => Escape('.', new[] { Escape(table.Schema), DialectSettings.Escape(table.Name) });
 
-    public virtual string Escape(char delimiter, IReadOnlyList<string?> objectsToEscape)
-    {
-        if (objectsToEscape.Count == 0) return string.Empty;
-        if (objectsToEscape.Count == 1) return objectsToEscape[0] == null ? string.Empty : DialectSettings.Escape(objectsToEscape[0]!);
 
-        var esc = DialectSettings.Escape;
-
-        var sb = new StringBuilder();
-
-        foreach (var obj in objectsToEscape)
-        {
-            if (obj == null) continue;
-            var objEscaped = esc(obj);
-            if (sb.Length > 0) sb.Append(delimiter);
-            sb.Append(objEscaped);
-        }
-
-        return sb.ToString();
-    }
 
     protected string EscapeColumns(Dictionary<int, string> columns, bool skipEscaping = false) => EscapeColumns(null, columns, skipEscaping);
     protected virtual string EscapeColumns(string? tableAlias, Dictionary<int, string> columns, bool skipEscaping = false)
@@ -314,12 +328,9 @@ public abstract class Sql : IDisposable
         else if (!tableAlias.EndsWith(".")) tableAlias += ".";
 
         return columns.OrderBy(kvp => kvp.Key)
-            .Select(o => tableAlias + (skipEscaping ? o.Value : this.Escape(o.Value)))
+            .Select(o => tableAlias + (skipEscaping ? o.Value : DialectSettings.Escape(o.Value)))
             .ToStringDelimited(",");
     }
-
-    public virtual string Unescape(string objectToUnescape) => DialectSettings.Unescape(objectToUnescape);
-
 
     #region CreateCommand
 
@@ -342,6 +353,7 @@ public abstract class Sql : IDisposable
             p.ParameterName = parameter.Name;
             p.DbType = parameter.Type;
             if (parameter is DatabaseParameterValue parameterValue) p.Value = parameterValue.Value;
+            command.Parameters.Add(p);
             ps.Add(p);
         }
         return (command, ps.ToArray());
@@ -395,14 +407,14 @@ public abstract class Sql : IDisposable
         for (var i = 0; i < columns.Count; i++)
         {
             var (columnName, columnType) = columns[i];
-            columnName = this.Escape(columnName);
+            columnName = DialectSettings.Escape(columnName);
             var p = new DatabaseParameter(DialectSettings.GenerateParameterName(i), columnType ?? DbType.String);
             databaseParameters.Add(p);
             parameterNames.Add(p.Name);
             columnNames.Add(columnName);
         }
 
-        var sql = $"INSERT INTO {Escape(table)} ({columnNames}) VALUES ({parameterNames})";
+        var sql = $"INSERT INTO {DialectSettings.Escape(table)} ({columnNames}) VALUES ({parameterNames})";
         //sql += ";"; // breaks Oracle
 
         var cp = CreateCommand(sql, databaseParameters);
@@ -425,11 +437,16 @@ public abstract class Sql : IDisposable
         return resultCount;
     }
 
-
     #endregion Insert
 
+    #region DatabaseParameter
 
+    private volatile int parameterCounter;
 
+    public virtual DatabaseParameter NextParameter(DbType type) => new(DialectSettings.GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type);
+    public virtual DatabaseParameterValue NextParameter(object? value, DbType type) => new(DialectSettings.GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type, value);
+
+    #endregion DatabaseParameter
 
 
 }

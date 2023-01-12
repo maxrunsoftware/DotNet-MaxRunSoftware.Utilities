@@ -57,6 +57,14 @@ public static class DatabaseAppTypeExtensions
         [DatabaseAppType.PostgreSql] = PostgreSql.CreateConnection,
     }.ToImmutableDictionary();
 
+    public static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, Sql>>
+    {
+        [DatabaseAppType.MicrosoftSql] = connection => new MicrosoftSql(connection),
+        [DatabaseAppType.OracleSql] = connection => new OracleSql(connection),
+        [DatabaseAppType.MySql] = connection => new MySql(connection),
+        [DatabaseAppType.PostgreSql] = connection => new PostgreSql(connection),
+    }.ToImmutableDictionary();
+
     public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
         ConnectionFactories[connectionType](connectionString);
 
@@ -66,4 +74,11 @@ public static class DatabaseAppTypeExtensions
         connection.Open();
         return connection;
     }
+
+    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString) =>
+        SqlFactories[connectionType](CreateConnection(connectionType, connectionString));
+
+    public static Sql OpenSql(this DatabaseAppType connectionType, string connectionString)  =>
+        SqlFactories[connectionType](OpenConnection(connectionType, connectionString));
+
 }

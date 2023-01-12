@@ -20,8 +20,8 @@ public class DatabaseDialectSettings : ICloneable
     public string DefaultDataTypeInteger { get; set; } = "INT";
     public string DefaultDataTypeDateTime { get; set; } = "DATETIME";
 
-    public char? EscapeLeft { get; set; }
-    public char? EscapeRight { get; set; }
+    public char? DialectEscapeLeft { get; set; }
+    public char? DialectEscapeRight { get; set; }
 
     public ISet<DatabaseSchemaDatabase> ExcludedDatabases { get; } = new HashSet<DatabaseSchemaDatabase>();
     public DatabaseDialectSettings AddExcludedDatabase(params string[] values) => Add(ExcludedDatabases, values.Select(o => new DatabaseSchemaDatabase(o)));
@@ -74,10 +74,10 @@ public class DatabaseDialectSettings : ICloneable
     {
         if (!NeedsEscaping(objectToEscape)) return objectToEscape;
 
-        var el = EscapeLeft;
+        var el = DialectEscapeLeft;
         if (el != null && !objectToEscape.StartsWith(el.Value)) objectToEscape = el.Value + objectToEscape;
 
-        var er = EscapeRight;
+        var er = DialectEscapeRight;
         if (er != null && !objectToEscape.EndsWith(er.Value)) objectToEscape += er.Value;
 
         return objectToEscape;
@@ -85,7 +85,7 @@ public class DatabaseDialectSettings : ICloneable
 
     public virtual string Unescape(string objectToUnescape)
     {
-        var el = EscapeLeft;
+        var el = DialectEscapeLeft;
         if (el != null)
         {
             while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.StartsWith(el.Value))
@@ -94,7 +94,7 @@ public class DatabaseDialectSettings : ICloneable
             }
         }
 
-        var er = EscapeRight;
+        var er = DialectEscapeRight;
         if (er != null)
         {
             while (!string.IsNullOrEmpty(objectToUnescape) && objectToUnescape.EndsWith(er.Value))
@@ -106,26 +106,49 @@ public class DatabaseDialectSettings : ICloneable
         return objectToUnescape;
     }
 
+    public virtual string Escape(DatabaseSchemaDatabase database) => Escape(database.DatabaseName);
+    public virtual string Escape(DatabaseSchemaSchema schema) => Escape(schema.Database.DatabaseName, schema.SchemaName);
+    public virtual string Escape(DatabaseSchemaTable table) => Escape(table.Schema.Database.DatabaseName, table.Schema.SchemaName, table.TableName);
+
+    public virtual string Escape(params string?[] objectsToEscape) => Escape((IReadOnlyList<string?>)objectsToEscape);
+
+    public virtual string Escape(IReadOnlyList<string?> objectsToEscape)
+    {
+        var sb = new StringBuilder();
+        foreach (var obj in objectsToEscape)
+        {
+            if (obj == null) continue;
+            var objUnescaped = Unescape(obj);
+            if (objUnescaped.TrimOrNull() == null) continue;
+            var objEscaped = Escape(objUnescaped);
+            if (sb.Length > 0) sb.Append('.');
+            sb.Append(objEscaped);
+        }
+        return sb.ToString();
+    }
+
     #endregion Escape
 
     #region IsExcluded
 
+    public virtual bool IsExcluded(DatabaseSchemaObject obj) => obj switch
+    {
+        DatabaseSchemaTableColumn tableColumn => IsExcluded(tableColumn),
+        DatabaseSchemaTable table => IsExcluded(table),
+        DatabaseSchemaSchema schema => IsExcluded(schema),
+        DatabaseSchemaDatabase database => IsExcluded(database),
+        _ => throw new NotImplementedException()
+    };
+
     public virtual bool IsExcluded(DatabaseSchemaDatabase database) => ExcludedDatabases.Contains(database);
-    public virtual bool IsExcluded(DatabaseSchemaSchema schema) => IsExcluded(schema.Database) || ExcludedSchemas.Contains(schema) || ExcludedSchemasGlobal.Contains(schema.Name);
-    public virtual bool IsExcluded(DatabaseSchemaTable table) => IsExcluded(table.Schema) || ExcludedTables.Contains(table) || ExcludedTablesGlobal.Contains(table.Name);
+    public virtual bool IsExcluded(DatabaseSchemaSchema schema) => IsExcluded(schema.Database) || ExcludedSchemas.Contains(schema) || (schema.SchemaName != null && ExcludedSchemasGlobal.Contains(schema.SchemaName));
+    public virtual bool IsExcluded(DatabaseSchemaTable table) => IsExcluded(table.Schema) || ExcludedTables.Contains(table) || ExcludedTablesGlobal.Contains(table.TableName);
     public virtual bool IsExcluded(DatabaseSchemaTableColumn column) => IsExcluded(column.Table);
 
     #endregion IsExcluded
-}
 
-public static class DatabaseDialectSettingsExtensions
-{
-    public static bool IsExcluded(this DatabaseDialectSettings settings, DatabaseSchemaObject obj) => obj switch
-    {
-        DatabaseSchemaTableColumn tableColumn => settings.IsExcluded(tableColumn),
-        DatabaseSchemaTable table => settings.IsExcluded(table),
-        DatabaseSchemaSchema schema => settings.IsExcluded(schema),
-        DatabaseSchemaDatabase database => settings.IsExcluded(database),
-        _ => throw new NotImplementedException()
-    };
+
+
+
+
 }

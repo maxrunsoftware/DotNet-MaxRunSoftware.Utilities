@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Diagnostics.CodeAnalysis;
 using Oracle.ManagedDataAccess.Client;
 
 namespace MaxRunSoftware.Utilities.Database;
@@ -26,13 +25,19 @@ public class OracleSql : Sql
     public OracleSql(string connectionString) : this(CreateConnection(connectionString)) { }
     public OracleSql(IDbConnection connection) : base(connection) { }
 
-    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new DatabaseDialectSettings
+    private class OracleSqlDialectSettings : DatabaseDialectSettings
+    {
+        public override string Escape(string objectToEscape) => base.Escape(objectToEscape).ToUpperInvariant();
+        public override string GenerateParameterName(int parameterIndex) => ":p" + parameterIndex; // https://stackoverflow.com/questions/22694334/ora-00936-missing-expression
+    }
+
+    public static DatabaseDialectSettings DialectSettingsDefaultInstance { get; set; } = new OracleSqlDialectSettings
         {
             DefaultDataTypeString = DatabaseTypes.Get(OracleSqlType.NClob).TypeName,
             DefaultDataTypeInteger = DatabaseTypes.Get(OracleSqlType.Int32).TypeName,
             DefaultDataTypeDateTime = DatabaseTypes.Get(OracleSqlType.DateTime).TypeName,
-            EscapeLeft = '"',
-            EscapeRight = '"'
+            DialectEscapeLeft = '"',
+            DialectEscapeRight = '"'
         }
         // https://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements008.htm
         .AddIdentifierCharactersValid((Constant.Chars_Alphanumeric_String + "$_#").ToCharArray())
@@ -43,54 +48,8 @@ public class OracleSql : Sql
     protected override Type DatabaseTypesEnum => typeof(OracleSqlType);
     public override DatabaseDialectSettings DialectSettingsDefault => DialectSettingsDefaultInstance;
 
-    public bool DropTableCascadeConstraints { get; set; }
-    public bool DropTablePurge { get; set; }
-
-
-    private Tuple<string?, List<SqlError>> GetCurrentName(string[] sqls, string objectType)
+    private string? GetCurrentDatabaseName(List<SqlError> errors)
     {
-        var errors = new List<SqlError>();
-
-
-        foreach (var sql in sqls)
-        {
-            var tbl = this.QueryStrings(sql, out var exception);
-            if (exception != null)
-            {
-                errors.Add(new SqlError(sql, exception));
-                continue;
-            }
-
-            var s = tbl.Select(row => row[0]).TrimOrNull().WhereNotNull().FirstOrDefault();
-            if (s == null) continue;
-            currentDatabaseCached = new DatabaseSchemaDatabase(s);
-            return new Tuple<string?, List<SqlError>>(s, new List<SqlError>());
-        }
-
-        if (errors.IsEmpty())
-        {
-            try
-            {
-                throw new NullReferenceException($"Could not determine current {objectType} name");
-            }
-            catch (Exception e)
-            {
-                errors.Add(new SqlError(sqls.ToStringDelimited("; ") + ";", e));
-            }
-        }
-
-        return new Tuple<string?, List<SqlError>>(null, errors);
-    }
-
-    private DatabaseSchemaDatabase? currentDatabaseCached;
-    private bool GetCurrentDatabase(List<SqlError> errors, [MaybeNullWhen(false)] out DatabaseSchemaDatabase currentDatabase)
-    {
-        if (currentDatabaseCached != null)
-        {
-            currentDatabase = currentDatabaseCached;
-            return true;
-        }
-
         // ReSharper disable StringLiteralTypo
         string[] sqls =
         {
@@ -98,141 +57,182 @@ public class OracleSql : Sql
             "select global_name from global_name",
             "select ora_database_name from dual",
             "select pdb_name FROM DBA_PDBS",
-            "select name from v$database"
+            "select name from v$database",
         };
         // ReSharper restore StringLiteralTypo
 
-        var result = GetCurrentName(sqls, "database");
-        if (result.Item1 != null)
+        var errors2 = new List<SqlError>();
+        foreach (var sql in sqls)
         {
-            currentDatabaseCached = new DatabaseSchemaDatabase(result.Item1);
-            currentDatabase = currentDatabaseCached;
-            return true;
+            var result = this.QueryStrings(sql, out var exception);
+            if (exception != null)
+            {
+                errors2.Add(new SqlError(sql, exception));
+                continue;
+            }
+
+            foreach (var row in result)
+            {
+                var name = row[0];
+                if (name == null) continue;
+                if (name.TrimOrNull() == null) continue;
+                return name;
+            }
         }
 
-        errors.AddRange(result.Item2);
-        currentDatabase = null;
-        return false;
+        errors.AddRange(errors2);
+
+        return null;
     }
-
-
-    public override DatabaseSchemaDatabase GetCurrentDatabase()
+    protected override string? GetCurrentDatabaseName()
     {
-        if (currentDatabaseCached != null) return currentDatabaseCached;
         var errors = new List<SqlError>();
-        if (GetCurrentDatabase(errors, out var o)) return o;
-        throw CreateExceptionInSqlStatements(errors);
-    }
+        var name = GetCurrentDatabaseName(errors);
+        if (name != null) return name;
 
-    private bool GetCurrentSchema(List<SqlError> errors, [MaybeNullWhen(false)] out DatabaseSchemaSchema currentSchema)
-    {
-        if (!GetCurrentDatabase(errors, out var currentDatabase))
+        if (errors.IsEmpty())
         {
-            currentSchema = null;
-            return false;
+            try
+            {
+                throw CreateExceptionInSqlStatements(errors);
+            }
+            catch (Exception e)
+            {
+                log.LogDebug(e, "Could not determine current database name");
+            }
         }
 
+        return null;
+    }
+    private string? GetCurrentSchemaName(List<SqlError> errors)
+    {
         // ReSharper disable StringLiteralTypo
         string[] sqls =
         {
             "select SYS_CONTEXT('USERENV','CURRENT_SCHEMA') from dual",
             "select user from dual",
-            "select SYS_CONTEXT('USERENV','SESSION_USER') from dual"
+            "select SYS_CONTEXT('USERENV','SESSION_USER') from dual",
         };
         // ReSharper restore StringLiteralTypo
 
-        var result = GetCurrentName(sqls, "schema");
-        if (result.Item1 != null)
+        var errors2 = new List<SqlError>();
+        foreach (var sql in sqls)
         {
-            currentSchema = new DatabaseSchemaSchema(currentDatabase, result.Item1);
-            return true;
+            var result = this.QueryStrings(sql, out var exception);
+            if (exception != null)
+            {
+                errors2.Add(new SqlError(sql, exception));
+                continue;
+            }
+
+            foreach (var row in result)
+            {
+                var name = row[0];
+                if (name == null) continue;
+                if (name.TrimOrNull() == null) continue;
+                return name;
+            }
         }
 
-        errors.AddRange(result.Item2);
-        currentSchema = null;
-        return false;
-    }
+        errors.AddRange(errors2);
 
-    public override DatabaseSchemaSchema GetCurrentSchema()
+        return null;
+    }
+    protected override string? GetCurrentSchemaName()
     {
         var errors = new List<SqlError>();
-        if (GetCurrentSchema(errors, out var o)) return o;
-        throw CreateExceptionInSqlStatements(errors);
-    }
+        var name = GetCurrentSchemaName(errors);
+        if (name != null) return name;
 
+        if (errors.IsEmpty())
+        {
+            try
+            {
+                throw CreateExceptionInSqlStatements(errors);
+            }
+            catch (Exception e)
+            {
+                log.LogDebug(e, "Could not determine current schema name");
+            }
+        }
+
+        return null;
+    }
 
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
-        if (GetCurrentDatabase(errors, out var currentDatabase))
-        {
-            yield return currentDatabase;
-        }
+        var currentDatabaseName = GetCurrentDatabaseName(errors);
+        if (currentDatabaseName != null) yield return new DatabaseSchemaDatabase(currentDatabaseName);
     }
 
     protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         // TODO: whole method is expensive operation
 
-        if (!GetCurrentDatabase(errors, out var currentDatabase)) yield break;
+        var currentDatabaseName = GetCurrentDatabaseName(errors);
+        if (currentDatabaseName == null) yield break;
 
         var sqls = new[]
         {
-            new[] { "SELECT DISTINCT username FROM dba_users", "username" },
-            new[] { "SELECT DISTINCT username FROM all_users", "username" },
-            new[] { "SELECT DISTINCT owner FROM dba_objects", "owner" },
-            new[] { "SELECT DISTINCT owner FROM dba_segments", "owner" },
-            new[] { "SELECT DISTINCT OWNER FROM dba_tables", "OWNER" },
-            new[] { "SELECT DISTINCT OWNER FROM all_tables", "OWNER" }
+            "SELECT DISTINCT username FROM dba_users",
+            "SELECT DISTINCT username FROM all_users",
+            "SELECT DISTINCT owner FROM dba_objects",
+            "SELECT DISTINCT owner FROM dba_segments",
+            "SELECT DISTINCT OWNER FROM dba_tables",
+            "SELECT DISTINCT OWNER FROM all_tables",
         };
 
-        static DatabaseSchemaSchema Parse(DatabaseSchemaDatabase database, string?[] row, string columnName) =>
-            new DatabaseSchemaSchema(
-                database,
-                row[0].CheckNotNullTrimmed(columnName)
-            );
-
-        var objsFound = new HashSet<DatabaseSchemaSchema>();
+        var errors2 = new List<SqlError>();
+        var foundOne = false;
         foreach (var sql in sqls)
         {
-            foreach (var obj in GetSchemaObjects(errors, sql[0], row => Parse(currentDatabase, row, sql[1])))
+            var enumerable = GetSchemaObjects(errors2, sql, row => new DatabaseSchemaSchema(
+                currentDatabaseName,
+                row[0]
+            )).Where(o => o.SchemaName != null);
+            foreach (var obj in enumerable)
             {
-                if (objsFound.Add(obj)) yield return obj;
+                foundOne = true;
+                yield return obj;
             }
         }
+
+        if (!foundOne) errors.AddRange(errors2); // Only throw errors if we didn't find anything
     }
 
     protected override IEnumerable<DatabaseSchemaTable> GetTables(List<SqlError> errors, GetSchemaInfoFilter filter)
     {
         // TODO: whole method is expensive operation
 
-        if (!GetCurrentSchema(errors, out var currentSchema)) yield break;
+        var currentDatabaseName = GetCurrentDatabaseName(errors);
+        if (currentDatabaseName == null) yield break;
+
+        var currentSchemaName = GetCurrentSchemaName();
 
         var sqls = new[]
         {
             "SELECT DISTINCT OWNER,TABLE_NAME FROM dba_tables",
             "SELECT DISTINCT OWNER,TABLE_NAME FROM all_tables",
-            "SELECT DISTINCT NULL AS OWNER,TABLE_NAME FROM user_tables"
+            "SELECT DISTINCT NULL AS OWNER,TABLE_NAME FROM user_tables",
         };
 
-        DatabaseSchemaTable Parse(string?[] row)
-        {
-            var schemaName = row[0].TrimOrNull() ?? currentSchema.Name;
-            var tableName = row[1].CheckNotNullTrimmed("TABLE_NAME");
-            return new DatabaseSchemaTable(
-                new DatabaseSchemaSchema(currentSchema.Database, schemaName),
-                tableName
-            );
-        }
-
-
-        var objsFound = new HashSet<DatabaseSchemaTable>();
+        var errors2 = new List<SqlError>();
+        var foundOne = false;
         foreach (var sql in sqls)
         {
-            foreach (var obj in GetSchemaObjects(errors, sql, Parse))
+            var enumerable = GetSchemaObjects(errors2, sql, row => new DatabaseSchemaTable(
+                currentDatabaseName,
+                row[0] ?? currentSchemaName,
+                row[1].CheckNotNull("TABLE_NAME")
+            ));
+            foreach (var obj in enumerable)
             {
-                if (objsFound.Add(obj)) yield return obj;
+                foundOne = true;
+                yield return obj;
             }
         }
+
+        if (!foundOne) errors.AddRange(errors2); // Only throw errors if we didn't find anything
     }
 
 
@@ -240,7 +240,11 @@ public class OracleSql : Sql
     {
         // TODO: whole method is expensive operation
 
-        if (!GetCurrentSchema(errors, out var currentSchema)) yield break;
+        var currentDatabaseName = GetCurrentDatabaseName(errors);
+        if (currentDatabaseName == null) yield break;
+
+        var currentSchemaName = GetCurrentSchemaName();
+
 
         var colsDict = new Dictionary<int, string> // Just using dict<int> to document index of each column
         {
@@ -259,9 +263,9 @@ public class OracleSql : Sql
 
         var sqls = new[]
         {
-            "SELECT " + colsDict.OrderBy(kvp => kvp.Key).ToStringDelimited(",") + " FROM dba_tab_columns",
-            "SELECT " + colsDict.OrderBy(kvp => kvp.Key).ToStringDelimited(",") + " FROM all_tab_columns",
-            "SELECT NULL AS OWNER," + colsDict.OrderBy(kvp => kvp.Key).Skip(1).ToStringDelimited(",") + " FROM user_tab_columns"
+            "SELECT " + colsDict.OrderBy(kvp => kvp.Key).Select(o => o.Value).ToStringDelimited(",") + " FROM dba_tab_columns",
+            "SELECT " + colsDict.OrderBy(kvp => kvp.Key).Select(o => o.Value).ToStringDelimited(",") + " FROM all_tab_columns",
+            "SELECT NULL AS OWNER," + colsDict.OrderBy(kvp => kvp.Key).Skip(1).Select(o => o.Value).ToStringDelimited(",") + " FROM user_tab_columns",
         };
 
         DatabaseSchemaTableColumn Parse(string?[] row)
@@ -271,12 +275,13 @@ public class OracleSql : Sql
             var DATA_LENGTH = row[4].TrimOrNull().ToIntNullable() ?? 0;
             // ReSharper restore InconsistentNaming
 
-            return new DatabaseSchemaTableColumn(
-                new DatabaseSchemaTable(
-                    currentSchema.Database.Name,
-                    row[0].TrimOrNull() ?? currentSchema.Name,
-                    row[1].CheckNotNullTrimmed(colsDict[1])
-                ),
+            var table = new DatabaseSchemaTable(
+                currentDatabaseName,
+                (row[0].TrimOrNull() != null) ? row[0] : currentSchemaName,
+                row[1].CheckNotNull(colsDict[1])
+            );
+
+            var col = new DatabaseSchemaColumn(
                 row[2].CheckNotNullTrimmed(colsDict[2]),
                 row[3].CheckNotNullTrimmed(colsDict[3]),
                 GetDbType(row[3].CheckNotNullTrimmed(colsDict[3])) ?? DbType.String,
@@ -287,39 +292,50 @@ public class OracleSql : Sql
                 row[6].ToIntNullable(),
                 StringComparer.OrdinalIgnoreCase.Equals(row[9].TrimOrNull(), "null") ? null : row[9]
             );
+
+            return new DatabaseSchemaTableColumn(table, col);
         }
 
-
-        var objsFound = new HashSet<DatabaseSchemaTableColumn>();
+        var errors2 = new List<SqlError>();
+        var foundOne = false;
         foreach (var sql in sqls)
         {
-            foreach (var obj in GetSchemaObjects(errors, sql, Parse))
+            var enumerable = GetSchemaObjects(errors2, sql, Parse);
+            foreach (var obj in enumerable)
             {
-                if (objsFound.Add(obj)) yield return obj;
+                foundOne = true;
+                yield return obj;
             }
         }
+
+        if (!foundOne) errors.AddRange(errors2); // Only throw errors if we didn't find anything
     }
 
-    public override bool DropTable(DatabaseSchemaTable table)
+    public override bool GetTableExists(DatabaseSchemaTable table)
     {
-        if (!GetTableExists(table)) return false;
+        var ps = this.NextParameter(table);
+        var values = new List<DatabaseParameterValue> { ps.Table };
+        var sql = $"SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME={ps.Table.Name}";
 
-        var dst = Escape(table);
-        var sql = new StringBuilder();
-        sql.Append($" DROP TABLE {dst}");
-        if (DropTableCascadeConstraints) sql.Append(" CASCADE CONSTRAINTS");
-        if (DropTablePurge) sql.Append(" PURGE");
-
-        using (var cmd = CreateCommand())
+        if (table.Schema.SchemaName != null)
         {
-            cmd.CommandType = CommandType.Text;
-            cmd.CommandText = sql.ToString();
-            cmd.ExecuteNonQuery();
+            values.Add(ps.Schema);
+            sql = $"SELECT COUNT(*) FROM ALL_TABLES WHERE TABLE_NAME={ps.Table.Name} AND OWNER={ps.Schema.Name}";
         }
 
-        return true;
+        return this.QueryScalarInt(sql, values.ToArray()).CheckNotNull("COUNT") > 0;
     }
 
-    public override string Escape(DatabaseSchemaSchema schema) => this.Escape(schema.Database.Name);
+    public override bool DropTable(DatabaseSchemaTable table) => DropTable(table, false, false);
 
+    public virtual bool DropTable(DatabaseSchemaTable table, bool cascadeConstraints, bool purge)
+    {
+        if (!GetTableExists(table)) return false;
+        var sql = new StringBuilder();
+        sql.Append($"DROP TABLE {DialectSettings.Escape(table)}");
+        if (cascadeConstraints) sql.Append(" CASCADE CONSTRAINTS");
+        if (purge) sql.Append(" PURGE");
+        NonQuery(sql.ToString());
+        return true;
+    }
 }

@@ -31,16 +31,14 @@ public class MicrosoftSqlFixture : DatabaseFixture
 public class MicrosoftSqlFixtureCollection : DatabaseFixtureCollection<MicrosoftSqlFixture> { }
 
 [Collection(nameof(MicrosoftSql))]
-public class MicrosoftSqlTests : DatabaseTests
+public class MicrosoftSqlTests : DatabaseTests<MicrosoftSql>
 {
-    public MicrosoftSqlTests(ITestOutputHelper testOutputHelper) :
-        base(testOutputHelper, new MicrosoftSql(Constants.MicrosoftSql_ConnectionString_Master))
-    { }
+    public MicrosoftSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MicrosoftSql, Constants.MicrosoftSql_ConnectionString_Master) { }
 
     [Fact]
     public void GetServerProperties()
     {
-        var props = ((MicrosoftSql)sql).GetServerProperties();
+        var props = sql.GetServerProperties();
         Assert.NotNull(props);
         WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
     }

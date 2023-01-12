@@ -18,7 +18,7 @@ internal static class Utils
 {
     public static T CopyShallow<T>(T obj) where T : class, new()
     {
-        var copy = new T();
+        var copy = Activator.CreateInstance(obj.GetType()).CheckNotNull();
         foreach (var property in obj.GetType()
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(o => o.CanRead)
@@ -27,7 +27,7 @@ internal static class Utils
             CopyShallow(property, obj, copy);
         }
 
-        return copy;
+        return (T)copy;
     }
 
     private static void CopyShallow(PropertyInfo property, object source, object target)

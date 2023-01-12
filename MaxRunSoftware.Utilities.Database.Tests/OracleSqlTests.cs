@@ -21,19 +21,19 @@ namespace MaxRunSoftware.Utilities.Database.Tests;
 /// <summary>
 /// https://xunit.net/docs/shared-context
 /// </summary>
-public class MySqlFixture : DatabaseFixture
+public class OracleSqlFixture : DatabaseFixture
 {
     protected override void Setup() { }
     protected override void Teardown() { }
 }
 
-[CollectionDefinition(nameof(MySql))]
-public class MySqlFixtureCollection : DatabaseFixtureCollection<MySqlFixture> { }
+[CollectionDefinition(nameof(OracleSql))]
+public class OracleSqlFixtureCollection : DatabaseFixtureCollection<OracleSqlFixture> { }
 
-[Collection(nameof(MySql))]
-public class MySqlTests : DatabaseTests<MySql>
+[Collection(nameof(Oracle))]
+public class OracleSqlTests : DatabaseTests<OracleSql>
 {
-    public MySqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test) { }
+    public OracleSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.OracleSql, Constants.OracleSql_ConnectionString_Test) { }
 
     [Fact]
     public void GetServerProperties()

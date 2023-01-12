@@ -19,13 +19,16 @@ namespace MaxRunSoftware.Utilities.Database.Tests;
 
 public static class Constants
 {
+    private static readonly string DEFAULT_SERVER = "172.16.46.16";
+    private static readonly string DEFAULT_PASSWORD = "testPass1!";
+
     public static readonly string MicrosoftSql_TestDatabase = "MRSTEST";
-    public static readonly string MicrosoftSql_ConnectionString_Master = "Server=172.16.46.16;Database=master;User Id=sa;Password=testPass1!;";
-    public static readonly string MicrosoftSql_ConnectionString_Test = $"Server=172.16.46.16;Database={MicrosoftSql_TestDatabase};User Id=sa;Password=testPass1!;";
+    public static readonly string MicrosoftSql_ConnectionString_Master = $"Server={DEFAULT_SERVER};Database=master;User Id=sa;Password={DEFAULT_PASSWORD};";
+    public static readonly string MicrosoftSql_ConnectionString_Test = $"Server={DEFAULT_SERVER};Database={MicrosoftSql_TestDatabase};User Id=sa;Password={DEFAULT_PASSWORD};";
 
-    //public static readonly string MySql_ConnectionString_Test = $"Server=172.16.46.16;Database=mysql;Uid=root;Pwd=testPass1!;";
-    public static readonly string MySql_ConnectionString_Test = "Server=172.16.46.16;Port=3306;User Id=root;Password=testPass1!;";
-    //public static readonly string MySql_ConnectionString_Test = "Server=172.16.46.16;Port=3306;Database=testdb;Uid=root;Pwd=testPass1!;";
-    //Server=myServerAddress;Port=1234;Database=myDataBase;Uid=myUsername;Pwd=myPassword;
+    public static readonly string MySql_ConnectionString_Test = $"Server={DEFAULT_SERVER};Port=3306;User Id=root;Password={DEFAULT_PASSWORD};";
 
+    public static readonly string PostgreSql_ConnectionString_Test = $"Host={DEFAULT_SERVER};Username=postgres;Password={DEFAULT_PASSWORD};";
+
+    public static readonly string OracleSql_ConnectionString_Test = $"Data Source={DEFAULT_SERVER}:1521/XE;User Id=SYSTEM;Password={DEFAULT_PASSWORD};";
 }
