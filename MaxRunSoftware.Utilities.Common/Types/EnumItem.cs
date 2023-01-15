@@ -24,6 +24,7 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
     public int Index { get; }
     private readonly int getHashCode;
     private readonly FieldInfo info;
+
     public IEnumerable<Attribute> Attributes => info.GetCustomAttributes();
 
     private EnumItem(TypeSlim typeSlim, string name, object item, int index, FieldInfo info)
@@ -33,15 +34,12 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
         Item = item;
         Index = index;
         this.info = info;
-        getHashCode = GetHashCodeCreate();
+        getHashCode = Util.Hash(TypeSlim.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
     }
-
-
-
 
     #region Override
 
-    private int GetHashCodeCreate() => Util.Hash(TypeSlim.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
+    public override string ToString() => Name;
 
     public override int GetHashCode() => getHashCode;
 
@@ -75,8 +73,6 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
         return c;
     }
 
-    public override string ToString() => Name;
-
     #endregion Override
 
     #region Static
@@ -102,20 +98,20 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
             ;
     }
 
-    public static ImmutableArray<EnumItem> Get<T>() where T : struct, Enum => Get(typeof(T));
+    public static ImmutableArray<EnumItem> Get<T>() where T : struct, Enum => typeof(T).GetEnumItems();
 
-    public static EnumItem Get<T>(T enumItem) where T : struct, Enum
+    public static EnumItem Get<T>(T enumItemObj) where T : struct, Enum
     {
-        var name = Enum.GetName(enumItem);
+        var name = Enum.GetName(enumItemObj);
         return Get<T>().First(item => string.Equals(item.Name, name, StringComparison.Ordinal));
     }
 
-    public static EnumItem Get(object enumItem)
+    public static EnumItem Get(object enumItemObj)
     {
-        var enumType = enumItem.GetType();
+        var enumType = enumItemObj.GetType();
         enumType.CheckIsEnum();
-        var name = Enum.GetName(enumType, enumItem);
-        return Get(enumType).First(item => string.Equals(item.Name, name, StringComparison.Ordinal));
+        var name = Enum.GetName(enumType, enumItemObj);
+        return enumType.GetEnumItems().First(item => string.Equals(item.Name, name, StringComparison.Ordinal));
     }
 
     public static EnumItem Get(Type enumType, string enumItemName)
@@ -128,9 +124,8 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
         var item = list.FirstOrDefault(listItem => string.Equals(listItem.Name, enumItemName, StringComparison.Ordinal));
         if (item != null) return item;
         throw new ArgumentException($"{enumType.FullNameFormatted()} contains multiple possible '{enumItemName}' values but none matching exact case: " + list.Select(o => o.Name).ToStringDelimited(", "), nameof(enumItemName));
-    }
 
-    public static EnumItem Get<T>(string enumItemName) where T : struct, Enum => Get(typeof(T), enumItemName);
+    }
 
     #endregion Static
 }
@@ -141,5 +136,12 @@ public static class EnumItemExtensions
 
     public static T? GetAttribute<T>(this EnumItem item) where T : Attribute => item.GetAttributes<T>().FirstOrDefault();
 
+    public static ImmutableArray<EnumItem> GetEnumItems(this Type enumType) => EnumItem.Get(enumType);
+
+    public static EnumItem GetEnumItem(this Type enumType, string enumItemName) => EnumItem.Get(enumType, enumItemName);
+
     public static EnumItem ToEnumItem<T>(this T enumItem) where T : struct, Enum => EnumItem.Get(enumItem);
+
+    public static EnumItem ToEnumItem<T>(this string enumItemName) where T : struct, Enum => GetEnumItem(typeof(T), enumItemName);
+
 }

@@ -190,7 +190,7 @@ public static class ExtensionsReflection
     }
 
 
-    public static Func<object, object> CreatePropertyGetter(this PropertyInfo info)
+    public static Func<object?, object?> CreatePropertyGetter(this PropertyInfo info)
     {
         var exceptionMsg = $"Property {GetTypeNamePrefix(info)}{info.Name} is not gettable";
         if (!info.CanRead) throw new ArgumentException(exceptionMsg, nameof(info));
@@ -206,11 +206,11 @@ public static class ExtensionsReflection
             : Expression.Call(Expression.Convert(instance, info.DeclaringType ?? throw new NullReferenceException()), mi);
 
         var unaryExpression = Expression.TypeAs(callExpr, typeof(object));
-        var action = Expression.Lambda<Func<object, object>>(unaryExpression, instance).Compile();
+        var action = Expression.Lambda<Func<object?, object?>>(unaryExpression, instance).Compile();
         return action;
     }
 
-    public static Action<object, object> CreatePropertySetter(this PropertyInfo info)
+    public static Action<object?, object?> CreatePropertySetter(this PropertyInfo info)
     {
         var exceptionMsg = $"Property {GetTypeNamePrefix(info)}{info.Name} is not settable";
         if (!info.CanWrite) throw new ArgumentException(exceptionMsg, nameof(info));
@@ -226,7 +226,7 @@ public static class ExtensionsReflection
         var callExpr = methodInfo.IsStatic // Is this a static property
             ? Expression.Call(null, methodInfo, valueConverted)
             : Expression.Call(Expression.Convert(instance, info.DeclaringType ?? throw new NullReferenceException()), methodInfo, valueConverted);
-        var action = Expression.Lambda<Action<object, object>>(callExpr, instance, value).Compile();
+        var action = Expression.Lambda<Action<object?, object?>>(callExpr, instance, value).Compile();
 
         return action;
     }

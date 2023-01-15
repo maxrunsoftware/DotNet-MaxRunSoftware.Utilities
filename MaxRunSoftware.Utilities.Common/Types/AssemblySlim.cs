@@ -25,8 +25,29 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
 
     public AssemblySlim(Assembly assembly)
     {
+        static string NameFullBuild(Assembly assembly)
+        {
+            var fn = assembly.FullName.TrimOrNull();
+            if (fn != null) return fn;
+
+            var assemblyName = assembly.GetName();
+            fn = assemblyName.FullName.TrimOrNull();
+            if (fn != null) return fn;
+
+            fn = assemblyName.Name.TrimOrNull();
+            if (fn != null) return fn;
+
+            fn = assemblyName.ToString().TrimOrNull();
+            if (fn != null) return fn;
+
+            fn = assembly.ToString().TrimOrNull();
+            if (fn != null) return fn;
+
+            throw new Exception($"Could not determine assembly name for assembly {assembly}");
+        }
+
         Assembly = assembly.CheckNotNull(nameof(assembly));
-        NameFull = NameFull_Build(assembly);
+        NameFull = NameFullBuild(assembly);
         getHashCode = StringComparer.Ordinal.GetHashCode(NameFull);
     }
 
@@ -99,27 +120,6 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
     #endregion Override
 
     #region Static
-
-    private static string NameFull_Build(Assembly assembly)
-    {
-        var fn = assembly.FullName.TrimOrNull();
-        if (fn != null) return fn;
-
-        var assemblyName = assembly.GetName();
-        fn = assemblyName.FullName.TrimOrNull();
-        if (fn != null) return fn;
-
-        fn = assemblyName.Name.TrimOrNull();
-        if (fn != null) return fn;
-
-        fn = assemblyName.ToString().TrimOrNull();
-        if (fn != null) return fn;
-
-        fn = assembly.ToString().TrimOrNull();
-        if (fn != null) return fn;
-
-        throw new Exception($"Could not determine assembly name for assembly {assembly}");
-    }
 
     public HashSet<AssemblySlim> GetReferencedAssemblies()
     {

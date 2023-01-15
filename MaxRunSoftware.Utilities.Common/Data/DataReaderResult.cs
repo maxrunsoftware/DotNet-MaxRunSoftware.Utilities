@@ -233,7 +233,6 @@ public static class DataReaderResultRowExtensions
     private static T? GetConvert<T>(object? o)
     {
         if (o == null) return default;
-
         var returnType = typeof(T);
 
         if (returnType == typeof(object)) return (T)o;
@@ -257,12 +256,17 @@ public static class DataReaderResultRowExtensions
 
     private static Dictionary<Type, Func<string, object>> CreateConverters()
     {
-        var d = new Dictionary<Type, Func<string, object>>();
+        var d = new Dictionary<Type, Func<string, object?>>();
 
-        d.AddRange(o => o.ToBool(), typeof(bool), typeof(bool?));
+        d.Add(typeof(bool), o => o.ToBool());
+        d.Add(typeof(bool?), o => o.ToBoolNullable());
 
-        d.AddRange(o => o.ToByte(), typeof(byte), typeof(byte?));
+        d.Add(typeof(byte), o => o.ToByte());
+        d.Add(typeof(byte?), o => o.ToByteNullable());
+
         d.AddRange(o => o.ToSByte(), typeof(sbyte), typeof(sbyte?));
+        d.Add(typeof(byte), o => o.ToByte());
+        d.Add(typeof(byte?), o => o.ToByteNullable());
 
         d.AddRange(o => o.ToShort(), typeof(short), typeof(short?));
         d.AddRange(o => o.ToUShort(), typeof(ushort), typeof(ushort?));

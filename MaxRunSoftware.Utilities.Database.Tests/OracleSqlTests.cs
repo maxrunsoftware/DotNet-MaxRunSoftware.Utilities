@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using MaxRunSoftware.Utilities.Common;
+
 namespace MaxRunSoftware.Utilities.Database.Tests;
 
 // ReSharper disable StringLiteralTypo
@@ -36,8 +38,8 @@ public class OracleSqlTests : DatabaseTests<OracleSql>
     [Fact]
     public void GetServerProperties()
     {
-        //var props = ((MicrosoftSql)sql).GetServerProperties();
-        //Assert.NotNull(props);
-        //WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
+        var props = sql.GetServerProperties();
+        Assert.NotNull(props);
+        WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
     }
 }

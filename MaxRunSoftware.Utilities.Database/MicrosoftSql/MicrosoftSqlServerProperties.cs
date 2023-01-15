@@ -58,6 +58,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? BuildClrVersion { get; set; }
 
     /// <summary>
@@ -65,18 +66,21 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, or an error.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? Collation { get; set; }
 
     /// <summary>
     /// ID of the SQL Server collation.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int CollationID { get; set; }
 
     /// <summary>
     /// Windows comparison style of the collation.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int ComparisonStyle { get; set; }
 
     /// <summary>
@@ -90,6 +94,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ComputerNamePhysicalNetBIOS { get; set; }
 
     /// <summary>
@@ -111,6 +116,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />'Azure SQL Edge' indicates the paid edition for Azure SQL Edge
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string Edition { get; set; } = null!;
 
     /// <summary>
@@ -130,6 +136,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />1994083197 = Azure SQL Edge
     /// <br />Base data type: bigint
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.BigInt)]
     public long EditionID { get; set; }
 
     /// <summary>
@@ -145,12 +152,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />11 = Azure Synapse serverless SQL pool
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int EngineEdition { get; set; }
 
     /// <summary>
     /// The configured level of FILESTREAM access. For more information, see filestream access level.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int FilestreamConfiguredLevel { get; set; }
 
     /// <summary>
@@ -159,6 +168,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// access level.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int FilestreamEffectiveLevel { get; set; }
 
     /// <summary>
@@ -166,6 +176,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? FilestreamShareName { get; set; }
 
     /// <summary>
@@ -177,12 +188,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int? HadrManagerStatus { get; set; }
 
     /// <summary>
     /// Applies to: SQL Server 2019 (15.x) and later.
     /// <br />Name of the default path to the instance backup files.
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? InstanceDefaultBackupPath { get; set; }
 
     /// <summary>
@@ -190,6 +203,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Name of the default path to the instance data files.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? InstanceDefaultDataPath { get; set; }
 
     /// <summary>
@@ -197,6 +211,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Name of the default path to the instance log files.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? InstanceDefaultLogPath { get; set; }
 
     /// <summary>
@@ -205,12 +220,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? InstanceName { get; set; }
 
     /// <summary>
     /// Returns 1 if the Advanced Analytics feature was installed during setup; 0 if Advanced Analytics wasn't installed.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool IsAdvancedAnalyticsInstalled { get; set; }
 
     /// <summary>
@@ -218,6 +235,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Returns 1 if the instance is SQL Server Big Data Cluster; 0 if not.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsBigDataCluster { get; set; }
 
     /// <summary>
@@ -227,6 +245,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsClustered { get; set; }
 
     /// <summary>
@@ -236,6 +255,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = Azure AD-only authentication is disabled.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsExternalAuthenticationOnly { get; set; }
 
     /// <summary>
@@ -245,6 +265,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = External governance is disabled.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsExternalGovernanceEnabled { get; set; }
 
     /// <summary>
@@ -254,6 +275,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsFullTextInstalled { get; set; }
 
     /// <summary>
@@ -269,6 +291,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Note: The IsHadrEnabled property pertains only to Always On availability groups. Other high availability or
     /// disaster recovery features, such as database mirroring or log shipping, are unaffected by this server property.
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsHadrEnabled { get; set; }
 
     /// <summary>
@@ -278,6 +301,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsIntegratedSecurityOnly { get; set; }
 
     /// <summary>
@@ -286,6 +310,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsLocalDB { get; set; }
 
     /// <summary>
@@ -295,6 +320,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />1 = PolyBase is installed.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsPolyBaseInstalled { get; set; }
 
     /// <summary>
@@ -303,6 +329,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = Not suspended
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool IsServerSuspendedForSnapshotBackup { get; set; }
 
     /// <summary>
@@ -312,6 +339,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsSingleUser { get; set; }
 
     /// <summary>
@@ -320,6 +348,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// disk-based tables for metadata. For more information, see tempdb Database.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsTempDbMetadataMemoryOptimized { get; set; }
 
     /// <summary>
@@ -330,18 +359,21 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public bool? IsXTPSupported { get; set; }
 
     /// <summary>
     /// Windows locale identifier (LCID) of the collation.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int LCID { get; set; }
 
     /// <summary>
     /// Unused. License information isn't preserved or maintained by the SQL Server product. Always returns DISABLED.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string LicenseType { get; set; } = null!;
 
     /// <summary>
@@ -351,12 +383,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? MachineName { get; set; }
 
     /// <summary>
     /// Unused. License information isn't preserved or maintained by the SQL Server product. Always returns NULL.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int? NumLicenses { get; set; }
 
     /// <summary>
@@ -364,6 +398,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Returns \ on Windows and / on Linux
     /// <br />Base data type: nvarchar
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 1)]
     public string? PathSeparator { get; set; } = null!;
 
     /// <summary>
@@ -371,6 +406,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int? ProcessID { get; set; }
 
     /// <summary>
@@ -378,6 +414,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />The build number.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductBuild { get; set; }
 
     /// <summary>
@@ -389,6 +426,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductBuildType { get; set; }
 
     /// <summary>
@@ -399,6 +437,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />'CTPn', = Community Technology Preview version
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string ProductLevel { get; set; } = null!;
 
     /// <summary>
@@ -406,6 +445,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />The major version.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductMajorVersion { get; set; }
 
     /// <summary>
@@ -413,6 +453,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />The minor version.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductMinorVersion { get; set; }
 
     /// <summary>
@@ -423,6 +464,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductUpdateLevel { get; set; }
 
     /// <summary>
@@ -430,24 +472,28 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />KB article for that release.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ProductUpdateReference { get; set; }
 
     /// <summary>
     /// Version of the instance of SQL Server, in the form of major.minor.build.revision.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string ProductVersion { get; set; } = null!;
 
     /// <summary>
     /// Returns the date and time that the Resource database was last updated.
     /// <br />Base data type: datetime
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.DateTime)]
     public DateTime ResourceLastUpdateDateTime { get; set; }
 
     /// <summary>
     /// Returns the version Resource database.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string ResourceVersion { get; set; } = null!;
 
     /// <summary>
@@ -455,36 +501,42 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, or an error.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string? ServerName { get; set; }
 
     /// <summary>
     /// The SQL character set ID from the collation ID.
     /// <br />Base data type: tinyint
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.TinyInt)]
     public byte SqlCharSet { get; set; }
 
     /// <summary>
     /// The SQL character set name from the collation.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string SqlCharSetName { get; set; } = null!;
 
     /// <summary>
     /// The SQL sort order ID from the collation
     /// <br />Base data type: tinyint
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.TinyInt)]
     public byte SqlSortOrder { get; set; }
 
     /// <summary>
     /// The SQL sort order name from the collation.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.NVarChar, 128)]
     public string SqlSortOrderName { get; set; } = null!;
 
     /// <summary>
     /// The number of suspended databases on the server.
     /// <br />Base data type: int
     /// </summary>
+    [DatabaseServerProperty(MicrosoftSqlType.Int)]
     public int SuspendedDatabaseCount { get; set; }
 
 

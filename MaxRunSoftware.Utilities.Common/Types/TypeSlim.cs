@@ -17,19 +17,30 @@ namespace MaxRunSoftware.Utilities.Common;
 [PublicAPI]
 public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, IComparable, IEquatable<Type>, IComparable<Type>
 {
+    public string Name { get; }
     public string NameFull { get; }
     public Type Type { get; }
-    public TypeInfo TypeInfo { get; }
+    public TypeInfo Info { get; }
     public AssemblySlim Assembly { get; }
     public int TypeHashCode { get; }
     private readonly int getHashCode;
+    public IEnumerable<Attribute> Attributes => Type.GetCustomAttributes();
 
     public TypeSlim(Type type)
     {
         Type = type.CheckNotNull(nameof(type));
-        TypeInfo = Type.GetTypeInfo();
+        Info = Type.GetTypeInfo();
         Assembly = new AssemblySlim(type.Assembly);
-        NameFull = NameFull_Build(type);
+        NameFull = (string.IsNullOrWhiteSpace(type.FullName) ? null : type.FullNameFormatted().TrimOrNull())
+                   ?? type.NameFormatted().TrimOrNull()
+                   ?? type.Name.TrimOrNull()
+                   ?? type.ToString().TrimOrNull()
+                   ?? type.Name
+            ;
+        Name = type.NameFormatted().TrimOrNull()
+               ?? type.Name.TrimOrNull()
+               ?? type.ToString().TrimOrNull()
+               ?? NameFull;
         TypeHashCode = Type.GetHashCode();
         getHashCode = Util.Hash(TypeHashCode, Assembly.GetHashCode(), StringComparer.Ordinal.GetHashCode(NameFull));
     }
@@ -106,57 +117,33 @@ public sealed class TypeSlim : IEquatable<TypeSlim>, IComparable<TypeSlim>, ICom
 
     #endregion CompareTo
 
-
     #endregion Override
-
-    #region Static
-
-    private static string NameFull_Build(Type type)
-    {
-        var name = type.FullName;
-        if (!string.IsNullOrWhiteSpace(name))
-        {
-            name = type.FullNameFormatted().TrimOrNull();
-            if (name != null) return name;
-        }
-
-        name = type.NameFormatted().TrimOrNull();
-        if (name != null) return name;
-
-        name = type.Name.TrimOrNull();
-        if (name != null) return name;
-
-        name = type.ToString().TrimOrNull();
-        if (name != null) return name;
-
-        return type.Name;
-    }
-
-    #endregion Static
 
     #region Implicit / Explicit
 
     private static bool Equals(TypeSlim? left, TypeSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
-    private static bool Equals(TypeSlim? left, Type? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
 
     // ReSharper disable ArrangeStaticMemberQualifier
 
     public static bool operator ==(TypeSlim? left, TypeSlim? right) => TypeSlim.Equals(left, right);
     public static bool operator !=(TypeSlim? left, TypeSlim? right) => !TypeSlim.Equals(left, right);
 
-    public static bool operator ==(TypeSlim? left, Type? right) => TypeSlim.Equals(left, right);
-    public static bool operator !=(TypeSlim? left, Type? right) => !TypeSlim.Equals(left, right);
-
-    public static bool operator ==(Type? left, TypeSlim? right) => TypeSlim.Equals(right, left);
-    public static bool operator !=(Type? left, TypeSlim? right) => !TypeSlim.Equals(right, left);
-
     // ReSharper restore ArrangeStaticMemberQualifier
 
     public static implicit operator Type(TypeSlim typeSlim) => typeSlim.Type;
     public static implicit operator TypeSlim(Type type) => new(type);
 
-    public static implicit operator TypeInfo(TypeSlim typeSlim) => typeSlim.TypeInfo;
+    public static implicit operator TypeInfo(TypeSlim typeSlim) => typeSlim.Info;
     public static implicit operator TypeSlim(TypeInfo typeInfo) => new(typeInfo);
 
     #endregion Implicit / Explicit
+}
+
+public static class TypeSlimExtensions
+{
+    public static Type ToType(this TypeSlim obj) => obj;
+    public static TypeSlim ToTypeSlim(this Type obj) => obj;
+
+    public static TypeInfo ToTypeInfo(this TypeSlim obj) => obj;
+    public static TypeSlim ToTypeSlim(this TypeInfo obj) => obj;
 }

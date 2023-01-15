@@ -16,10 +16,15 @@ using System.Diagnostics;
 
 namespace MaxRunSoftware.Utilities.Common;
 
+public static class Lzy
+{
+    public static Lzy<T> Create<T>(Func<T> valueFactory) => new(valueFactory);
+}
+
 /// <summary>
-/// LazyWithNoExceptionCaching: Basically the same as Lazy with LazyThreadSafetyMode of ExecutionAndPublication, BUT
-/// exceptions are not cached
-/// https://stackoverflow.com/a/42567351
+/// LazyWithNoExceptionCaching: Basically the same as Lazy with LazyThreadSafetyMode of
+/// ExecutionAndPublication, BUT exceptions are not cached
+/// <br />https://stackoverflow.com/a/42567351
 /// </summary>
 public sealed class Lzy<T>
 {

@@ -14,12 +14,40 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
+[AttributeUsage(AttributeTargets.Property)]
+public class DatabaseServerPropertyAttribute : Attribute
+{
+    public DatabaseServerPropertyAttribute(string? group, string? name, object? databaseType) : this(group, name, databaseType, null) { }
+
+    public DatabaseServerPropertyAttribute(string? name, object? databaseType) : this(null, name, databaseType, null) { }
+
+    public DatabaseServerPropertyAttribute(string? name, object? databaseType, int databaseTypeLength) : this(null, name, databaseType, databaseTypeLength) { }
+
+    public DatabaseServerPropertyAttribute(object? databaseType) : this(null, null, databaseType, null) { }
+
+    public DatabaseServerPropertyAttribute(object? databaseType, int databaseTypeLength) : this(null, null, databaseType, databaseTypeLength) { }
+
+    public DatabaseServerPropertyAttribute(string? group, string? name, object? databaseType, int databaseTypeLength) : this(group, name, databaseType, (int?)databaseTypeLength) { }
+
+    protected DatabaseServerPropertyAttribute(string? group, string? name, object? databaseType, int? databaseTypeLength)
+    {
+        Group = group;
+        Name = name;
+        DatabaseType = databaseType;
+        DatabaseTypeLength = databaseTypeLength;
+    }
+
+    public string? Group { get; }
+    public string? Name { get; }
+    public object? DatabaseType { get; }
+    public int? DatabaseTypeLength { get; }
+
+    public DatabaseServerPropertyAttribute ChangeName(string newName) => new(Group, newName, DatabaseType, DatabaseTypeLength);
+}
+
 public abstract class DatabaseServerProperties
 {
-    protected CachedProperties GetProperties()
-    {
-        return GetProperties(GetType());
-    }
+    protected CachedProperties GetProperties() => GetProperties(GetType());
 
     protected static CachedProperties GetProperties(TypeSlim type)
     {
@@ -27,7 +55,7 @@ public abstract class DatabaseServerProperties
         {
             if (!setPropertyValuesCache.TryGetValue(type, out var props))
             {
-                props = new CachedProperties(type);
+                props = CachedPropertiesCreate(type);
                 setPropertyValuesCache.Add(type, props);
             }
 
@@ -61,30 +89,58 @@ public abstract class DatabaseServerProperties
     // ReSharper disable once InconsistentNaming
     private static readonly Dictionary<TypeSlim, CachedProperties> setPropertyValuesCache = new();
 
-    protected class CachedProperties
+    protected static readonly string GROUP_NULL_DICTIONARY_KEY = "NULL_" + Guid.NewGuid();
+
+    private static CachedProperties CachedPropertiesCreate(TypeSlim type)
     {
-        public TypeSlim Type { get; }
-        public ImmutableDictionary<string, PropertyInfo> Properties { get; }
-        public ImmutableDictionary<string, PropertyInfo> PropertiesCustom { get; }
-
-        public CachedProperties(TypeSlim type)
+        var props = new Dictionary<string, Dictionary<string, CachedProperty>>(StringComparer.OrdinalIgnoreCase);
+        var propsCustom = new Dictionary<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
+        foreach (var property in type.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            Type = type;
-            var props = ImmutableDictionary.CreateBuilder<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
-            var propsCustom = ImmutableDictionary.CreateBuilder<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
-            foreach (var property in type.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            if (!property.CanRead) continue;
+
+            var attr = property.GetCustomAttribute<DatabaseServerPropertyAttribute>();
+            if (attr == null)
             {
-                if (!property.CanRead) continue;
-
-                if (property.CanWrite) props.Add(property.Name, property);
-                else propsCustom.Add(property.Name, property);
+                propsCustom.Add(property.Name, new CachedProperty(property, attr));
             }
-
-            Properties = props.ToImmutable();
-            PropertiesCustom = propsCustom.ToImmutable();
+            else
+            {
+                if (!property.CanWrite) throw new ArgumentException($"Property {type.NameFull}.{property.Name} has no visible SET method");
+                if (attr.Name == null) attr = attr.ChangeName(property.Name);
+                var group = attr.Group ?? GROUP_NULL_DICTIONARY_KEY;
+                if (!props.TryGetValue(group, out var propsSub))
+                {
+                    propsSub = new Dictionary<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
+                    props.Add(group, propsSub);
+                }
+                propsSub.Add(property.Name, new CachedProperty(property, attr));
+            }
         }
+
+        var propsImmutable = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, CachedProperty>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in props)
+        {
+            var propsSubImmutable = ImmutableDictionary.CreateBuilder<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
+            foreach(var kvpSub in kvp.Value) propsSubImmutable.Add(kvpSub.Key, kvpSub.Value);
+            propsImmutable.Add(kvp.Key, propsSubImmutable.ToImmutable());
+        }
+
+        var propsCustomImmutable = ImmutableDictionary.CreateBuilder<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in propsCustom) propsCustomImmutable.Add(kvp.Key, kvp.Value);
+
+        return new CachedProperties(type, propsImmutable.ToImmutable(), propsCustomImmutable.ToImmutable());
     }
-    public static Dictionary<string, string?> SetPropertyValues(object instance, IDictionary<string, string?> values)
+
+    protected record CachedProperties(
+        TypeSlim Type,
+        ImmutableDictionary<string, ImmutableDictionary<string, CachedProperty>> Properties,
+        ImmutableDictionary<string, CachedProperty> PropertiesCustom
+    );
+
+    protected record CachedProperty(PropertyInfo Property, DatabaseServerPropertyAttribute? Attribute);
+
+    public static Dictionary<string, string?> SetPropertyValues(object instance, string? group, Dictionary<string, string?>? values)
     {
         var props = GetProperties(instance.GetType());
 
@@ -104,19 +160,21 @@ public abstract class DatabaseServerProperties
         return propsNotSet;
     }
 
+    public virtual void Load(IReadOnlyDictionary<string, string?> result, string? group)
+    {
 
-    protected virtual string LoadConvertName(string name) => name;
+    }
 
-    public virtual void Load(DataReaderResult result)
+    public virtual void Load(DataReaderResult result, string? group)
     {
         var cols = result.Columns.Names;
         var row = result.Rows.FirstOrDefault();
         if (row == null) throw new Exception("No rows returned");
         var values = new Dictionary<string, string?>();
-        var prop2Col = new Dictionary<string, string>();
+        row.ToDictionary()
         for (var i = 0; i < cols.Count; i++)
         {
-            var name = LoadConvertName(cols[i]).Trim();
+            var name = cols[i];
             if (name.Length == 0) continue;
             prop2Col.Add(name, cols[i]);
             values.Add(name, row.GetString(i));
