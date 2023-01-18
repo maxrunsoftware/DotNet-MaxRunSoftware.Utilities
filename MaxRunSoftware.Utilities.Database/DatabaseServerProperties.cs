@@ -192,7 +192,8 @@ public abstract class DatabaseServerProperties
         }
     }
 
-    public virtual void Load(DataReaderResult result, string? group)
+    // ReSharper disable once UnusedParameter.Global
+    protected virtual Dictionary<string, string?> ToDictionary(DataReaderResult result, string? group)
     {
         var cols = result.Columns.Names;
         var row = result.Rows.FirstOrDefault();
@@ -204,10 +205,11 @@ public abstract class DatabaseServerProperties
             if (name == null) continue;
             values.Add(name, row.GetString(i));
         }
-        Load(values, group);
 
-
+        return values;
     }
+
+    public virtual void Load(DataReaderResult result, string? group) => Load(ToDictionary(result, group), group);
 
     public abstract void Load(Sql sql);
 
