@@ -41,128 +41,155 @@ public class DatabaseServerPropertyAttribute : Attribute
     public string? Name { get; }
     public object? DatabaseType { get; }
     public int? DatabaseTypeLength { get; }
-
-    public DatabaseServerPropertyAttribute ChangeName(string newName) => new(Group, newName, DatabaseType, DatabaseTypeLength);
 }
 
 public abstract class DatabaseServerProperties
 {
-    protected CachedProperties GetProperties() => GetProperties(GetType());
-
-    protected static CachedProperties GetProperties(TypeSlim type)
+    protected DatabaseServerProperties()
     {
-        lock (setPropertyValuesCacheLock)
-        {
-            if (!setPropertyValuesCache.TryGetValue(type, out var props))
-            {
-                props = CachedPropertiesCreate(type);
-                setPropertyValuesCache.Add(type, props);
-            }
+        getProperties = GetPropertiesPrivate(GetType());
+    }
 
-            return props;
+    private static PropertyCollection GetPropertiesPrivate(TypeSlim type)
+    {
+        if (cache.TryGetValue(type, out var properties)) return properties;
+        lock (locker)
+        {
+            if (cache.TryGetValue(type, out properties)) return properties;
+            properties = new(type);
+            cache = cache.Add(type, properties);
+            return properties;
+        }
+    }
+    private readonly PropertyCollection getProperties;
+    protected PropertyCollection GetProperties() => getProperties;
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly object locker = new();
+
+    private static ImmutableDictionary<TypeSlim, PropertyCollection> cache = ImmutableDictionary<TypeSlim, PropertyCollection>.Empty;
+
+    protected class PropertyItem : IComparable<PropertyItem>
+    {
+        public static readonly string GROUP_NULL_DICTIONARY_KEY = "NULL_" + Guid.NewGuid();
+        public PropertyItem(PropertySlim property, DatabaseServerPropertyAttribute? attribute)
+        {
+            Property = property;
+            Attribute = attribute;
+        }
+        public PropertySlim Property { get; }
+        public DatabaseServerPropertyAttribute? Attribute { get; }
+
+        public string Name => Attribute?.Name ?? Property.Name;
+        public string? Group => Attribute?.Group;
+        public string GroupDictionaryId => Group ?? GROUP_NULL_DICTIONARY_KEY;
+        public object? DatabaseType => Attribute?.DatabaseType;
+        public int? DatabaseTypeLength => Attribute?.DatabaseTypeLength;
+        public bool IsCustom => Attribute == null;
+        public int CompareTo(PropertyItem? other)
+        {
+            if (ReferenceEquals(other, null)) return 1;
+            if (ReferenceEquals(this, other)) return 0;
+            int c;
+            if (0 != (c = IsCustom.CompareTo(other.IsCustom))) return c;
+            if (0 != (c = StringComparer.OrdinalIgnoreCase.Compare(Group, other.Group))) return c;
+            if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
+            return c;
         }
     }
 
-    private static object? SetPropertyValueConvert(PropertyInfo property, string? value)
+    protected class PropertyCollection
     {
-        var targetType = property.PropertyType;
+        public TypeSlim Type { get; }
+        public ImmutableArray<PropertyItem> PropertyItems { get; }
+        private readonly ImmutableDictionary<string, ImmutableDictionary<string, PropertyItem>> propertyItemsGroupName;
+        public ImmutableDictionary<string, PropertyItem> GetPropertyItems(string? groupName) =>
+            propertyItemsGroupName.TryGetValue(groupName ?? PropertyItem.GROUP_NULL_DICTIONARY_KEY, out var d) ? d : ImmutableDictionary<string, PropertyItem>.Empty;
 
-        if (targetType == typeof(string)) return value;
-        var valueTrimmed = value.TrimOrNull();
-        if (targetType.Equals<bool, bool?>()) return valueTrimmed?.ToBool();
-        if (targetType.Equals<byte, byte?>()) return valueTrimmed?.ToByte();
-        if (targetType.Equals<int, int?>()) return valueTrimmed?.ToInt();
-        if (targetType.Equals<long, long?>()) return valueTrimmed?.ToLong();
-        if (targetType.Equals<DateTime, DateTime?>()) return valueTrimmed?.ToDateTime();
-        throw new NotImplementedException($"Undefined conversion for property {property.Name} type {targetType.NameFormatted()}");
-    }
-    public static void SetPropertyValue(object instance, PropertyInfo property, string? value)
-    {
-        var objConverted = SetPropertyValueConvert(property, value);
-        if (objConverted == null && !property.IsNullable()) throw new Exception($"Could not set non-nullable property {property.Name} of type {property.PropertyType.NameFormatted()} to null");
-        property.SetValue(instance, objConverted);
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private static readonly object setPropertyValuesCacheLock = new();
-
-    // ReSharper disable once InconsistentNaming
-    private static readonly Dictionary<TypeSlim, CachedProperties> setPropertyValuesCache = new();
-
-    protected static readonly string GROUP_NULL_DICTIONARY_KEY = "NULL_" + Guid.NewGuid();
-
-    private static CachedProperties CachedPropertiesCreate(TypeSlim type)
-    {
-        var props = new Dictionary<string, Dictionary<string, CachedProperty>>(StringComparer.OrdinalIgnoreCase);
-        var propsCustom = new Dictionary<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
-        foreach (var property in type.Type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        public PropertyCollection(TypeSlim type)
         {
-            if (!property.CanRead) continue;
+            Type = type;
+            PropertyItems = type.Type
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => o.CanRead)
+                .Select(o => o.ToPropertySlim())
+                .Select(o => new PropertyItem(o, o.Info.GetCustomAttribute<DatabaseServerPropertyAttribute>()))
+                .OrderBy(o => o)
+                .ToImmutableArray();
 
-            var attr = property.GetCustomAttribute<DatabaseServerPropertyAttribute>();
-            if (attr == null)
+
+            var props = new Dictionary<string, Dictionary<string, PropertyItem>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var propertyItem in PropertyItems)
             {
-                propsCustom.Add(property.Name, new CachedProperty(property, attr));
-            }
-            else
-            {
-                if (!property.CanWrite) throw new ArgumentException($"Property {type.NameFull}.{property.Name} has no visible SET method");
-                if (attr.Name == null) attr = attr.ChangeName(property.Name);
-                var group = attr.Group ?? GROUP_NULL_DICTIONARY_KEY;
-                if (!props.TryGetValue(group, out var propsSub))
+                if (propertyItem is { IsCustom: false, Property.CanSetPublic: false }) throw new ArgumentException($"Property {type.NameFull}.{propertyItem.Property.Name} has no visible SET method");
+
+                if (!props.TryGetValue(propertyItem.GroupDictionaryId, out var propsSub))
                 {
-                    propsSub = new Dictionary<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
-                    props.Add(group, propsSub);
+                    propsSub = new Dictionary<string, PropertyItem>(StringComparer.OrdinalIgnoreCase);
+                    props.Add(propertyItem.GroupDictionaryId, propsSub);
                 }
-                propsSub.Add(property.Name, new CachedProperty(property, attr));
+
+                propsSub.Add(propertyItem.Name, propertyItem);
             }
+
+            // Convert to immutable
+            var propsImmutable = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, PropertyItem>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var groupDict in props)
+            {
+                var propsSubImmutable = ImmutableDictionary.CreateBuilder<string, PropertyItem>(StringComparer.OrdinalIgnoreCase);
+                foreach (var nameProp in groupDict.Value)
+                {
+                    propsSubImmutable.Add(nameProp.Key, nameProp.Value);
+                }
+
+                propsImmutable.Add(groupDict.Key, propsSubImmutable.ToImmutable());
+            }
+
+            propertyItemsGroupName = propsImmutable.ToImmutable();
         }
 
-        var propsImmutable = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, CachedProperty>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in props)
-        {
-            var propsSubImmutable = ImmutableDictionary.CreateBuilder<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
-            foreach(var kvpSub in kvp.Value) propsSubImmutable.Add(kvpSub.Key, kvpSub.Value);
-            propsImmutable.Add(kvp.Key, propsSubImmutable.ToImmutable());
-        }
 
-        var propsCustomImmutable = ImmutableDictionary.CreateBuilder<string, CachedProperty>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in propsCustom) propsCustomImmutable.Add(kvp.Key, kvp.Value);
-
-        return new CachedProperties(type, propsImmutable.ToImmutable(), propsCustomImmutable.ToImmutable());
     }
 
-    protected record CachedProperties(
-        TypeSlim Type,
-        ImmutableDictionary<string, ImmutableDictionary<string, CachedProperty>> Properties,
-        ImmutableDictionary<string, CachedProperty> PropertiesCustom
-    );
-
-    protected record CachedProperty(PropertyInfo Property, DatabaseServerPropertyAttribute? Attribute);
-
-    public static Dictionary<string, string?> SetPropertyValues(object instance, string? group, Dictionary<string, string?>? values)
-    {
-        var props = GetProperties(instance.GetType());
-
-        var propsNotSet = new Dictionary<string, string?>();
-        foreach (var kvp in values)
-        {
-            if (props.Properties.TryGetValue(kvp.Key, out var prop))
-            {
-                SetPropertyValue(instance, prop, kvp.Value);
-            }
-            else
-            {
-                propsNotSet.Add(kvp.Key, kvp.Value);
-            }
-        }
-
-        return propsNotSet;
-    }
 
     public virtual void Load(IReadOnlyDictionary<string, string?> result, string? group)
     {
+        var log = Constant.GetLogger(GetType());
+        var props = GetProperties().GetPropertyItems(group);
+        var usedKeys = new HashSet<string>();
 
+        foreach (var (key, val) in result)
+        {
+            if (!props.TryGetValue(key, out var prop)) continue;
+            if (prop.IsCustom) throw new InvalidCastException($"Unable to set property {prop.Property.NameClass} with {key}={val ?? "null"} because property does not define a [{nameof(DatabaseServerPropertyAttribute)}]");
+            log.LogTrace("For item {ResultName}={ResultValue} found property {PropertyName}", key, val, $"{prop.Property.NameClass}");
+            object? valConverted;
+            try
+            {
+                valConverted = Util.ChangeType(val, prop.Property.Type);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidCastException($"Unable to convert {key}={val ?? "null"} to type {prop.Property.Type.Name} for property {prop.Property.NameClass}", e);
+            }
+
+            prop.Property.SetValue(this, valConverted);
+            usedKeys.Add(key);
+        }
+
+        foreach (var (key, val) in result.Where(kvp => !usedKeys.Contains(kvp.Key)))
+        {
+            log.LogWarning("Result contained {ResultName}={ResultValue} but no property was defined on type {Type}", key, val, GetType().NameFormatted());
+        }
+
+        foreach (var property in props
+            .Where(kvp => !usedKeys.Contains(kvp.Key))
+            .OrderBy(kvp => kvp.Value)
+            .Select(o => o.Value.Property)
+        )
+        {
+            log.LogWarning("Property {Property} was not set", property.NameClass);
+        }
     }
 
     public virtual void Load(DataReaderResult result, string? group)
@@ -171,44 +198,24 @@ public abstract class DatabaseServerProperties
         var row = result.Rows.FirstOrDefault();
         if (row == null) throw new Exception("No rows returned");
         var values = new Dictionary<string, string?>();
-        row.ToDictionary()
         for (var i = 0; i < cols.Count; i++)
         {
-            var name = cols[i];
-            if (name.Length == 0) continue;
-            prop2Col.Add(name, cols[i]);
+            var name = cols[i].TrimOrNull();
+            if (name == null) continue;
             values.Add(name, row.GetString(i));
         }
+        Load(values, group);
 
-        var propsNotSet = SetPropertyValues(this, values);
 
-        var log = Constant.GetLogger(GetType());
-        foreach (var kvp in propsNotSet)
-        {
-            log.LogWarning(
-                "Property {PropertyName} defined on type {Type}: {PropertyValue}",
-                prop2Col[kvp.Key],
-                GetType().NameFormatted(),
-                kvp.Value
-            );
-        }
     }
 
     public abstract void Load(Sql sql);
 
 
-    private List<(string Name, string Value)> ToStringProperties()
-    {
-        var c = GetProperties();
-        return c.Properties
-            .Select(kvp => kvp.Value)
-            .OrderBy(o => o.Name, Constant.StringComparer_OrdinalIgnoreCase_Ordinal)
-            .Concat(c.PropertiesCustom
-                .Select(kvp => kvp.Value)
-                .OrderBy(o => o.Name, Constant.StringComparer_OrdinalIgnoreCase_Ordinal))
-            .Select(p => (p.Name, p.GetValue(this).ToStringGuessFormat() ?? string.Empty))
+    private List<(string Name, string Value)> ToStringProperties() =>
+        GetProperties().PropertyItems
+            .Select(p => (p.Property.Name, p.Property.GetValue(this).ToStringGuessFormat() ?? string.Empty))
             .ToList();
-    }
 
     public override string ToString() => GetType().NameFormatted() + "(" + ToStringProperties().Select(p => p.Name + "=" + p.Value).ToStringDelimited(", ") + ")";
 

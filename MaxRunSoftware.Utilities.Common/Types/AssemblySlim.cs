@@ -17,7 +17,9 @@ using System.Diagnostics;
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<AssemblySlim>, IComparable, IEquatable<Assembly>, IComparable<Assembly>
+public sealed class AssemblySlim :
+    IEquatable<AssemblySlim>, IEquatable<Assembly>,
+    IComparable, IComparable<AssemblySlim>, IComparable<Assembly>
 {
     public Assembly Assembly { get; }
     public string NameFull { get; }
@@ -31,16 +33,10 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
             if (fn != null) return fn;
 
             var assemblyName = assembly.GetName();
-            fn = assemblyName.FullName.TrimOrNull();
-            if (fn != null) return fn;
-
-            fn = assemblyName.Name.TrimOrNull();
-            if (fn != null) return fn;
-
-            fn = assemblyName.ToString().TrimOrNull();
-            if (fn != null) return fn;
-
-            fn = assembly.ToString().TrimOrNull();
+            fn = assemblyName.FullName.TrimOrNull()
+                 ?? assemblyName.Name.TrimOrNull()
+                 ?? assemblyName.ToString().TrimOrNull()
+                 ?? assembly.ToString().TrimOrNull();
             if (fn != null) return fn;
 
             throw new Exception($"Could not determine assembly name for assembly {assembly}");
@@ -58,6 +54,8 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
     public override string ToString() => NameFull;
 
     #region Equals
+
+    public static bool Equals(AssemblySlim? left, AssemblySlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
 
     public override bool Equals(object? obj) => obj switch
     {
@@ -205,19 +203,10 @@ public sealed class AssemblySlim : IEquatable<AssemblySlim>, IComparable<Assembl
 
     #region Implicit / Explicit
 
-    private static bool Equals(AssemblySlim? left, AssemblySlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
-    private static bool Equals(AssemblySlim? left, Assembly? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
-
     // ReSharper disable ArrangeStaticMemberQualifier
 
     public static bool operator ==(AssemblySlim? left, AssemblySlim? right) => AssemblySlim.Equals(left, right);
     public static bool operator !=(AssemblySlim? left, AssemblySlim? right) => !AssemblySlim.Equals(left, right);
-
-    public static bool operator ==(AssemblySlim? left, Assembly? right) => AssemblySlim.Equals(left, right);
-    public static bool operator !=(AssemblySlim? left, Assembly? right) => !AssemblySlim.Equals(left, right);
-
-    public static bool operator ==(Assembly? left, AssemblySlim? right) => AssemblySlim.Equals(right, left);
-    public static bool operator !=(Assembly? left, AssemblySlim? right) => !AssemblySlim.Equals(right, left);
 
     // ReSharper restore ArrangeStaticMemberQualifier
 

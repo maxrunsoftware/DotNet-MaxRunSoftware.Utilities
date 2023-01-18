@@ -22,17 +22,13 @@ namespace MaxRunSoftware.Utilities.Database;
 /// </summary>
 public class OracleSqlServerProperties : DatabaseServerProperties
 {
-    protected override string LoadConvertName(string name) => base.LoadConvertName(name)
-        .Replace("_", "")
-        .Replace("#", "Number");
-
     public override void Load(Sql sql)
     {
         var result = sql.Query("SELECT * FROM v$instance").CheckNotNull("v$instance");
-        Load(result);
+        Load(result, "v$instance");
 
         result = sql.Query("SELECT * FROM v$license").CheckNotNull("v$license");
-        Load(result);
+        Load(result, "v$license");
     }
 
     #region instance

@@ -23,7 +23,10 @@ namespace MaxRunSoftware.Utilities.Common;
 
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IComparable<Percent>, IEquatable<Percent>
+public readonly struct Percent :
+    IConvertible, ISpanFormattable,
+    IComparable, IComparable<Percent>, IComparable<Percent?>,
+    IEquatable<Percent>, IEquatable<Percent?>
 {
     /// <summary>
     /// https://stackoverflow.com/a/33697376
@@ -41,6 +44,20 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
     private const double MAX_VALUE_DOUBLE = 100;
     public static readonly Percent MaxValue = (Percent)MAX_VALUE_DOUBLE;
 
+    public Percent() : this(MIN_VALUE_DOUBLE) { }
+
+    private Percent(double value)
+    {
+        m_value = value switch
+        {
+            < MIN_VALUE_DOUBLE => MIN_VALUE_DOUBLE,
+            > MAX_VALUE_DOUBLE => MAX_VALUE_DOUBLE,
+            _ => value
+        };
+    }
+
+    #region operator
+
     // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/operator-overloading
     public static bool operator <(Percent left, Percent right) => left.CompareTo(right) < 0;
     public static bool operator >(Percent left, Percent right) => left.CompareTo(right) > 0;
@@ -57,7 +74,6 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
     public static Percent operator /(Percent left, Percent right) => new(left.m_value / right.m_value);
     public static Percent operator ++(Percent left) => new(left.m_value + OneValue.m_value);
     public static Percent operator --(Percent left) => new(left.m_value - OneValue.m_value);
-
 
     public static explicit operator byte(Percent percent) => Convert.ToByte(percent.m_value);
     public static explicit operator sbyte(Percent percent) => Convert.ToSByte(percent.m_value);
@@ -83,42 +99,43 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
     public static explicit operator Percent(double value) => new(value);
     public static explicit operator Percent(decimal value) => new(Convert.ToDouble(value));
 
-    public Percent() : this(MIN_VALUE_DOUBLE) { }
-
-    private Percent(double value)
-    {
-        m_value = value switch
-        {
-            < MIN_VALUE_DOUBLE => MIN_VALUE_DOUBLE,
-            > MAX_VALUE_DOUBLE => MAX_VALUE_DOUBLE,
-            _ => value
-        };
-    }
-
-
-    #region CompareTo
-
-    public int CompareTo(object? value) => value == null ? 1 : CompareTo((Percent)value);
-
-    public int CompareTo(Percent value) => m_value.CompareTo(value.m_value);
-
-    public int CompareTo(Percent value, double tolerance) => Equals(value, tolerance) ? 0 : m_value.CompareTo(value.m_value);
-
-    #endregion CompareTo
+    #endregion operator
 
     #region Equals
 
-    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Percent p && Equals(p);
-
-    public bool Equals(Percent obj) => m_value.Equals(obj.m_value);
+    #region static
 
     /// <summary>
     /// https://docs.microsoft.com/en-us/dotnet/api/system.double.equals
     /// </summary>
-    /// <param name="obj"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
     /// <param name="tolerance"></param>
     /// <returns></returns>
-    public bool Equals(Percent obj, double tolerance) => Math.Abs(m_value - obj.m_value) <= Math.Abs(m_value * tolerance);
+    private static bool Equals(Percent? x, Percent? y, double? tolerance = null)
+    {
+        if (x == null) return y == null;
+        if (y == null) return false;
+
+        var xv = x.Value;
+        var yv = y.Value;
+        if (tolerance == null) return xv.m_value.Equals(yv.m_value);
+
+        var tv = tolerance.Value;
+        return Math.Abs(xv.m_value - yv.m_value) <= Math.Abs(xv.m_value * tv);
+    }
+
+    #endregion static
+
+    public override bool Equals([NotNullWhen(true)] object? obj) => obj is Percent p && Equals(p);
+
+    public bool Equals(Percent obj) => Equals(this, obj);
+    public bool Equals(Percent obj, double tolerance) => Equals(this, obj, tolerance);
+    public bool Equals(Percent obj, double? tolerance) => Equals(this, obj, tolerance);
+
+    public bool Equals([NotNullWhen(true)] Percent? obj) => Equals(this, obj);
+    public bool Equals([NotNullWhen(true)] Percent? obj, double tolerance) => Equals(this, obj, tolerance);
+    public bool Equals([NotNullWhen(true)] Percent? obj, double? tolerance) => Equals(this, obj, tolerance);
 
     #endregion Equals
 
@@ -127,6 +144,43 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
     public override int GetHashCode() => m_value.GetHashCode();
 
     #endregion GetHashCode
+
+    #region CompareTo
+
+    #region static
+
+    /// <summary>
+    /// https://docs.microsoft.com/en-us/dotnet/api/system.double.equals
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="tolerance"></param>
+    /// <returns></returns>
+    private static int CompareTo(Percent? x, Percent? y, double? tolerance = null)
+    {
+        if (x == null) return y == null ? 0 : -1;
+        if (y == null) return 1;
+
+        var xv = x.Value;
+        var yv = y.Value;
+        if (tolerance == null) return xv.m_value.CompareTo(yv.m_value);
+
+        return Equals(xv, yv, tolerance.Value) ? 0 : xv.m_value.CompareTo(yv.m_value);
+    }
+
+    #endregion static
+
+    public int CompareTo(object? value) => value == null ? 1 : CompareTo((Percent)value);
+
+    public int CompareTo(Percent obj) => CompareTo(this, obj);
+    public int CompareTo(Percent obj, double tolerance) => CompareTo(this, obj, tolerance);
+    public int CompareTo(Percent obj, double? tolerance) => CompareTo(this, obj, tolerance);
+
+    public int CompareTo(Percent? obj) => CompareTo(this, obj);
+    public int CompareTo(Percent? obj, double tolerance) => CompareTo(this, obj, tolerance);
+    public int CompareTo(Percent? obj, double? tolerance) => CompareTo(this, obj, tolerance);
+
+    #endregion CompareTo
 
     #region ToString
 
@@ -152,7 +206,11 @@ public readonly struct Percent : IComparable, IConvertible, ISpanFormattable, IC
 
     #endregion ToString
 
+    #region TryFormat
+
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => m_value.TryFormat(destination, out charsWritten, format, provider);
+
+    #endregion TryFormat
 
     #region Parse
 

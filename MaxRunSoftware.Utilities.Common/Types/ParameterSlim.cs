@@ -15,7 +15,9 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<ParameterSlim>, IComparable, IEquatable<ParameterInfo>, IComparable<ParameterInfo>
+public sealed class ParameterSlim :
+    IEquatable<ParameterSlim>, IEquatable<ParameterInfo>,
+    IComparable, IComparable<ParameterSlim>, IComparable<ParameterInfo>
 {
     public ParameterInfo Info { get; }
     public int Position { get; }
@@ -28,7 +30,6 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
 
     private readonly int getHashCode;
 
-    private readonly Lzy<ImmutableArray<Attribute>> attributes;
     public IEnumerable<Attribute> Attributes => Info.GetCustomAttributes();
 
     public ParameterSlim(ParameterInfo info)
@@ -46,9 +47,7 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
             Type,
             // ReSharper disable once RedundantCast
             Name == null ? null : (int?)StringComparer.Ordinal.GetHashCode(Name),
-            IsIn,
-            IsOut,
-            IsRef
+            IsIn, IsOut, IsRef
         );
     }
 
@@ -58,6 +57,23 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
     public override string ToString() => Name ?? $"arg{Position}";
 
     #region Equals
+
+    public static bool Equals(ParameterSlim? left, ParameterSlim? right)
+    {
+        if (ReferenceEquals(left, null)) return ReferenceEquals(right, null);
+        if (ReferenceEquals(right, null)) return false;
+
+        if (left.getHashCode != right.getHashCode) return false;
+        if (!left.Position.Equals(right.Position)) return false;
+        if (!left.Type.Equals(right.Type)) return false;
+        if (!StringComparer.Ordinal.Equals(left.Name, right.Name)) return false;
+        if (left.IsIn != right.IsIn) return false;
+        if (left.IsOut != right.IsOut) return false;
+        if (left.IsRef != right.IsRef) return false;
+
+        return true;
+    }
+
 
     public override bool Equals(object? obj) => obj switch
     {
@@ -74,20 +90,8 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
         return Equals(new ParameterSlim(other));
     }
 
-    public bool Equals(ParameterSlim? other)
-    {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(this, other)) return true;
+    public bool Equals(ParameterSlim? other) => Equals(this, other);
 
-        if (getHashCode != other.getHashCode) return false;
-        if (!Position.Equals(other.Position)) return false;
-        if (!Type.Equals(other.Type)) return false;
-        if (!StringComparer.Ordinal.Equals(Name, other.Name)) return false;
-        if (IsIn != other.IsIn) return false;
-        if (IsOut != other.IsOut) return false;
-        if (IsRef != other.IsRef) return false;
-        return true;
-    }
 
     #endregion Equals
 
@@ -129,8 +133,6 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
 
     #region Implicit / Explicit
 
-    private static bool Equals(ParameterSlim? left, ParameterSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
-
     // ReSharper disable ArrangeStaticMemberQualifier
 
     public static bool operator ==(ParameterSlim? left, ParameterSlim? right) => ParameterSlim.Equals(left, right);
@@ -142,4 +144,17 @@ public sealed class ParameterSlim : IEquatable<ParameterSlim>, IComparable<Param
     public static implicit operator ParameterSlim(ParameterInfo info) => new(info);
 
     #endregion Implicit / Explicit
+}
+
+public class ParameterSlimTypeComparer : IEqualityComparer<ParameterSlim>
+{
+    public static readonly ParameterSlimTypeComparer INSTANCE = new();
+
+    public bool Equals(ParameterSlim? x, ParameterSlim? y)
+    {
+        if (ReferenceEquals(x, null)) return ReferenceEquals(y, null);
+        if (ReferenceEquals(y, null)) return false;
+        return TypeSlim.Equals(x.Type, y.Type);
+    }
+    public int GetHashCode(ParameterSlim obj) => obj.Type.GetHashCode();
 }

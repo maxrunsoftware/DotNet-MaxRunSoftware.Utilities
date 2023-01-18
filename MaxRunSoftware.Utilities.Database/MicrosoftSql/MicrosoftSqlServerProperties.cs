@@ -27,17 +27,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
 {
     public override void Load(Sql sql)
     {
-        var props = GetProperties();
+        var props = GetProperties().PropertyItems.Where(o => !o.IsCustom).ToList();
         var sqlStatement =
             "SELECT "
-            + props.Properties
-                .Select(o => o.Value)
-                .Select(o => $"SERVERPROPERTY('{sql.Unescape(o.Name)}') AS {sql.Escape(o.Name)}")
-                .ToStringDelimited(", ")
+            + props.Select(o => $"SERVERPROPERTY('{sql.Unescape(o.Name)}') AS {sql.Escape(o.Name)}").ToStringDelimited(", ")
             + ";";
 
         var result = sql.Query(sqlStatement).CheckNotNull("SERVERPROPERTY");
-        Load(result);
+        Load(result, null);
     }
 
     #region Custom

@@ -73,7 +73,7 @@ public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>
     public ImmutableArray<TypeSlim> GenericArguments { get; }
 
     private readonly ImmutableArray<ParameterInfo> parametersRaw;
-    public ImmutableArray<MethodSlimParameter> Parameters { get; }
+    public ImmutableArray<MethodSlimParameter> Parameters => parameters.Value;
     private readonly Lzy<ImmutableArray<MethodSlimParameter>> parameters;
     private ImmutableArray<MethodSlimParameter> ParametersCreate() =>
         parametersRaw
@@ -123,6 +123,8 @@ public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>
     public override string ToString() => NameFull;
 
     #region Equals
+
+    public static bool Equals(MethodSlim? left, MethodSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
 
     public override bool Equals(object? obj) => obj switch
     {
@@ -231,7 +233,6 @@ public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>
 
     #region Implicit / Explicit
 
-    private static bool Equals(MethodSlim? left, MethodSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
 
     // ReSharper disable ArrangeStaticMemberQualifier
 

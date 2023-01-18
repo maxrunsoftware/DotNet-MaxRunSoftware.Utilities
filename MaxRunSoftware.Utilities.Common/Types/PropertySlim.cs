@@ -15,10 +15,13 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class PropertySlim : IEquatable<PropertySlim>, IComparable<PropertySlim>, IComparable, IEquatable<PropertyInfo>, IComparable<PropertyInfo>
+public sealed class PropertySlim :
+    IEquatable<PropertySlim>, IEquatable<PropertyInfo>,
+    IComparable, IComparable<PropertySlim>, IComparable<PropertyInfo>
 {
     public string Name { get; }
-    public string NameFull { get; }
+    public string NameClassFull { get; }
+    public string NameClass { get; }
     public TypeSlim TypeDeclaring { get; }
     public TypeSlim Type { get; }
     public PropertyInfo Info { get; }
@@ -46,7 +49,8 @@ public sealed class PropertySlim : IEquatable<PropertySlim>, IComparable<Propert
         TypeDeclaring = info.DeclaringType.CheckNotNull(nameof(info) + "." + nameof(info.DeclaringType));
         Type = info.PropertyType;
         Name = info.Name;
-        NameFull = string.IsNullOrWhiteSpace(TypeDeclaring.NameFull) ? Name : (TypeDeclaring.NameFull + "." + Name);
+        NameClassFull = string.IsNullOrWhiteSpace(TypeDeclaring.NameFull) ? Name : (TypeDeclaring.NameFull + "." + Name);
+        NameClass = string.IsNullOrWhiteSpace(TypeDeclaring.Name) ? Name : (TypeDeclaring.Name + "." + Name);
         getHashCode = Util.Hash(TypeDeclaring.GetHashCode(), StringComparer.Ordinal.GetHashCode(info.Name));
 
         isStatic = Lzy.Create(() => Info.IsStatic());
@@ -85,7 +89,7 @@ public sealed class PropertySlim : IEquatable<PropertySlim>, IComparable<Propert
     #region Override
 
     public override int GetHashCode() => getHashCode;
-    public override string ToString() => NameFull;
+    public override string ToString() => NameClassFull;
 
     #region Equals
 
@@ -173,13 +177,20 @@ public sealed class PropertySlim : IEquatable<PropertySlim>, IComparable<Propert
 
     #region Extras
 
-    public object? Get(object instance) => getMethodCompiled.Value(instance);
+    public object? GetValue(object instance) => getMethodCompiled.Value(instance);
 
-    public object? GetStatic() => getMethodCompiled.Value(null);
+    public object? GetValueStatic() => getMethodCompiled.Value(null);
 
-    public void Set(object instance, object? value) => setMethodCompiled.Value(instance, value);
+    public void SetValue(object instance, object? value) => setMethodCompiled.Value(instance, value);
 
-    public void SetStatic(object? value) => setMethodCompiled.Value(null, value);
+    public void SetValueStatic(object? value) => setMethodCompiled.Value(null, value);
 
     #endregion Extras
+}
+
+
+public static class PropertySlimExtensions
+{
+    public static PropertyInfo ToPropertyInfo(this PropertySlim obj) => obj;
+    public static PropertySlim ToPropertySlim(this PropertyInfo obj) => obj;
 }
