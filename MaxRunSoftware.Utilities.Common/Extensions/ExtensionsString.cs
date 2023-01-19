@@ -878,6 +878,17 @@ public static class ExtensionsString
 
     public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
 
+    /// <summary>
+    /// This regex (^[a-z]+|[A-Z]+(?![a-z])|[A-Z][a-z]+) can be used to extract all words from the camelCase or PascalCase name.
+    /// It also works with abbreviations anywhere inside the name.
+    /// <list type="bullet|number|table">
+    /// <item><term>MyHTTPServer</term><description>will contain exactly 3 matches: My, HTTP, Server</description></item>
+    /// <item><term>myNewXMLFile</term><description>will contain 4 matches: my, New, XML, File</description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="str">string to split</param>
+    /// <returns>split string</returns>
+    /// <see href="https://stackoverflow.com/a/37532157" />
     public static string[] SplitOnCamelCase(this string? str)
     {
         if (str == null) return Array.Empty<string>();

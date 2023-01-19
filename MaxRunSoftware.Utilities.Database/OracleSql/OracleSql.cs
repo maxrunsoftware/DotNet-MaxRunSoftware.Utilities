@@ -45,7 +45,7 @@ public class OracleSql : Sql
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.OracleSql;
     protected override Type DatabaseTypesEnum => typeof(OracleSqlType);
 
-    public OracleSqlServerProperties GetServerProperties() => GetServerProperties<OracleSqlServerProperties>();
+    public OracleSqlServerProperties GetServerProperties() => new(this);
 
     private string? GetCurrentDatabaseName(List<SqlError> errors)
     {

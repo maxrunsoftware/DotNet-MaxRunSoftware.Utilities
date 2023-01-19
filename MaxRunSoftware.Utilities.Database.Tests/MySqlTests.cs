@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using MaxRunSoftware.Utilities.Common;
+
 namespace MaxRunSoftware.Utilities.Database.Tests;
 
 // ReSharper disable StringLiteralTypo
@@ -34,10 +36,20 @@ public class MySqlTests : DatabaseTests<MySql>
     public MySqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test) { }
 
     [Fact]
+    public void Test()
+    {
+        var result = sql.QueryStrings("SHOW SESSION VARIABLES");
+        foreach (var row in result)
+        {
+            output.WriteLine(row.ToStringDelimited(", "));
+        }
+    }
+    [Fact]
     public void GetServerProperties()
     {
-        //var props = ((MicrosoftSql)sql).GetServerProperties();
-        //Assert.NotNull(props);
-        //WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
+
+        var props = sql.GetServerProperties();
+        Assert.NotNull(props);
+        WriteLine(nameof(GetServerProperties), Constant.NewLine + props.ToStringDetailed());
     }
 }

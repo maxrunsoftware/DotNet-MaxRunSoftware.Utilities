@@ -43,6 +43,8 @@ public class MySql : Sql
     public override DatabaseAppType DatabaseAppType => DatabaseAppType.MySql;
     protected override Type DatabaseTypesEnum => typeof(MySqlType);
 
+    public MySqlServerProperties GetServerProperties() => new(this);
+
     #region Schema
 
     protected override string? GetCurrentDatabaseName() => this.QueryScalarString($"SELECT DATABASE();");

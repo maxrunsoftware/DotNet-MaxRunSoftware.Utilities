@@ -70,37 +70,10 @@ public static class ExtensionsStringConversion
     public static bool ToBoolTry(this string? str, out bool output)
     {
         str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = default;
-            return false;
-        }
+        if (str != null) return Constant.String_Bool.TryGetValue(str, out output);
+        output = default;
+        return false;
 
-        if (str.Length < 6)
-        {
-            switch (str.ToUpperInvariant())
-            {
-                case "1":
-                case "T":
-                case "TRUE":
-                case "Y":
-                case "YES":
-                    output = true;
-                    return true;
-
-                case "0":
-                case "F":
-                case "FALSE":
-                case "N":
-                case "NO":
-                    output = false;
-                    return true;
-            }
-        }
-
-        var returnValue = bool.TryParse(str, out var r);
-        output = r;
-        return returnValue;
     }
 
     public static bool? ToBoolNullable(this string? str) => str.TrimOrNull()?.ToBool();

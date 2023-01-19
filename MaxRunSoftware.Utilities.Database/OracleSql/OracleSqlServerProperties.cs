@@ -16,22 +16,28 @@
 
 namespace MaxRunSoftware.Utilities.Database;
 
-/// <summary>
-/// https://docs.oracle.com/database/121/REFRN/GUID-6A0C9B51-1714-4223-B166-9D54C4E65D67.htm#REFRN30105
-/// https://docs.oracle.com/en/database/oracle/oracle-database/21/refrn/V-INSTANCE.html
-/// </summary>
-public class OracleSqlServerProperties : DatabaseServerProperties
+public class OracleSqlServerProperties
 {
-    public override void Load(Sql sql)
+    public OracleSqlServerPropertiesInstance Instance { get; }
+    public OracleSqlServerPropertiesLicense License { get; }
+    public OracleSqlServerProperties(Sql sql)
     {
-        var result = sql.Query("SELECT * FROM v$instance").CheckNotNull("v$instance");
-        Load(result, "v$instance");
-
-        result = sql.Query("SELECT * FROM v$license").CheckNotNull("v$license");
-        Load(result, "v$license");
+        Instance = new(DatabaseServerProperties.ToDictionaryHorizontal(sql.Query("SELECT * FROM v$instance").CheckNotNull("v$instance")));
+        License = new(DatabaseServerProperties.ToDictionaryHorizontal(sql.Query("SELECT * FROM v$license").CheckNotNull("v$license")));
     }
 
-    #region instance
+    public virtual string ToStringDetailed() => DatabaseServerProperties.ToStringDetailed(GetType(),
+        (nameof(Instance), Instance),
+        (nameof(License), License)
+    );
+}
+
+/// <summary>
+/// https://docs.oracle.com/en/database/oracle/oracle-database/21/refrn/V-INSTANCE.html
+/// </summary>
+public class OracleSqlServerPropertiesInstance : DatabaseServerProperties
+{
+    public OracleSqlServerPropertiesInstance(Dictionary<string, string?> dictionary) : base(dictionary) { }
 
     /// <summary>
     /// INSTANCE_NUMBER
@@ -40,32 +46,28 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />See Also:
     /// https://docs.oracle.com/en/database/oracle/oracle-database/21/refrn/INSTANCE_NUMBER.html#GUID-6A58795A-E9A8-4249-B734-B864FADCD070
     /// </summary>
-    [DatabaseServerProperty("v$instance", "INSTANCE_NUMBER", OracleSqlType.Number)]
-    public int? InstanceNumber { get; set; }
+    public int? InstanceNumber => GetIntNullable("INSTANCE_NUMBER");
 
     /// <summary>
     /// INSTANCE_NAME
     /// <br />VARCHAR2(16)
     /// <br />Name of the instance
     /// </summary>
-    [DatabaseServerProperty("v$instance", "INSTANCE_NAME", OracleSqlType.VarChar, 16)]
-    public string? InstanceName { get; set; }
+    public string? InstanceName => GetStringNullable("INSTANCE_NAME");
 
     /// <summary>
     /// HOST_NAME
     /// <br />VARCHAR2(64)
     /// <br />Name of the host machine
     /// </summary>
-    [DatabaseServerProperty("v$instance", "HOST_NAME", OracleSqlType.VarChar, 64)]
-    public string? HostName { get; set; }
+    public string? HostName => GetStringNullable("HOST_NAME");
 
     /// <summary>
     /// VERSION
     /// <br />VARCHAR2(17)
     /// <br />Database version
     /// </summary>
-    [DatabaseServerProperty("v$instance", "VERSION", OracleSqlType.VarChar, 17)]
-    public string? Version { get; set; }
+    public string? Version => GetStringNullable("VERSION");
 
     /// <summary>
     /// VERSION_LEGACY
@@ -73,24 +75,21 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />The legacy database version used before Oracle Database 18c. This column displays the same value as the VERSION
     /// column
     /// </summary>
-    [DatabaseServerProperty("v$instance", "VERSION_LEGACY", OracleSqlType.VarChar, 17)]
-    public string? VersionLegacy { get; set; }
+    public string? VersionLegacy => GetStringNullable("VERSION_LEGACY");
 
     /// <summary>
     /// VERSION_FULL
     /// <br />VARCHAR2(17)
     /// <br />The version string with the new Oracle Database version scheme introduced in Oracle Database 18c.
     /// </summary>
-    [DatabaseServerProperty("v$instance", "VERSION_FULL", OracleSqlType.VarChar, 17)]
-    public string? VersionFull { get; set; }
+    public string? VersionFull => GetStringNullable("VERSION_FULL");
 
     /// <summary>
     /// STARTUP_TIME
     /// <br />DATE
     /// <br />Time when the instance was started
     /// </summary>
-    [DatabaseServerProperty("v$instance", "STARTUP_TIME", OracleSqlType.DateTime)]
-    public DateTime? StartupTime { get; set; }
+    public DateTime? StartupTime => GetDateTimeNullable("STARTUP_TIME");
 
     /// <summary>
     /// STATUS
@@ -101,24 +100,21 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />OPEN - After STARTUP or ALTER DATABASE OPEN
     /// <br />OPEN MIGRATE - After ALTER DATABASE OPEN { UPGRADE | DOWNGRADE }
     /// </summary>
-    [DatabaseServerProperty("v$instance", "STATUS", OracleSqlType.VarChar, 12)]
-    public string? Status { get; set; }
+    public string? Status => GetStringNullable("STATUS");
 
     /// <summary>
     /// PARALLEL
     /// <br />VARCHAR2(3)
     /// <br />Indicates whether the instance is mounted in cluster database mode (YES) or not (NO)
     /// </summary>
-    [DatabaseServerProperty("v$instance", "PARALLEL", OracleSqlType.VarChar, 3)]
-    public bool? Parallel { get; set; }
+    public bool? Parallel => GetBoolNullable("PARALLEL");
 
     /// <summary>
     /// THREAD#
     /// <br />NUMBER
     /// <br />Redo thread opened by the instance
     /// </summary>
-    [DatabaseServerProperty("v$instance", "THREAD#", OracleSqlType.Number)]
-    public int? ThreadNumber { get; set; }
+    public int? ThreadNumber => GetIntNullable("THREAD#");
 
     /// <summary>
     /// ARCHIVER
@@ -128,8 +124,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />STARTED
     /// <br />FAILED - Archiver failed to archive a log last time but will try again within 5 minutes
     /// </summary>
-    [DatabaseServerProperty("v$instance", "ARCHIVER", OracleSqlType.VarChar, 7)]
-    public string? Archiver { get; set; }
+    public string? Archiver => GetStringNullable("ARCHIVER");
 
     /// <summary>
     /// LOG_SWITCH_WAIT
@@ -140,8 +135,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />CHECKPOINT
     /// <br />NULL - ALTER SYSTEM SWITCH LOGFILE is hung but there is room in the current online redo log
     /// </summary>
-    [DatabaseServerProperty("v$instance", "LOG_SWITCH_WAIT", OracleSqlType.VarChar, 15)]
-    public string? LogSwitchWait { get; set; }
+    public string? LogSwitchWait => GetStringNullable("LOG_SWITCH_WAIT");
 
     /// <summary>
     /// LOGINS
@@ -149,16 +143,14 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />Indicates whether the instance is in unrestricted mode, allowing logins by all users (ALLOWED,
     /// or in restricted mode, allowing logins by database administrators only (RESTRICTED)
     /// </summary>
-    [DatabaseServerProperty("v$instance", "LOGINS", OracleSqlType.VarChar, 10)]
-    public string? Logins { get; set; }
+    public string? Logins => GetStringNullable("LOGINS");
 
     /// <summary>
     /// SHUTDOWN_PENDING
     /// <br />VARCHAR2(3)
     /// <br />Indicates whether a shutdown is pending (YES) or not (NO)
     /// </summary>
-    [DatabaseServerProperty("v$instance", "SHUTDOWN_PENDING", OracleSqlType.VarChar, 3)]
-    public bool? ShutdownPending { get; set; }
+    public bool? ShutdownPending => GetBoolNullable("SHUTDOWN_PENDING");
 
     /// <summary>
     /// DATABASE_STATUS
@@ -168,8 +160,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />SUSPENDED
     /// <br />INSTANCE RECOVERY
     /// </summary>
-    [DatabaseServerProperty("v$instance", "DATABASE_STATUS", OracleSqlType.VarChar, 17)]
-    public string? DatabaseStatus { get; set; }
+    public string? DatabaseStatus => GetStringNullable("DATABASE_STATUS");
 
     /// <summary>
     /// INSTANCE_ROLE
@@ -177,8 +168,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />Indicates whether the instance is an active instance (PRIMARY_INSTANCE) or an inactive secondary
     /// instance (SECONDARY_INSTANCE), or UNKNOWN if the instance has been started but not mounted
     /// </summary>
-    [DatabaseServerProperty("v$instance", "INSTANCE_ROLE", OracleSqlType.VarChar, 18)]
-    public string? InstanceRole { get; set; }
+    public string? InstanceRole => GetStringNullable("INSTANCE_ROLE");
 
     /// <summary>
     /// ACTIVE_STATE
@@ -196,16 +186,14 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// After this statement has been issued, some instances may enter into a quiesced state before other instances;
     /// the system is quiesced when all instances enter the quiesced state.
     /// </summary>
-    [DatabaseServerProperty("v$instance", "ACTIVE_STATE", OracleSqlType.VarChar, 9)]
-    public string? ActiveState { get; set; }
+    public string? ActiveState => GetStringNullable("ACTIVE_STATE");
 
     /// <summary>
     /// BLOCKED
     /// <br />VARCHAR2(3)
     /// <br />Indicates whether all services are blocked (YES) or not (NO)
     /// </summary>
-    [DatabaseServerProperty("v$instance", "BLOCKED", OracleSqlType.VarChar, 3)]
-    public bool? Blocked { get; set; }
+    public bool? Blocked => GetBoolNullable("BLOCKED");
 
     /// <summary>
     /// CON_ID
@@ -216,8 +204,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />1: This value is used for rows containing data that pertain to only the root
     /// <br />n: Where n is the applicable container ID for the rows containing data
     /// </summary>
-    [DatabaseServerProperty("v$instance", "CON_ID", OracleSqlType.Number)]
-    public int? InstanceConId { get; set; }
+    public int? InstanceConId => GetIntNullable("CON_ID");
 
     /// <summary>
     /// INSTANCE_MODE
@@ -228,8 +215,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />READ MOSTLY: An Oracle RAC instance that performs very few database writes
     /// <br />READ ONLY: A read-only Oracle RAC instance
     /// </summary>
-    [DatabaseServerProperty("v$instance", "INSTANCE_MODE", OracleSqlType.VarChar, 11)]
-    public string? InstanceMode { get; set; }
+    public string? InstanceMode => GetStringNullable("INSTANCE_MODE");
 
     /// <summary>
     /// EDITION
@@ -241,16 +227,14 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />PO: Personal Edition
     /// <br />XE: Express Edition
     /// </summary>
-    [DatabaseServerProperty("v$instance", "EDITION", OracleSqlType.VarChar, 7)]
-    public string? Edition { get; set; }
+    public string? Edition => GetStringNullable("EDITION");
 
     /// <summary>
     /// FAMILY
     /// <br />VARCHAR2(80)
     /// <br />For internal use only.
     /// </summary>
-    [DatabaseServerProperty("v$instance", "FAMILY", OracleSqlType.VarChar, 80)]
-    public string? Family { get; set; }
+    public string? Family => GetStringNullable("FAMILY");
 
     /// <summary>
     /// DATABASE_TYPE
@@ -264,68 +248,64 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// registered as a DB resource with CRS but the CRS service has failed to return valid database type
     /// information. Typically, this indicates that either the CRS service is down or it is in a faulty state.
     /// </summary>
-    [DatabaseServerProperty("v$instance", "DATABASE_TYPE", OracleSqlType.VarChar, 15)]
-    public string? DatabaseType { get; set; }
+    public string? DatabaseType => GetStringNullable("DATABASE_TYPE");
+}
 
-    #endregion instance
-
-    #region license
+/// <summary>
+/// https://docs.oracle.com/database/121/REFRN/GUID-6A0C9B51-1714-4223-B166-9D54C4E65D67.htm#REFRN30105
+/// </summary>
+public class OracleSqlServerPropertiesLicense : DatabaseServerProperties
+{
+    public OracleSqlServerPropertiesLicense(Dictionary<string, string?> dictionary) : base(dictionary) { }
 
     /// <summary>
     /// SESSIONS_MAX
     /// <br />NUMBER
     /// <br />Maximum number of concurrent user sessions allowed for the instance
     /// </summary>
-    [DatabaseServerProperty("v$license", "SESSIONS_MAX", OracleSqlType.Number)]
-    public int? SessionsMax { get; set; }
+    public int? SessionsMax => GetIntNullable("SESSIONS_MAX");
 
     /// <summary>
     /// SESSIONS_WARNING
     /// <br />NUMBER
     /// <br />Warning limit for concurrent user sessions for the instance
     /// </summary>
-    [DatabaseServerProperty("v$license", "SESSIONS_WARNING", OracleSqlType.Number)]
-    public int? SessionsWarning { get; set; }
+    public int? SessionsWarning => GetIntNullable("SESSIONS_WARNING");
 
     /// <summary>
     /// SESSIONS_CURRENT
     /// <br />NUMBER
     /// <br />Current number of concurrent user sessions
     /// </summary>
-    [DatabaseServerProperty("v$license", "SESSIONS_CURRENT", OracleSqlType.Number)]
-    public int? SessionsCurrent { get; set; }
+    public int? SessionsCurrent => GetIntNullable("SESSIONS_CURRENT");
 
     /// <summary>
     /// SESSIONS_HIGHWATER
     /// <br />NUMBER
     /// <br />Highest number of concurrent user sessions since the instance started
     /// </summary>
-    [DatabaseServerProperty("v$license", "SESSIONS_HIGHWATER", OracleSqlType.Number)]
-    public int? SessionsHighwater { get; set; }
+    public int? SessionsHighwater => GetIntNullable("SESSIONS_HIGHWATER");
 
     /// <summary>
     /// USERS_MAX
     /// <br />NUMBER
     /// <br />Maximum number of named users allowed for the database
     /// </summary>
-    [DatabaseServerProperty("USERS_MAX", OracleSqlType.Number)]
-    public int? UsersMax { get; set; }
+    public int? UsersMax => GetIntNullable("USERS_MAX");
 
     /// <summary>
     /// CPU_COUNT_CURRENT
     /// <br />NUMBER
     /// <br />Current number of logical CPUs or processors on the system
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_COUNT_CURRENT", OracleSqlType.Number)]
-    public int? CpuCountCurrent { get; set; }
+    public int? CpuCountCurrent => GetIntNullable("CPU_COUNT_CURRENT");
 
     /// <summary>
     /// CPU_CORE_COUNT_CURRENT
     /// <br />NUMBER
     /// <br />Current number of CPU cores on the system (includes subcores of multicore CPUs, as well as single-core CPUs)
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_CORE_COUNT_CURRENT", OracleSqlType.Number)]
-    public int? CpuCoreCountCurrent { get; set; }
+    public int? CpuCoreCountCurrent => GetIntNullable("CPU_CORE_COUNT_CURRENT");
 
     /// <summary>
     /// CPU_SOCKET_COUNT_CURRENT
@@ -333,16 +313,14 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />Current number of CPU sockets on the system (represents an absolute count of CPU chips on the system, regardless
     /// of multithreading or multicore architectures)
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_SOCKET_COUNT_CURRENT", OracleSqlType.Number)]
-    public int? CpuSocketCountCurrent { get; set; }
+    public int? CpuSocketCountCurrent => GetIntNullable("CPU_SOCKET_COUNT_CURRENT");
 
     /// <summary>
     /// CPU_COUNT_HIGHWATER
     /// <br />NUMBER
     /// <br />Highest number of logical CPUs or processors on the system since the instance started
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_COUNT_HIGHWATER", OracleSqlType.Number)]
-    public int? CpuCountHighwater { get; set; }
+    public int? CpuCountHighwater => GetIntNullable("CPU_COUNT_HIGHWATER");
 
     /// <summary>
     /// CPU_CORE_COUNT_HIGHWATER
@@ -350,8 +328,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />Highest number of CPU cores on the system since the instance started (includes subcores of multicore CPUs, as
     /// well as single-core CPUs)
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_CORE_COUNT_HIGHWATER", OracleSqlType.Number)]
-    public int? CpuCoreCountHighwater { get; set; }
+    public int? CpuCoreCountHighwater => GetIntNullable("CPU_CORE_COUNT_HIGHWATER");
 
     /// <summary>
     /// CPU_SOCKET_COUNT_HIGHWATER
@@ -359,8 +336,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />Highest number of CPU sockets on the system since the instance started (represents an absolute count of CPU chips
     /// on the system, regardless of multithreading or multicore architectures)
     /// </summary>
-    [DatabaseServerProperty("v$license", "CPU_SOCKET_COUNT_HIGHWATER", OracleSqlType.Number)]
-    public int? CpuSocketCountHighwater { get; set; }
+    public int? CpuSocketCountHighwater => GetIntNullable("CPU_SOCKET_COUNT_HIGHWATER");
 
     /// <summary>
     /// CON_ID
@@ -370,8 +346,7 @@ public class OracleSqlServerProperties : DatabaseServerProperties
     /// <br />1: This value is used for rows containing data that pertain to only the root
     /// <br />n: Where n is the applicable container ID for the rows containing data
     /// </summary>
-    [DatabaseServerProperty("v$license", "CON_ID", OracleSqlType.Number)]
-    public int? LicenseConId { get; set; }
+    public int? ConId => GetIntNullable("CON_ID");
 
-    #endregion license
+
 }

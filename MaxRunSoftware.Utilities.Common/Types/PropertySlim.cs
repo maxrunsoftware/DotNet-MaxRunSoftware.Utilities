@@ -193,4 +193,11 @@ public static class PropertySlimExtensions
 {
     public static PropertyInfo ToPropertyInfo(this PropertySlim obj) => obj;
     public static PropertySlim ToPropertySlim(this PropertyInfo obj) => obj;
+
+        public static PropertySlim[] GetPropertySlims(this TypeSlim type, BindingFlags flags) =>
+            type.Type.GetPropertySlims(flags);
+
+        public static PropertySlim[] GetPropertySlims(this Type type, BindingFlags flags) =>
+            type.GetProperties(flags).Select(o => new PropertySlim(o)).ToArray();
+
 }

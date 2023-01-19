@@ -43,12 +43,6 @@ public abstract class Sql : IDisposable
     public abstract DatabaseAppType DatabaseAppType { get; }
     public bool ExceptionShowFullSql { get; set; }
 
-    protected virtual T GetServerProperties<T>() where T : DatabaseServerProperties, new()
-    {
-        var o = new T();
-        o.Load(this);
-        return o;
-    }
     #region Dialect
 
     public string DefaultDataTypeString { get; set; } = "TEXT";

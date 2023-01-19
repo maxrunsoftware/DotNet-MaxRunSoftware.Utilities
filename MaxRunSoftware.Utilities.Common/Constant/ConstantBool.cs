@@ -20,8 +20,8 @@ public static partial class Constant
     private static ImmutableArray<string> ConstantBoolArray(params string[] items) =>
         CreateArray(items.Select(o => o.ToUpperInvariant()).Distinct().ToArray());
 
-    private static readonly ImmutableArray<string> BOOL_TRUE_VALUES = ConstantBoolArray(bool.TrueString, "1", "T", "TRUE", "Y", "YES");
-    private static readonly ImmutableArray<string> BOOL_FALSE_VALUES = ConstantBoolArray(bool.FalseString, "0", "F", "FALSE", "N", "NO");
+    private static readonly ImmutableArray<string> BOOL_TRUE_VALUES = ConstantBoolArray(bool.TrueString, "1", "T", "TRUE", "Y", "YES", "ON");
+    private static readonly ImmutableArray<string> BOOL_FALSE_VALUES = ConstantBoolArray(bool.FalseString, "0", "F", "FALSE", "N", "NO", "OFF");
 
     /// <summary>
     /// Case-Insensitive hashset of boolean true values.

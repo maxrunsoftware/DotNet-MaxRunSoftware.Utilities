@@ -45,7 +45,8 @@ public class MicrosoftSql : Sql
 
     protected override Type DatabaseTypesEnum => typeof(MicrosoftSqlType);
 
-    public MicrosoftSqlServerProperties GetServerProperties() => GetServerProperties<MicrosoftSqlServerProperties>();
+    public MicrosoftSqlServerProperties GetServerProperties() => new(this);
+
 
     #region Schema
 
