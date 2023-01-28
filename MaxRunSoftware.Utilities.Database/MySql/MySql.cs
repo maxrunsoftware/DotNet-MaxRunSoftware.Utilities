@@ -24,8 +24,8 @@ public class MySql : Sql
 
     public static MySqlConnection CreateConnection(string connectionString) => new(connectionString);
 
-    public MySql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public MySql(IDbConnection connection) : base(connection)
+    public MySql(string connectionString, ILoggerProvider loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
+    public MySql(IDbConnection connection, ILoggerProvider loggerProvider) : base(connection, loggerProvider)
     {
         DefaultDataTypeString = DatabaseTypes.Get(MySqlType.LongText).TypeName;
         DefaultDataTypeInteger = DatabaseTypes.Get(MySqlType.Int32).TypeName;

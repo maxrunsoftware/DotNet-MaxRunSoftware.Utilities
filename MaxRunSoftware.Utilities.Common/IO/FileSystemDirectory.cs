@@ -74,14 +74,16 @@ public sealed class FileSystemDirectory : FileSystemObject
     private long GetSizes(IEnumerable<FileSystemObject> enumerable)
     {
         long s = 0;
-        var log = Constant.GetLogger(GetType());
+        //var log = Constant.GetLogger(GetType());
         foreach (var obj in enumerable)
         {
             try { s += obj.Size; }
             catch (Exception e)
             {
+                // TODO: log this
                 // ReSharper disable once InconsistentLogPropertyNaming
-                log.LogWarning("Error reading file size from {Path}  --> {ExceptionMessage}", Path, e.Message);
+                //log.LogWarning("Error reading file size from {Path}  --> {ExceptionMessage}", Path, e.Message);
+                Console.Error.WriteLine(e);
             }
         }
 
@@ -95,7 +97,7 @@ public sealed class FileSystemDirectory : FileSystemObject
 
         var queue = new Queue<FileSystemDirectory>();
         queue.Enqueue(this);
-        var log = Constant.GetLogger(GetType());
+        //var log = Constant.GetLogger(GetType());
         while (queue.Count > 0)
         {
             var currentDirectory = queue.Dequeue();
@@ -110,7 +112,9 @@ public sealed class FileSystemDirectory : FileSystemObject
             }
             catch (Exception e)
             {
-                log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+                // TODO: log this
+                //log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+                Console.Error.WriteLine(e);
             }
 
             IReadOnlyCollection<FileSystemFile> currentDirectoryFiles = new List<FileSystemFile>();
@@ -120,7 +124,9 @@ public sealed class FileSystemDirectory : FileSystemObject
             }
             catch (Exception e)
             {
-                log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+                // TODO: log this
+                //log.LogWarning("Error reading directory list from {CurrentDirectoryPath}  --> {ExceptionMessage}", currentDirectory.Path, e.Message);
+                Console.Error.WriteLine(e);
             }
 
             foreach (var d in currentDirectoryDirectories.OrEmpty())
@@ -142,6 +148,6 @@ public sealed class FileSystemDirectory : FileSystemObject
         listObjects.AddRange(setDirectories);
         listObjects.AddRange(setFiles);
 
-        return new RecursiveObjects(listObjects, setDirectories, setFiles);
+        return new(listObjects, setDirectories, setFiles);
     }
 }

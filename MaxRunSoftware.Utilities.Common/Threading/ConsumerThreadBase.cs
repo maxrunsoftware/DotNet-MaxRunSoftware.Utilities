@@ -31,7 +31,7 @@ public abstract class ConsumerThreadBase<T> : ThreadBase
 
     public int ItemsCompleted => itemsCompleted;
 
-    protected ConsumerThreadBase(BlockingCollection<T> queue)
+    protected ConsumerThreadBase(BlockingCollection<T> queue, ILoggerProvider loggerProvider) : base(loggerProvider)
     {
         this.queue = queue.CheckNotNull(nameof(queue));
     }

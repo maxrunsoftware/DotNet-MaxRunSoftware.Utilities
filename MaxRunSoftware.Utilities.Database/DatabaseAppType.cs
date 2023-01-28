@@ -57,12 +57,12 @@ public static class DatabaseAppTypeExtensions
         [DatabaseAppType.PostgreSql] = PostgreSql.CreateConnection,
     }.ToImmutableDictionary();
 
-    public static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, Sql>>
+    public static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, ILoggerProvider, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, ILoggerProvider, Sql>>
     {
-        [DatabaseAppType.MicrosoftSql] = connection => new MicrosoftSql(connection),
-        [DatabaseAppType.OracleSql] = connection => new OracleSql(connection),
-        [DatabaseAppType.MySql] = connection => new MySql(connection),
-        [DatabaseAppType.PostgreSql] = connection => new PostgreSql(connection),
+        [DatabaseAppType.MicrosoftSql] = (connection, loggerProvider) => new MicrosoftSql(connection, loggerProvider),
+        [DatabaseAppType.OracleSql] = (connection, loggerProvider) => new OracleSql(connection, loggerProvider),
+        [DatabaseAppType.MySql] = (connection, loggerProvider) => new MySql(connection, loggerProvider),
+        [DatabaseAppType.PostgreSql] = (connection, loggerProvider) => new PostgreSql(connection, loggerProvider),
     }.ToImmutableDictionary();
 
     public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
@@ -75,10 +75,10 @@ public static class DatabaseAppTypeExtensions
         return connection;
     }
 
-    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString) =>
-        SqlFactories[connectionType](CreateConnection(connectionType, connectionString));
+    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerProvider loggerProvider) =>
+        SqlFactories[connectionType](CreateConnection(connectionType, connectionString), loggerProvider);
 
-    public static Sql OpenSql(this DatabaseAppType connectionType, string connectionString)  =>
-        SqlFactories[connectionType](OpenConnection(connectionType, connectionString));
+    public static Sql OpenSql(this DatabaseAppType connectionType, string connectionString, ILoggerProvider loggerProvider)  =>
+        SqlFactories[connectionType](OpenConnection(connectionType, connectionString), loggerProvider);
 
 }

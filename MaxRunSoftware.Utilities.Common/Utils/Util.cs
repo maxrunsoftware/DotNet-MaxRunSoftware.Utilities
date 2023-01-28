@@ -97,4 +97,12 @@ public static partial class Util
 
         throw new ArgumentException($"Unknown encoding '{encoding}'", nameof(encoding));
     }
+
+    private sealed class CreateDisposableClass : IDisposable
+    {
+        private readonly Action action;
+        public CreateDisposableClass(Action action) => this.action = action;
+        public void Dispose() => action();
+    }
+    public static IDisposable CreateDisposable(Action action) => new CreateDisposableClass(action);
 }

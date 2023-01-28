@@ -30,6 +30,7 @@ public interface IExecutablePoolConfig
     bool ShouldExitOnException { get; }
     bool IsEventsSynchronous { get; }
     string? ThreadPoolName { get; }
+    ILoggerProvider LoggerProvider { get; }
 }
 
 public sealed class ExecutablePoolConfig : IExecutablePoolConfig
@@ -43,6 +44,7 @@ public sealed class ExecutablePoolConfig : IExecutablePoolConfig
     public bool ShouldExitOnException { get; set; }
     public bool IsEventsSynchronous { get; set; }
     public string? ThreadPoolName { get; set; }
+    public ILoggerProvider LoggerProvider { get; set; } = Constant.LoggerProviderNull;
 
     public ExecutablePoolConfig(IEnumerator<IExecutable> enumerator)
     {
@@ -60,6 +62,7 @@ public sealed class ExecutablePoolConfig : IExecutablePoolConfig
         ShouldExitOnException = config.ShouldExitOnException;
         IsEventsSynchronous = config.IsEventsSynchronous;
         ThreadPoolName = config.ThreadPoolName;
+        LoggerProvider = config.LoggerProvider;
     }
 }
 
@@ -137,7 +140,7 @@ public class ExecutablePool : IDisposable
     {
         lock (synchronizationLock)
         {
-            return new ExecutablePoolState(
+            return new(
                 this,
                 Config.NumberOfThreads,
                 threadsExited,
@@ -152,11 +155,10 @@ public class ExecutablePool : IDisposable
     protected ExecutablePool(IExecutablePoolConfig config)
     {
         config.CheckNotNull(nameof(config));
-        log = Constant.GetLogger(GetType());
         configOriginalTypeName = config.GetType().NameFormatted();
 
         var cfg = new ExecutablePoolConfig(config);
-
+        log = cfg.LoggerProvider.CreateLogger(GetType());
         cfg.Enumerator.CheckNotNull(configOriginalTypeName + "." + nameof(IExecutablePoolConfig.Enumerator));
         cfg.NumberOfThreads.CheckMin(1, configOriginalTypeName + "." + nameof(IExecutablePoolConfig.NumberOfThreads));
         cfg.NumberOfThreads.CheckMax(MAX_NUMBER_OF_THREADS, configOriginalTypeName + "." + nameof(IExecutablePoolConfig.NumberOfThreads));
@@ -284,7 +286,7 @@ public class ExecutablePool : IDisposable
         private readonly ExecutablePool executablePool;
         private readonly object locker;
 
-        public ExecutablePoolThread(ExecutablePool executablePool)
+        public ExecutablePoolThread(ExecutablePool executablePool) : base(executablePool.Config.LoggerProvider)
         {
             this.executablePool = executablePool;
             locker = executablePool.synchronizationLock; // improve lock acquisition performance by copying locally

@@ -33,9 +33,9 @@ public abstract class Sql : IDisposable
         }
     }
 
-    protected Sql(IDbConnection connection)
+    protected Sql(IDbConnection connection, ILoggerProvider loggerProvider)
     {
-        log = Constant.GetLogger(GetType());
+        log = loggerProvider.CreateLogger(GetType());
         this.connection = connection;
     }
 
@@ -474,6 +474,21 @@ public abstract class Sql : IDisposable
 
     public virtual DataReaderResult? Query(string sql, params DatabaseParameterValue[] values) => QueryMultiple(sql, values).FirstOrDefault();
 
+    public DataReaderResult? Query(string sql, out Exception? exception, params DatabaseParameterValue[] values)
+    {
+        try
+        {
+            exception = null;
+            return Query(sql, values);
+        }
+        catch (Exception e)
+        {
+            log.LogDebug(e, "Error Executing SQL: {Sql}", sql);
+            exception = e;
+            return null;
+        }
+    }
+
     public virtual List<DataReaderResult> QueryMultiple(string sql, params DatabaseParameterValue[] values)
     {
         log.LogTrace(nameof(QueryMultiple) + ": {Sql}", sql);
@@ -488,6 +503,43 @@ public abstract class Sql : IDisposable
         var tpl = CreateCommand(sql, values);
         using var command = tpl.Item1;
         return command.ExecuteNonQuery();
+    }
+
+    public int NonQuery(string sql, out Exception? exception, params DatabaseParameterValue[] values)
+    {
+        try
+        {
+            exception = null;
+            return NonQuery(sql, values);
+        }
+        catch (Exception e)
+        {
+            log.LogDebug(e, "Error Executing SQL: {Sql}", sql);
+            exception = e;
+            return 0;
+        }
+    }
+
+
+
+    public List<object?[]> QueryObjects(string sql, params DatabaseParameterValue[] values)
+    {
+        var result = Query(sql, values);
+        return result == null ? new List<object?[]>() : new(result.Rows.Select(row => row.ToArray()));
+    }
+    public List<object?[]> QueryObjects(string sql, out Exception? exception, params DatabaseParameterValue[] values)
+    {
+        try
+        {
+            exception = null;
+            return QueryObjects(sql, values);
+        }
+        catch (Exception e)
+        {
+            log.LogDebug(e, "Error Executing SQL: {Sql}", sql);
+            exception = e;
+            return new();
+        }
     }
 
 

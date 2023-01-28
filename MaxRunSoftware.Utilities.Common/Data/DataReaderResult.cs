@@ -24,7 +24,7 @@ public class DataReaderResult
 
     public DataReaderResult(int index, IDataReader reader)
     {
-        Constant.GetLogger<DataReaderResult>().LogTrace("Reading " + nameof(DataReaderResult) + "[{Index}]", index);
+        //Constant.GetLogger<DataReaderResult>().LogTrace("Reading " + nameof(DataReaderResult) + "[{Index}]", index);
         Index = index;
         Columns = new DataReaderResultColumnCollection(reader, this); // Important to construct Columns before Rows
         Rows = new DataReaderResultRowCollection(reader, this);
@@ -246,15 +246,15 @@ public static class DataReaderResultRowExtensions
         var os = o.ToString().TrimOrNull();
         if (os == null) return default;
 
-        if (CONVERTERS.TryGetValue(returnType, out var converter)) return (T)converter(os);
+        if (CONVERTERS.TryGetValue(returnType, out var converter)) return (T?)converter(os);
 
         return (T)o;
     }
 
 
-    private static readonly Dictionary<Type, Func<string, object>> CONVERTERS = CreateConverters();
+    private static readonly Dictionary<Type, Func<string, object?>> CONVERTERS = CreateConverters();
 
-    private static Dictionary<Type, Func<string, object>> CreateConverters()
+    private static Dictionary<Type, Func<string, object?>> CreateConverters()
     {
         var d = new Dictionary<Type, Func<string, object?>>();
 
@@ -287,6 +287,6 @@ public static class DataReaderResultRowExtensions
 
         d.AddRange(o => o.ToGuid(), typeof(Guid), typeof(Guid?));
 
-        return new Dictionary<Type, Func<string, object>>(d);
+        return new (d);
     }
 }

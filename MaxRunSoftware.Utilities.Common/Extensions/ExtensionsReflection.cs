@@ -245,18 +245,18 @@ public static class ExtensionsReflection
 
     public static bool IsSettable(this FieldInfo info) => !info.IsLiteral && !info.IsInitOnly;
 
-    public static Func<object, object> CreateFieldGetter(this FieldInfo info)
+    public static Func<object?, object?> CreateFieldGetter(this FieldInfo info)
     {
         // https://stackoverflow.com/a/321686
         var instance = Expression.Parameter(typeof(object), "instance");
         var fieldExpr = info.IsStatic ? Expression.Field(null, info) : Expression.Field(Expression.Convert(instance, info.DeclaringType ?? throw new NullReferenceException()), info);
         var unaryExpression = Expression.TypeAs(fieldExpr, typeof(object));
-        var action = Expression.Lambda<Func<object, object>>(unaryExpression, instance).Compile();
+        var action = Expression.Lambda<Func<object?, object?>>(unaryExpression, instance).Compile();
         return action;
     }
 
 
-    public static Action<object, object> CreateFieldSetter(this FieldInfo info)
+    public static Action<object?, object?> CreateFieldSetter(this FieldInfo info)
     {
         // Can no longer write to 'readonly' field
         // https://stackoverflow.com/questions/934930/can-i-change-a-private-readonly-field-in-c-sharp-using-reflection#comment116393125_934942
@@ -269,7 +269,7 @@ public static class ExtensionsReflection
         var fieldExpr = info.IsStatic ? Expression.Field(null, info) : Expression.Field(Expression.Convert(instance, info.DeclaringType ?? throw new NullReferenceException()), info);
         var assignExp = Expression.Assign(fieldExpr, valueConverted);
 
-        var action = Expression.Lambda<Action<object, object>>(assignExp, instance, value).Compile();
+        var action = Expression.Lambda<Action<object?, object?>>(assignExp, instance, value).Compile();
         return action;
     }
 

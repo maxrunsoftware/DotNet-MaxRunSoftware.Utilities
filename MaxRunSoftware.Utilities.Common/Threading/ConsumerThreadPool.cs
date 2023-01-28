@@ -28,7 +28,9 @@ public class ConsumerThreadPool<T> : IDisposable
     private readonly Action<T> action;
     private readonly object locker = new();
     private readonly bool isBackgroundThread;
+    private readonly ILogger log;
     private volatile int threadCounter = 1;
+
     public bool IsDisposed { get; private set; }
 
     public bool IsComplete
@@ -59,7 +61,6 @@ public class ConsumerThreadPool<T> : IDisposable
         }
         set
         {
-            var log = Constant.GetLogger(GetType());
             var newCount = value;
             lock (locker)
             {
@@ -85,7 +86,6 @@ public class ConsumerThreadPool<T> : IDisposable
 
                         threads.Add(thread);
 
-                        //threadCounter++;
                         Interlocked.Increment(ref threadCounter);
 
                         log.LogDebug("{ThreadName}: Created and Started thread", threadName);
@@ -111,12 +111,15 @@ public class ConsumerThreadPool<T> : IDisposable
     }
 
     public string ThreadPoolName { get; }
+    private readonly ILoggerProvider loggerProvider;
 
-    public ConsumerThreadPool(Action<T> action, string? threadPoolName = null, bool isBackgroundThread = true)
+    public ConsumerThreadPool(Action<T> action, ILoggerProvider loggerProvider, string? threadPoolName = null, bool isBackgroundThread = true)
     {
         this.action = action.CheckNotNull(nameof(action));
         ThreadPoolName = threadPoolName.TrimOrNull() ?? GetType().FullNameFormatted();
         this.isBackgroundThread = isBackgroundThread;
+        this.loggerProvider = loggerProvider;
+        log = loggerProvider.CreateLogger(GetType());
     }
 
     private void CleanThreads()
@@ -124,7 +127,7 @@ public class ConsumerThreadPool<T> : IDisposable
         lock (locker) { threads.RemoveAll(o => o.IsCancelled || o.IsDisposed); }
     }
 
-    protected virtual ConsumerThread<T> CreateThread(Action<T> workToPerform) => new(queue, workToPerform);
+    protected virtual ConsumerThread<T> CreateThread(Action<T> workToPerform) => new(queue, workToPerform, loggerProvider);
 
     protected virtual void DestroyThread(ConsumerThread<T> consumerThread) => consumerThread.Cancel();
 

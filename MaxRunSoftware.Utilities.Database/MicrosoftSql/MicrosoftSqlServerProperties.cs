@@ -27,7 +27,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
 {
     private static readonly ImmutableArray<PropertySlim> PROPERTIES_QUERY = typeof(MicrosoftSqlServerProperties)
         .ToTypeSlim().GetPropertySlims(BindingFlags.Public | BindingFlags.Instance)
-        .Where(o => o.CanGetPublic)
+        .Where(o => o.IsGettablePublic)
         .Where(o => o.Name.NotIn(nameof(ServerOS)))
         .ToImmutableArray();
 

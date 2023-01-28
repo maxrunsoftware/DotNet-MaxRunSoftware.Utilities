@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Runtime.CompilerServices;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 public sealed class CallerInfo : ImmutableObjectBase<CallerInfo>
@@ -52,4 +54,9 @@ public sealed class CallerInfo : ImmutableObjectBase<CallerInfo>
         if (0 != (c = ArgumentExpression.Compare(other.ArgumentExpression))) return c;
         return 0;
     }
+
+    public static CallerInfo Get([CallerFilePath] string? filePath = null, [CallerLineNumber] int? lineNumber = null, [CallerMemberName] string? memberName = null) =>
+        new(callerFilePath: filePath, callerLineNumber: lineNumber, callerMemberName: memberName);
+
+    public static string? GetName([CallerMemberName] string? memberName = null) => memberName;
 }

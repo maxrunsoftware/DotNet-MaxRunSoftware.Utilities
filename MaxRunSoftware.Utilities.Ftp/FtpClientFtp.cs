@@ -1,11 +1,11 @@
 // Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,66 +14,81 @@
 
 using System.Net;
 using FluentFTP;
+using FluentFTP.Client.BaseClient;
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
-public class FtpClientFtpConfig
-{
-    public FtpClientFtpConfig()
-    {
-        FtpLog = Constant.GetLogger<FtpClient>();
-        FtpConfig = new FtpConfig
-        {
-            LogHost = true,
-            LogUserName = true,
-            LogPassword = false,
-            ReadTimeout = 1000 * 60,
-            DataConnectionReadTimeout = 1000 * 60,
-            ValidateAnyCertificate = true
-        };
-        FtpConfig.Clone();
-    }
-
-    public string Host { get; set; } = "localhost";
-    public ushort Port { get; set; } = 21;
-    public string? Username { get; set; }
-    public string? Password { get; set; }
-    public FtpConfig FtpConfig { get; set; }
-    public ILogger FtpLog { get; set; }
-}
-
 public class FtpClientFtp : FtpClientBase
 {
-    public FtpClientFtp(FtpClientFtpConfig config)
+    private class FtpClientLogger : IFtpLogger
     {
-        log = Constant.GetLogger<FtpClientFtp>();
+        private readonly ILogger log;
+        public FtpClientLogger(ILoggerProvider loggerProvider) => log = loggerProvider.CreateLogger<FtpClient>();
+
+        private static LogLevel ParseLevel(FtpTraceLevel ftpTraceLevel) => ftpTraceLevel switch
+        {
+            FtpTraceLevel.Verbose => LogLevel.Debug,
+            FtpTraceLevel.Info => LogLevel.Information,
+            FtpTraceLevel.Warn => LogLevel.Warning,
+            FtpTraceLevel.Error => LogLevel.Error,
+            _ => throw new ArgumentOutOfRangeException(nameof(ftpTraceLevel), ftpTraceLevel, null)
+        };
+
+        public void Log(FtpLogEntry entry) => log.Log(ParseLevel(entry.Severity), entry.Exception, "{Message}", entry.Message);
+    }
+
+    private readonly Func<FtpClientFtpRemoteCertificateInfo, bool> validateCertificate;
+    public FtpClientFtp(FtpClientFtpConfig config, ILoggerProvider loggerProvider) : base(loggerProvider)
+    {
+        log = loggerProvider.CreateLogger<FtpClientFtp>();
+
+        validateCertificate = config.ValidateCertificate;
+        var host = config.Host;
+        var port = config.Port;
+        var logger = new FtpClientLogger(loggerProvider);
 
         if (config.Username == null)
         {
             if (config.Password != null) throw new InvalidOperationException("Password specified but no Username specified");
-            client = new FtpClient(
-                config.Host,
-                config.Port,
-                config.FtpConfig.Clone()!,
-                config.FtpLog
+
+            client = new(
+                host: host,
+                port: port,
+                config: config.FtpConfig,
+                logger: logger
             );
         }
         else
         {
-            client = new FtpClient(
-                config.Host,
-                port: config.Port,
+            client = new(
+                host: host,
+                port: port,
                 user: config.Username,
                 pass: config.Password ?? string.Empty,
-                config: config.FtpConfig.Clone()!,
-                logger: config.FtpLog
+                config: config.FtpConfig,
+                logger: logger
             );
         }
+
+        void ValidateCertificate(BaseFtpClient _, FtpSslValidationEventArgs args)
+        {
+            var rc = new FtpClientFtpRemoteCertificateInfo(this, config, args);
+            rc.Log(loggerProvider, host, port);
+            var isValid = validateCertificate(rc);
+            log.LogDebug("Certificate validated as {CertificateIsValid}", isValid);
+            args.Accept = isValid;
+        }
+
+        client.ValidateCertificate += ValidateCertificate;
 
         log.LogDebug("Connecting to FTP server {Host}:{Port} with username '{Username}'", config.Host, config.Port, config.Username);
         client.Connect();
         log.LogDebug("Successfully connected to FTP server {Host}:{Port} with username '{Username}'", config.Host, config.Port, config.Username);
+
+        directorySeparator = config.DirectorySeparator;
+        if (config.WorkingDirectory != null) WorkingDirectory = config.WorkingDirectory;
     }
+
 
     private readonly ILogger log;
 
@@ -82,20 +97,36 @@ public class FtpClientFtp : FtpClientBase
 
     protected override string GetServerInfo() => Client.ServerOS + " : " + Client.ServerType;
 
-    public override string WorkingDirectory => Client.GetWorkingDirectory() ?? "/";
+    protected override string GetWorkingDirectory() => Client.GetWorkingDirectory() ?? DirectorySeparator;
+    protected override void SetWorkingDirectory(string directory) => Client.SetWorkingDirectory(directory);
 
-    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) => Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new FtpClientProgress { Progress = (Percent)progress.Progress, BytesTransferred = progress.TransferredBytes }));
+    private readonly string directorySeparator;
+    protected override string GetDirectorySeparator() => directorySeparator;
+
+    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) =>
+        Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new()
+        {
+            Progress = (Percent)progress.Progress,
+            BytesTransferred = progress.TransferredBytes
+        }));
 
     protected override void PutFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
     {
-        Action<FtpProgress> ftpProgressHandler = progress => handlerProgress(new FtpClientProgress { Progress = (Percent)progress.Progress, BytesTransferred = progress.TransferredBytes });
+        Action<FtpProgress> ftpProgressHandler = progress => handlerProgress(new()
+        {
+            Progress = (Percent)progress.Progress,
+            BytesTransferred = progress.TransferredBytes
+        });
 
         try
         {
             Client.UploadStream(localStream, remoteFile, progress: ftpProgressHandler);
             return;
         }
-        catch (Exception e) { log.LogWarning(e, "Error putting file using security protocol, retrying with all known security protocols"); }
+        catch (Exception e)
+        {
+            log.LogWarning(e, "Error putting file using security protocol, retrying with all known security protocols");
+        }
 
         try
         {
@@ -109,25 +140,37 @@ public class FtpClientFtp : FtpClientBase
         }
     }
 
-    protected override void ListFiles(string? remotePath, List<FtpClientRemoteFile> fileList)
+    public override void CreateDirectory(string remotePath) => throw new NotImplementedException();
+    protected override void DeleteDirectoryInternal(string remotePath) => throw new NotImplementedException();
+
+    protected override void ListObjects(string? remotePath, List<FtpClientRemoteFileSystemObject> list)
     {
-        foreach (var file in (remotePath.TrimOrNull() == null ? Client.GetListing() : Client.GetListing(remotePath!)).OrEmpty())
+        FtpListItem?[]? items;
+        if (string.IsNullOrWhiteSpace(remotePath))
+        {
+            items = Client.GetListing();
+        }
+        else
+        {
+            items = Client.GetListing(remotePath);
+        }
+        foreach (var file in items.OrEmpty())
         {
             if (file == null) continue;
             var name = file.Name;
             if (name == null) continue;
             var fullName = file.FullName ?? name;
-            if (!fullName.StartsWith("/")) fullName = "/" + fullName;
+            if (!fullName.StartsWith(DirectorySeparator)) fullName = DirectorySeparator + fullName;
 
             var type = file.Type switch
             {
-                FtpObjectType.Directory => FtpClientRemoteFileType.Directory,
-                FtpObjectType.File => FtpClientRemoteFileType.File,
-                FtpObjectType.Link => FtpClientRemoteFileType.Link,
-                _ => FtpClientRemoteFileType.Unknown
+                FtpObjectType.Directory => FtpClientRemoteFileSystemObjectType.Directory,
+                FtpObjectType.File => FtpClientRemoteFileSystemObjectType.File,
+                FtpObjectType.Link => FtpClientRemoteFileSystemObjectType.Link,
+                _ => FtpClientRemoteFileSystemObjectType.Unknown
             };
 
-            fileList.Add(new FtpClientRemoteFile(name, fullName, type));
+            list.Add(new(name, fullName, type));
         }
     }
 
@@ -145,15 +188,27 @@ public class FtpClientFtp : FtpClientBase
 
         if (c == null) return;
 
-        try { c.Disconnect(); }
-        catch (Exception e) { log.LogWarning(e, "Error disconnecting from server"); }
+        try
+        {
+            c.Disconnect();
+        }
+        catch (Exception e)
+        {
+            log.LogWarning(e, "Error disconnecting from server");
+        }
 
-        try { c.Dispose(); }
-        catch (Exception e) { log.LogWarning(e, "Error disposing of {Object}", c.GetType().FullNameFormatted()); }
+        try
+        {
+            c.Dispose();
+        }
+        catch (Exception e)
+        {
+            log.LogWarning(e, "Error disposing of {Object}", c.GetType().FullNameFormatted());
+        }
     }
 
 
-    protected override bool ExistsFile(string remoteFile) => Client.FileExists(remoteFile);
+    protected override bool FileExistsInternal(string remoteFile) => Client.FileExists(remoteFile);
 
-    protected override bool ExistsDirectory(string remoteDirectory) => Client.DirectoryExists(remoteDirectory);
+    protected override bool DirectoryExistsInternal(string remoteDirectory) => Client.DirectoryExists(remoteDirectory);
 }

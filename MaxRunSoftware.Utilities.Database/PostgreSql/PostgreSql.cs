@@ -23,8 +23,8 @@ public class PostgreSql : Sql
 {
     public static NpgsqlConnection CreateConnection(string connectionString) => new(connectionString);
 
-    public PostgreSql(string connectionString) : this(CreateConnection(connectionString)) { }
-    public PostgreSql(IDbConnection connection) : base(connection)
+    public PostgreSql(string connectionString, ILoggerProvider loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
+    public PostgreSql(IDbConnection connection, ILoggerProvider loggerProvider) : base(connection, loggerProvider)
     {
         DefaultDataTypeString = DatabaseTypes.Get(PostgreSqlType.Text).TypeName;
         DefaultDataTypeInteger = DatabaseTypes.Get(PostgreSqlType.Integer).TypeName;

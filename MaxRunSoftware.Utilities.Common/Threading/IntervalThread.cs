@@ -41,4 +41,5 @@ public abstract class IntervalThread : ThreadBase
     }
 
     protected abstract void WorkInterval();
+    protected IntervalThread(ILoggerProvider loggerProvider) : base(loggerProvider) { }
 }

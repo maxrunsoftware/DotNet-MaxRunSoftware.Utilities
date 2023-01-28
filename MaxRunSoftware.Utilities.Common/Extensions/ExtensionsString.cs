@@ -26,6 +26,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str">The string</param>
     /// <returns>The hashcode</returns>
+    [Pure]
     public static int GetHashCodeCaseSensitive(this string? str) => str == null ? 0 : StringComparer.Ordinal.GetHashCode(str);
 
     /// <summary>
@@ -33,6 +34,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str">The string</param>
     /// <returns>The hashcode</returns>
+    [Pure]
     public static int GetHashCodeCaseInsensitive(this string? str) => str == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(str);
 
     /// <summary>
@@ -40,6 +42,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str">The string</param>
     /// <returns>The string without the first character</returns>
+    [Pure]
     public static string RemoveLeft(this string str) => RemoveLeft(str, out _);
 
     /// <summary>
@@ -48,6 +51,7 @@ public static class ExtensionsString
     /// <param name="str"></param>
     /// <param name="c"></param>
     /// <returns></returns>
+    [Pure]
     public static string RemoveLeft(this string str, out char c)
     {
         if (str.Length == 0)
@@ -68,6 +72,7 @@ public static class ExtensionsString
     /// <param name="str"></param>
     /// <param name="numberOfCharactersToRemove"></param>
     /// <returns></returns>
+    [Pure]
     public static string RemoveLeft(this string str, int numberOfCharactersToRemove) => numberOfCharactersToRemove.CheckMin(1) >= str.Length ? string.Empty : str.Substring(numberOfCharactersToRemove);
 
     /// <summary>
@@ -76,6 +81,7 @@ public static class ExtensionsString
     /// <param name="str"></param>
     /// <param name="numberOfCharactersToRemove"></param>
     /// <returns></returns>
+    [Pure]
     public static string RemoveRight(this string str, int numberOfCharactersToRemove) => numberOfCharactersToRemove.CheckMin(1) >= str.Length ? string.Empty : str.Substring(0, str.Length - numberOfCharactersToRemove);
 
     /// <summary>
@@ -83,6 +89,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str"></param>
     /// <returns></returns>
+    [Pure]
     public static string RemoveRight(this string str) => RemoveRight(str, out _);
 
     /// <summary>
@@ -91,6 +98,7 @@ public static class ExtensionsString
     /// <param name="str"></param>
     /// <param name="c"></param>
     /// <returns></returns>
+    [Pure]
     public static string RemoveRight(this string str, out char c)
     {
         if (str.Length == 0)
@@ -113,12 +121,14 @@ public static class ExtensionsString
     /// <param name="stringToSearchFor"></param>
     /// <param name="comparison"></param>
     /// <returns></returns>
+    [Pure]
     public static int CountOccurrences(this string str, string stringToSearchFor, StringComparison? comparison = null)
     {
         str.Remove(stringToSearchFor, out var num, comparison);
         return num;
     }
 
+    [Pure]
     public static string ReplaceAt(this string input, int index, char newChar)
     {
         var chars = input.CheckNotNull(nameof(input)).ToCharArray();
@@ -126,6 +136,7 @@ public static class ExtensionsString
         return new string(chars);
     }
 
+    [Pure]
     public static string Remove(this string str, string toRemove, out int itemsRemoved, StringComparison? comparison = null)
     {
         // https://stackoverflow.com/q/541954
@@ -136,8 +147,10 @@ public static class ExtensionsString
         return strRemoved;
     }
 
+    [Pure]
     public static string Remove(this string str, string toRemove) => Remove(str, toRemove, out _);
 
+    [Pure]
     public static string Right(this string str, int characterCount)
     {
         characterCount.CheckMin(0);
@@ -145,6 +158,7 @@ public static class ExtensionsString
         return str.Substring(str.Length - characterCount, characterCount);
     }
 
+    [Pure]
     public static string Left(this string str, int characterCount)
     {
         characterCount.CheckMin(0);
@@ -163,6 +177,7 @@ public static class ExtensionsString
     // character in anyOf was found; -1 if no character in anyOf was found.
     //
     // Exceptions: T:System.ArgumentNullException: anyOf is null.
+    [Pure]
     public static int IndexOfAny(this string str, params char[] chars) => str.IndexOfAny(chars);
 
     #endregion IndexOfAny
@@ -176,6 +191,7 @@ public static class ExtensionsString
     /// <param name="subStrings">The strings to seek</param>
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAny(this string str, params string[] subStrings) => ContainsAny(str, default, subStrings);
 
     /// <summary>
@@ -187,6 +203,7 @@ public static class ExtensionsString
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
     /// <returns></returns>
+    [Pure]
     public static bool ContainsAny(this string str, StringComparison stringComparison, params string[] subStrings) => subStrings.Any(subString => str.Contains(subString, stringComparison));
 
     /// <summary>
@@ -196,6 +213,7 @@ public static class ExtensionsString
     /// <param name="subStrings">The strings to seek</param>
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAny(this string str, IEnumerable<string> subStrings) => ContainsAny(str, default, subStrings);
 
     /// <summary>
@@ -207,6 +225,7 @@ public static class ExtensionsString
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
     /// <returns></returns>
+    [Pure]
     public static bool ContainsAny(this string str, StringComparison stringComparison, IEnumerable<string> subStrings) => subStrings.Any(subString => str.Contains(subString, stringComparison));
 
     /// <summary>
@@ -216,6 +235,7 @@ public static class ExtensionsString
     /// <param name="chars">The characters to seek</param>
     /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAny(this string str, params char[] chars) => ContainsAny(str, (IEnumerable<char>)chars);
 
     /// <summary>
@@ -225,6 +245,7 @@ public static class ExtensionsString
     /// <param name="chars">The characters to seek</param>
     /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAny(this string str, IEnumerable<char> chars) => ContainsAny(str, chars as ISet<char> ?? new HashSet<char>(chars));
 
     /// <summary>
@@ -234,6 +255,7 @@ public static class ExtensionsString
     /// <param name="chars">The characters to seek</param>
     /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAny(this string str, ISet<char> chars)
     {
         var cs = str.ToCharArray();
@@ -256,6 +278,7 @@ public static class ExtensionsString
     /// <param name="subStrings">The strings to seek</param>
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAll(this string str, params string[] subStrings) => ContainsAll(str, default, subStrings);
 
     /// <summary>
@@ -267,6 +290,7 @@ public static class ExtensionsString
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
     /// <returns></returns>
+    [Pure]
     public static bool ContainsAll(this string str, StringComparison stringComparison, params string[] subStrings) => subStrings.All(subString => str.Contains(subString, stringComparison));
 
     /// <summary>
@@ -276,6 +300,7 @@ public static class ExtensionsString
     /// <param name="subStrings">The strings to seek</param>
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAll(this string str, IEnumerable<string> subStrings) => ContainsAll(str, default, subStrings);
 
     /// <summary>
@@ -287,6 +312,7 @@ public static class ExtensionsString
     /// <returns>true if the value parameter occurs within this string, or if value is the empty string (""); otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
     /// <returns></returns>
+    [Pure]
     public static bool ContainsAll(this string str, StringComparison stringComparison, IEnumerable<string> subStrings) => subStrings.All(subString => str.Contains(subString, stringComparison));
 
     /// <summary>
@@ -296,6 +322,7 @@ public static class ExtensionsString
     /// <param name="chars">The characters to seek</param>
     /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAll(this string str, params char[] chars) => ContainsAll(str, (IEnumerable<char>)chars);
 
     /// <summary>
@@ -305,6 +332,7 @@ public static class ExtensionsString
     /// <param name="chars">The characters to seek</param>
     /// <returns>true if the value parameter occurs within this string; otherwise, false.</returns>
     /// <exception cref="T:System.ArgumentNullException">str is null.</exception>
+    [Pure]
     public static bool ContainsAll(this string str, IEnumerable<char> chars)
     {
         var charsSet = chars.OrEmpty().ToHashSet();
@@ -327,6 +355,7 @@ public static class ExtensionsString
 
     #endregion ContainsAll
 
+    [Pure]
     public static bool ContainsWhiteSpace(this string str)
     {
         var chars = str.ToCharArray();
@@ -339,8 +368,10 @@ public static class ExtensionsString
     }
 
 
+    [Pure]
     public static string EscapeHtml(this string unescaped) => WebUtility.HtmlEncode(unescaped);
 
+    [Pure]
     public static string Capitalize(this string str)
     {
         if (str.Length == 0) return str;
@@ -350,6 +381,7 @@ public static class ExtensionsString
 
     #region Equals
 
+    [Pure]
     public static bool Equals(this string str, string other, StringComparer? comparer)
     {
         var ec = comparer ?? (IEqualityComparer<string>)EqualityComparer<string>.Default;
@@ -357,6 +389,7 @@ public static class ExtensionsString
         return ec.Equals(str, other);
     }
 
+    [Pure]
     public static bool Equals(this string str, string[] others, out string? match, StringComparer? comparer)
     {
         var ec = comparer ?? (IEqualityComparer<string>)EqualityComparer<string>.Default;
@@ -374,18 +407,25 @@ public static class ExtensionsString
         return false;
     }
 
+    [Pure]
     public static bool EqualsCaseSensitive(this string str, string other) => Equals(str, other, StringComparer.Ordinal);
 
+    [Pure]
     public static bool EqualsCaseSensitive(this string str, string[] others, out string? match) => Equals(str, others, out match, StringComparer.Ordinal);
 
+    [Pure]
     public static bool EqualsCaseSensitive(this string str, string[] others) => Equals(str, others, out _, StringComparer.Ordinal);
 
+    [Pure]
     public static bool EqualsIgnoreCase(this string str, string other) => Equals(str, other, StringComparer.OrdinalIgnoreCase);
 
+    [Pure]
     public static bool EqualsIgnoreCase(this string str, string[] others, out string? match) => Equals(str, others, out match, StringComparer.OrdinalIgnoreCase);
 
+    [Pure]
     public static bool EqualsIgnoreCase(this string str, string[] others) => Equals(str, others, out _, StringComparer.OrdinalIgnoreCase);
 
+    [Pure]
     public static bool EqualsWildcard(this string? text, string? wildcardString)
     {
         // https://bitbucket.org/hasullivan/fast-wildcard-matching/src/7457d0dc1aee5ecd373f7c8a7785d5891b416201/FastWildcardMatching/WildcardMatch.cs?at=master&fileviewer=file-view-default
@@ -610,12 +650,14 @@ public static class ExtensionsString
 
     #region NewLine
 
+    [Pure]
     public static string[] SplitOnNewline(this string str, StringSplitOptions options = StringSplitOptions.None) => str.Split(new[] { Constant.NewLine_Windows, Constant.NewLine_Unix, Constant.NewLine_Mac }, options);
 
     #endregion NewLine
 
     #region WhiteSpace
 
+    [Pure]
     public static string[] SplitOnWhiteSpace(this string str, StringSplitOptions options = StringSplitOptions.None)
     {
         var list = new List<string>();
@@ -659,6 +701,7 @@ public static class ExtensionsString
         return str;
     }
 
+    [Pure]
     public static string?[] TrimOrNull(this string?[]? strings)
     {
         if (strings == null) return Array.Empty<string>();
@@ -668,6 +711,7 @@ public static class ExtensionsString
         return stringsNew;
     }
 
+    [Pure]
     public static List<string?> TrimOrNull(this List<string?>? strings)
     {
         if (strings == null) return new List<string?>();
@@ -676,10 +720,13 @@ public static class ExtensionsString
         return l;
     }
 
+    [Pure]
     public static IEnumerable<string?> TrimOrNull(this IEnumerable<string?> strings) => strings.OrEmpty().Select(o => o.TrimOrNull());
 
+    [Pure]
     public static string? TrimOrNullUpper(this string? str) => str.TrimOrNull()?.ToUpper();
 
+    [Pure]
     public static string? TrimOrNullLower(this string? str) => str.TrimOrNull()?.ToLower();
 
     /// <summary>
@@ -699,6 +746,7 @@ public static class ExtensionsString
 
     #endregion TrimOrNull
 
+    [Pure]
     public static char FindUnusedCharacter(this string str)
     {
         if (str == null) throw new ArgumentNullException(nameof(str));
@@ -723,6 +771,7 @@ public static class ExtensionsString
     /// <summary>Attempts to identity which NewLine character a string uses.</summary>
     /// <param name="str">String to search</param>
     /// <returns>The newline identified</returns>
+    [Pure]
     public static string IdentifyNewLine(this string? str)
     {
         var nl = Environment.NewLine;
@@ -767,6 +816,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="str">The string to guess</param>
     /// <returns>The best found Type or string type if a best guess couldn't be found</returns>
+    [Pure]
     public static Type GuessType(this string str) => GuessType(str.CheckNotNull(nameof(str)).Yield());
 
     /// <summary>
@@ -774,6 +824,7 @@ public static class ExtensionsString
     /// </summary>
     /// <param name="strings">The strings to guess on</param>
     /// <returns>The best found Type or string type if a best guess couldn't be found</returns>
+    [Pure]
     public static Type GuessType(this IEnumerable<string?> strings)
     {
         strings.CheckNotNull(nameof(strings));
@@ -830,29 +881,31 @@ public static class ExtensionsString
 
     #region EndsWithAny
 
-    public static bool EndsWithAny(this string str, params string[] strings) => EndsWithAny(str, StringComparison.CurrentCulture, strings);
 
-    public static bool EndsWithAny(this string str, StringComparison comparison, params string[] strings) => strings.OrEmpty().Any(s => str.EndsWith(s, comparison));
+    [Pure] public static bool EndsWithAny(this string str, params string[] strings) => EndsWithAny(str, StringComparison.CurrentCulture, strings);
 
-    public static bool EndsWithAny(this string str, IEnumerable<string> strings) => EndsWithAny(str, StringComparison.CurrentCulture, strings);
+    [Pure] public static bool EndsWithAny(this string str, StringComparison comparison, params string[] strings) => strings.OrEmpty().Any(s => str.EndsWith(s, comparison));
 
-    public static bool EndsWithAny(this string str, StringComparison comparison, IEnumerable<string> strings) => strings.OrEmpty().Any(s => str.EndsWith(s, comparison));
+    [Pure] public static bool EndsWithAny(this string str, IEnumerable<string> strings) => EndsWithAny(str, StringComparison.CurrentCulture, strings);
+
+    [Pure] public static bool EndsWithAny(this string str, StringComparison comparison, IEnumerable<string> strings) => strings.OrEmpty().Any(s => str.EndsWith(s, comparison));
 
     #endregion EndsWithAny
 
     #region StartsWithAny
 
-    public static bool StartsWithAny(this string str, params string[] strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
-    public static bool StartsWithAny(this string str, ImmutableArray<string> strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
-    public static bool StartsWithAny(this string str, StringComparison comparison, params string[] strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
-    public static bool StartsWithAny(this string str, StringComparison comparison, ImmutableArray<string> strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
-    public static bool StartsWithAny(this string str, IEnumerable<string> strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
-    public static bool StartsWithAny(this string str, StringComparison comparison, IEnumerable<string> strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
+    [Pure] public static bool StartsWithAny(this string str, params string[] strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
+    [Pure] public static bool StartsWithAny(this string str, ImmutableArray<string> strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
+    [Pure] public static bool StartsWithAny(this string str, StringComparison comparison, params string[] strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
+    [Pure] public static bool StartsWithAny(this string str, StringComparison comparison, ImmutableArray<string> strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
+    [Pure] public static bool StartsWithAny(this string str, IEnumerable<string> strings) => StartsWithAny(str, StringComparison.CurrentCulture, strings);
+    [Pure] public static bool StartsWithAny(this string str, StringComparison comparison, IEnumerable<string> strings) => strings.OrEmpty().Any(s => str.StartsWith(s, comparison));
 
     #endregion StartsWithAny
 
     #region Split
 
+    [Pure]
     public static string[] SplitIntoParts(this string str, int numberOfParts)
     {
         if (numberOfParts < 1) numberOfParts = 1;
@@ -876,7 +929,7 @@ public static class ExtensionsString
         return newArray;
     }
 
-    public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
+    [Pure] public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
 
     /// <summary>
     /// This regex (^[a-z]+|[A-Z]+(?![a-z])|[A-Z][a-z]+) can be used to extract all words from the camelCase or PascalCase name.
@@ -889,6 +942,7 @@ public static class ExtensionsString
     /// <param name="str">string to split</param>
     /// <returns>split string</returns>
     /// <see href="https://stackoverflow.com/a/37532157" />
+    [Pure]
     public static string[] SplitOnCamelCase(this string? str)
     {
         if (str == null) return Array.Empty<string>();
@@ -904,11 +958,11 @@ public static class ExtensionsString
         return words;
     }
 
-    public static string[] Split(this string str, IEnumerable<string> stringsToSplitOn) => str.Split(stringsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] Split(this string str, IEnumerable<string> stringsToSplitOn) => str.Split(stringsToSplitOn.ToArray(), StringSplitOptions.None);
 
-    public static string[] Split(this string str, ImmutableArray<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] Split(this string str, ImmutableArray<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
 
-    public static string[] Split(this string str, ImmutableHashSet<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] Split(this string str, ImmutableHashSet<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
 
     #endregion Split
 
@@ -919,6 +973,7 @@ public static class ExtensionsString
 
     private static readonly string[] SPLIT_DELIMITED_TAB_ARRAY = { "\t" };
 
+    [Pure]
     public static List<string?[]> SplitDelimitedComma(this string? text)
     {
         var result = new List<string?[]>();
@@ -942,6 +997,7 @@ public static class ExtensionsString
         return result;
     }
 
+    [Pure]
     public static List<string?[]> SplitDelimitedTab(this string? text)
     {
         var result = new List<string?[]>();

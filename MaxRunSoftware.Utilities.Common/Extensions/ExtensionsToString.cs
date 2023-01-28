@@ -81,16 +81,73 @@ public static class ExtensionsToString
             DateTimeToStringFormat.ISO_8601 => dateTime.ToString("o", CultureInfo.InvariantCulture),
             DateTimeToStringFormat.YYYY_MM_DD => dateTime.ToString("yyyy-MM-dd"),
             DateTimeToStringFormat.YYYY_MM_DD_HH_MM_SS => dateTime.ToString("yyyy-MM-dd HH:mm:ss"),
+            DateTimeToStringFormat.HH_MM_SS => dateTime.ToString("HH:mm:ss"),
+            DateTimeToStringFormat.HH_MM_SS_FFF => dateTime.ToString("HH:mm:ss.fff"),
             _ => throw new NotImplementedException(nameof(DateTimeToStringFormat) + "." + format + " is not implemented")
         };
 
-    public static string? ToStringGuessFormat(this object? obj)
+    private sealed class ToStringGuessFormatGetLength
+    {
+        private readonly SlimObj? slimObj;
+
+        // ReSharper disable once NotAccessedPositionalProperty.Local
+        private record SlimObj(object Slim, string Name, Type Type, Func<object?, object?> GetValue);
+
+        public ToStringGuessFormatGetLength(Type type)
+        {
+
+            var slimProperties = type.GetPropertySlims(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => o.IsGettablePublic)
+                .Where(o => Constant.Types_Numeric.Contains(o.Type))
+                .Select(o => new SlimObj(o, o.Name, o.Type, o.GetValue))
+                .ToArray();
+
+            var slimFields = type.GetFieldSlims(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => Constant.Types_Numeric.Contains(o.Type))
+                .Select(o => new SlimObj(o, o.Name, o.Type, o.GetValue))
+                .ToArray();
+
+            const string nameCount = nameof(ICollection.Count);
+            const string nameLength = nameof(Array.Length);
+
+            slimObj =
+                null
+                ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(int))
+                ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(long))
+                ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(int))
+                ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(long))
+
+                ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(int?))
+                ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(long?))
+                ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(int?))
+                ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(long?))
+
+                ?? null
+                ;
+        }
+
+        public long? GetValue(object instance) => slimObj?.GetValue(instance) as long?;
+        public bool HasProperty => slimObj != null;
+    }
+    // ReSharper disable once InconsistentNaming
+    private static readonly TypeCacheWeak<ToStringGuessFormatGetLength> toStringGuessFormatCount = new ();
+    public static string? ToStringGuessFormat(this object? obj) => ToStringGuessFormat(obj, false);
+
+    public static string? ToStringGuessFormat(this object? obj, bool showEnumerableValues)
     {
         if (obj == null) return null;
         if (obj == DBNull.Value) return null;
         if (obj is string objString) return objString;
         if (obj is DateTime objDateTime) return objDateTime.ToString(DateTimeToStringFormat.ISO_8601);
-        if (obj is byte[] objBytes) return "0x" + Util.Base16(objBytes);
+        //if (obj is byte[] objBytes) return "0x" + Util.Base16(objBytes);
+        //if (obj is MemoryStream objMemoryStream) return obj.GetType().FullNameFormatted() + $"[{objMemoryStream.Length}]";
+        if (obj is Stream objStream)
+        {
+            try
+            {
+                return obj.GetType().FullNameFormatted() + $"[{objStream.Length}]";
+            } catch (Exception) {}
+        }
         if (obj is Type objType) return objType.FullNameFormatted();
 
         var t = obj.GetType();
@@ -98,7 +155,19 @@ public static class ExtensionsToString
 
         if (t == typeof(DateTime?)) return ((DateTime?)obj).Value.ToString(DateTimeToStringFormat.ISO_8601);
 
-        if (obj is IEnumerable enumerable) return enumerable.ToStringItems();
+
+        if (obj is IEnumerable enumerable)
+        {
+            var name = (t.IsArray ? t.GetElementType() ?? t : t).FullNameFormatted();
+            if (showEnumerableValues)
+            {
+                return name + enumerable.ToStringItems();
+            }
+
+            var getLengthFunc = toStringGuessFormatCount.GetValue(t, tt => new(tt));
+            if (getLengthFunc.HasProperty) return $"{name}[" + (getLengthFunc.GetValue(obj)?.ToString() ?? "?") + "]";
+            //return $"{name}[?]";
+        }
 
         return obj.ToString();
     }
@@ -159,5 +228,7 @@ public enum DateTimeToStringFormat
     ISO_8601,
     YYYY_MM_DD,
     YYYY_MM_DD_HH_MM_SS,
+    HH_MM_SS,
+    HH_MM_SS_FFF,
     // ReSharper restore InconsistentNaming
 }

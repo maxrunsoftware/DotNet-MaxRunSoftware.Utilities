@@ -586,6 +586,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     public bool RequireAwait { get; set; }
   }
 
+  /*
   /// <summary>
   /// Indicates that a method does not make any observable state changes.
   /// The same as <c>System.Diagnostics.Contracts.PureAttribute</c>.
@@ -599,6 +600,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method)]
   public sealed class PureAttribute : Attribute { }
+  */
 
   /// <summary>
   /// Indicates that the return value of the method invocation must be used.

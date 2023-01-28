@@ -325,9 +325,9 @@ public static partial class Util
         private readonly ILogger log;
         private readonly string path;
 
-        public TempDirectory(string path)
+        public TempDirectory(string path, ILoggerProvider? loggerProvider)
         {
-            log = Constant.GetLogger(GetType());
+            log = loggerProvider.CreateLoggerNullable(GetType());
             log.LogDebug("Creating temporary directory {Path}", path);
             Directory.CreateDirectory(path);
             this.path = path;
@@ -353,9 +353,9 @@ public static partial class Util
         private readonly ILogger log;
         private readonly string path;
 
-        public TempFile(string path)
+        public TempFile(string path, ILoggerProvider? loggerProvider)
         {
-            log = Constant.GetLogger(GetType());
+            log = loggerProvider.CreateLoggerNullable(GetType());
             log.LogDebug("Creating temporary file {Path}", path);
             File.WriteAllBytes(path, Array.Empty<byte>());
             this.path = path;
@@ -376,7 +376,7 @@ public static partial class Util
         }
     }
 
-    public static IDisposable CreateTempDirectory(string basePath, out string path)
+    public static IDisposable CreateTempDirectory(string basePath, out string path, ILoggerProvider? loggerProvider = null)
     {
         lock (lockTemp)
         {
@@ -384,25 +384,37 @@ public static partial class Util
             string p;
             do { p = Path.GetFullPath(Path.Combine(parentDir, Path.GetRandomFileName())); } while (Directory.Exists(p));
 
-            var t = new TempDirectory(p);
+            var t = new TempDirectory(p, loggerProvider: loggerProvider);
             path = p;
             return t;
         }
     }
 
-    public static IDisposable CreateTempDirectory(string basePath, string directoryName)
+    public static IDisposable CreateTempDirectory(string basePath, string directoryName, ILoggerProvider? loggerProvider = null)
     {
-        lock (lockTemp) { return CreateTempDirectory(Path.GetFullPath(Path.Combine(basePath, directoryName))); }
+        lock (lockTemp)
+        {
+            return CreateTempDirectory(
+                Path.GetFullPath(Path.Combine(basePath, directoryName)),
+                loggerProvider: loggerProvider
+            );
+        }
     }
 
-    public static IDisposable CreateTempDirectory(string path)
+    public static IDisposable CreateTempDirectory(string path, ILoggerProvider? loggerProvider = null)
     {
-        lock (lockTemp) { return new TempDirectory(Path.GetFullPath(path)); }
+        lock (lockTemp)
+        {
+            return new TempDirectory(
+                Path.GetFullPath(path),
+                loggerProvider: loggerProvider
+                );
+        }
     }
 
-    public static IDisposable CreateTempDirectory(out string path) => CreateTempDirectory(Path.GetTempPath(), out path);
+    public static IDisposable CreateTempDirectory(out string path, ILoggerProvider? loggerProvider = null) => CreateTempDirectory(Path.GetTempPath(), out path, loggerProvider: loggerProvider);
 
-    public static IDisposable CreateTempFile(out string path)
+    public static IDisposable CreateTempFile(out string path, ILoggerProvider? loggerProvider = null)
     {
         lock (lockTemp)
         {
@@ -410,7 +422,7 @@ public static partial class Util
             string p;
             do { p = Path.GetFullPath(Path.Combine(parentDir, Path.GetRandomFileName())); } while (File.Exists(p));
 
-            var t = new TempFile(p);
+            var t = new TempFile(p, loggerProvider: loggerProvider);
             path = p;
             return t;
         }

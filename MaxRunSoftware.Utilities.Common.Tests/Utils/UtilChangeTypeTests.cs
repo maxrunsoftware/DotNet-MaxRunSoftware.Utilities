@@ -177,21 +177,6 @@ public class UtilChangeTypeTests : TestBase
     }
 
     [Fact]
-    public void TestPrintStuff()
-    {
-        var example  = "public static Type[] GenericTypes<T1, T2, T3>() => new[] { typeof(T1), typeof(T2), typeof(T3) };";
-        var template = "public static Type[] GenericTypes<x1>() => new[] { x2 };";
-        for(var i=1; i<=64; i++) {
-            var x1 = string.Join(", ", Enumerable.Range(1, 64).Select(i => $"T{i}"));
-            var x2 = string.Join(", ", Enumerable.Range(1, 64).Select(i => $"typeof(T{i})"));
-            var s = template;
-            s = s.Replace("x1", x1);
-            s = s.Replace("x2", x2);
-            output.WriteLine(s);
-        }
-    }
-
-    [Fact]
     public void CastImplicit()
     {
         //var tc = new TypeConverter();

@@ -72,7 +72,7 @@ public abstract class DatabaseServerProperties
     public virtual List<(PropertySlim Property, string Value)> ToStringProperties() =>
         GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Select(o => o.ToPropertySlim())
-            .Where(o => o.CanGetPublic)
+            .Where(o => o.IsGettablePublic)
             .Select(p => (p, p.GetValue(this).ToStringGuessFormat() ?? string.Empty))
             .ToList();
 

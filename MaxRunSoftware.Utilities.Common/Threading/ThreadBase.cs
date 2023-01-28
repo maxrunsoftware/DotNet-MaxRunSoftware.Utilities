@@ -36,9 +36,9 @@ public abstract class ThreadBase : IDisposable
     public Exception? Exception { get; protected set; }
 
     protected readonly ILogger log;
-    protected ThreadBase()
+    protected ThreadBase(ILoggerProvider loggerProvider)
     {
-        log = Constant.GetLogger(GetType());
+        log = loggerProvider.CreateLogger(GetType());
         isStarted = new SingleUse(Locker);
         isDisposed = new SingleUse(Locker);
         thread = new Thread(WorkPrivate);

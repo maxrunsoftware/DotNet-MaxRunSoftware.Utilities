@@ -119,9 +119,12 @@ public sealed class AssemblySlim :
 
     #region Static
 
-    public HashSet<AssemblySlim> GetReferencedAssemblies()
+    public HashSet<AssemblySlim> GetReferencedAssemblies(ILoggerProvider? loggerProvider = null) => GetReferencedAssemblies(out _, loggerProvider);
+    public HashSet<AssemblySlim> GetReferencedAssemblies(out (AssemblyName ReferencedAssemblyName, Exception Exception)[] exceptions, ILoggerProvider? loggerProvider = null)
     {
         var hs = new HashSet<AssemblySlim>();
+        var eList = new List<(AssemblyName ReferencedAssemblyName, Exception Exception)>();
+        var log = loggerProvider.CreateLoggerNullable(GetType());
         var referencedAssemblyNames = Assembly.GetReferencedAssemblies();
         foreach (var referencedAssemblyName in referencedAssemblyNames.WhereNotNull())
         {
@@ -134,10 +137,12 @@ public sealed class AssemblySlim :
             }
             catch (Exception e)
             {
-                Constant.GetLogger<AssemblySlim>().LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
+                eList.Add((referencedAssemblyName, e));
+                log.LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
             }
         }
 
+        exceptions = eList.ToArray();
         return hs;
     }
 

@@ -59,7 +59,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
     protected readonly T sql;
     protected DatabaseTests(ITestOutputHelper testOutputHelper, DatabaseAppType databaseAppType, string connectionString) : base(testOutputHelper)
     {
-        sql = (T)databaseAppType.OpenSql(connectionString);
+        sql = (T)databaseAppType.OpenSql(connectionString, loggerProvider);
     }
 
     [Fact]

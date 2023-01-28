@@ -21,55 +21,6 @@ public static class SqlExtensions
 
     #region Query
 
-    public static int NonQuery(this Sql instance, string sql, out Exception? exception, params DatabaseParameterValue[] values)
-    {
-        try
-        {
-            exception = null;
-            return instance.NonQuery(sql, values);
-        }
-        catch (Exception e)
-        {
-            Constant.GetLogger(typeof(Sql)).LogDebug(e, "Error Executing SQL: {Sql}", sql);
-            exception = e;
-            return 0;
-        }
-    }
-
-    public static DataReaderResult? Query(this Sql instance, string sql, out Exception? exception, params DatabaseParameterValue[] values)
-    {
-        try
-        {
-            exception = null;
-            return instance.Query(sql, values);
-        }
-        catch (Exception e)
-        {
-            Constant.GetLogger(typeof(Sql)).LogDebug(e, "Error Executing SQL: {Sql}", sql);
-            exception = e;
-            return null;
-        }
-    }
-
-    public static List<object?[]> QueryObjects(this Sql instance, string sql, params DatabaseParameterValue[] values)
-    {
-        var result = instance.Query(sql, values);
-        return result == null ? new List<object?[]>() : new List<object?[]>(result.Rows.Select(row => row.ToArray()));
-    }
-    public static List<object?[]> QueryObjects(this Sql instance, string sql, out Exception? exception, params DatabaseParameterValue[] values)
-    {
-        try
-        {
-            exception = null;
-            return instance.QueryObjects(sql, values);
-        }
-        catch (Exception e)
-        {
-            Constant.GetLogger(typeof(Sql)).LogDebug(e, "Error Executing SQL: {Sql}", sql);
-            exception = e;
-            return new List<object?[]>();
-        }
-    }
 
     public static List<string?[]> QueryStrings(this Sql instance, string sql, params DatabaseParameterValue[] values) => instance.QueryStrings(sql, ConvertToStringDefault, values);
     public static  List<string?[]> QueryStrings(this Sql instance, string sql, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>

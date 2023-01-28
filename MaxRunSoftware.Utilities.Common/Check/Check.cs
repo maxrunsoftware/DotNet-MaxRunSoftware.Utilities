@@ -41,7 +41,7 @@ public static class Check
     /// <param name="callerFilePath">COMPILER GENERATED</param>
     /// <param name="callerLineNumber">COMPILER GENERATED</param>
     /// <param name="callerMemberName">COMPILER GENERATED</param>
-    /// <param name="callerArgumentExpression">COMPILER GENERATED</param>
+    /// <param name="callerArgumentExpression"><i>DO NOT PROVIDE, COMPILER GENERATED</i></param>
     /// <returns>The value</returns>
     [return: System.Diagnostics.CodeAnalysis.NotNull]
     [ContractAnnotation("obj: null => halt")]
