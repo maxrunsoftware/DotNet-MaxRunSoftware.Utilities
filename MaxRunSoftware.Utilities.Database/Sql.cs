@@ -37,6 +37,8 @@ public abstract class Sql : IDisposable
     {
         log = loggerProvider.CreateLogger(GetType());
         this.connection = connection;
+        currentDatabaseName = new(GetCurrentDatabaseName);
+        currentSchemaName = new(GetCurrentSchemaName);
     }
 
 
@@ -307,38 +309,14 @@ public abstract class Sql : IDisposable
 
     #endregion Helpers
 
-    public bool CacheCurrentDatabaseName { get; set; } = true;
-    private bool currentDatabaseNameIsCached;
-    private string? currentDatabaseNameCached;
-    public string? CurrentDatabaseName
-    {
-        get
-        {
-            if (!CacheCurrentDatabaseName) return GetCurrentDatabaseName();
-            if (currentDatabaseNameIsCached) return currentDatabaseNameCached;
-            currentDatabaseNameCached = GetCurrentDatabaseName();
-            currentDatabaseNameIsCached = true;
-            return currentDatabaseNameCached;
-
-        }
-    }
+    private readonly CachedValue<string?> currentDatabaseName;
+    public bool IsCachedCurrentDatabaseName { get => currentDatabaseName.IsEnabled; set => currentDatabaseName.IsEnabled = value; }
+    public string? CurrentDatabaseName => currentDatabaseName.Value;
     protected abstract string? GetCurrentDatabaseName();
 
-    public bool CacheCurrentSchemaName { get; set; } = true;
-    private bool currentSchemaNameIsCached;
-    private string? currentSchemaNameCached;
-    public string? CurrentSchemaName
-    {
-        get
-        {
-            if (!CacheCurrentSchemaName) return GetCurrentSchemaName();
-            if (currentSchemaNameIsCached) return currentSchemaNameCached;
-            currentSchemaNameCached = GetCurrentSchemaName();
-            currentSchemaNameIsCached = true;
-            return currentSchemaNameCached;
-
-        }
-    }
+    private readonly CachedValue<string?> currentSchemaName;
+    public bool IsCachedCurrentSchemaName { get => currentSchemaName.IsEnabled; set => currentSchemaName.IsEnabled = value; }
+    public string? CurrentSchemaName => currentSchemaName.Value;
     protected abstract string? GetCurrentSchemaName();
 
     #region GetDatabases
