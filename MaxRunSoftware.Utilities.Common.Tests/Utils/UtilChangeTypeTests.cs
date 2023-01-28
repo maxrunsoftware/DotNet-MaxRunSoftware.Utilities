@@ -38,7 +38,7 @@ public class UtilChangeTypeTests : TestBase
         }
         else
         {
-            equal(expected, actualChangedType!);
+            equal(expected, actualChangedType);
         }
     }
 
@@ -186,8 +186,9 @@ public class UtilChangeTypeTests : TestBase
 
         var i = new CastImplicit_String("V");
         //var o = Convert.ChangeType(i, typeof(string));
-        var o = (string)i;
-        var s = (string)o;
+        string o = i;
+        Assert.Equal("V", o);
+        //var s = (string)o;
         //Assert.Equal("Vc", s);
 
         //var ms = i.GetType().GetMethods(BindingFlags.Public | BindingFlags.Static);

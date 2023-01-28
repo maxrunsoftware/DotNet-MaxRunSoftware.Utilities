@@ -47,7 +47,7 @@ public class MethodSlimTests : TestBase
         var o = ms.InvokeStatic(x);
         Assert.NotNull(o!);
         Assert.IsType<string>(o);
-        var y = (string)o!;
+        var y = (string)o;
         output.WriteLine($"[{ms.Name}]: {y}");
     }
 
