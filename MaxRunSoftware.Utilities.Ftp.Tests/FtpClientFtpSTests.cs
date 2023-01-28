@@ -12,13 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using FluentFTP;
+using MaxRunSoftware.Utilities.Common;
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
 public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
 {
-    public FtpClientFtpSTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+    // ReSharper disable once InconsistentNaming
+    private static readonly object skipMessageLock = new();
+    private static int skipMessage = -1;
+    public static string? SkipMessage
+    {
+        get
+        {
+            int i;
+            lock (skipMessageLock)
+            {
+                i = skipMessage;
+                if (i < 0)
+                {
+                    i = 0;
+                    var fluentFtpVersion = typeof(FluentFTP.FtpClient).Assembly.GetVersion().TrimOrNull() ?? "0.0.0.0";
+                    var fluentFtpFileVersion = typeof(FluentFTP.FtpClient).Assembly.GetFileVersion().TrimOrNull() ?? "0.0.0.0";
+                    if (fluentFtpVersion.StartsWith("44.0.1.") || fluentFtpFileVersion.StartsWith("44.0.1."))
+                    {
+                        i = 1;
+                    }
+
+                    skipMessage = i;
+                }
+            }
+
+            switch (i)
+            {
+                case 0: return null;
+                case 1: return "FluentFtp 44.0.1 is broken, waiting for next version in NuGet  https://github.com/robinrodricks/FluentFTP/issues/1156";
+                default: throw new NotImplementedException();
+            }
+
+        }
+    }
+
+    public FtpClientFtpSTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+        Skip.If(SkipMessage != null, SkipMessage);
+    }
+
     protected override FtpClientFtp CreateClient() => new(new()
     {
         Host = Constants.FTPS_HOST,

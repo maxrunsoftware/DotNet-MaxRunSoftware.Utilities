@@ -32,7 +32,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
 
 
 
-    [Fact]
+    [SkippableFact]
     public void WorkingDirectory()
     {
         var o = Client.WorkingDirectory;
@@ -40,14 +40,14 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         output.WriteLine(nameof(Client.WorkingDirectory) + ": " + o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void ServerInfo()
     {
         var o = Client.ServerInfo;
         output.WriteLine(nameof(Client.ServerInfo) + ": " + o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void PutFile()
     {
         HelperDeleteFile("myfile.txt");
@@ -59,7 +59,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Assert.NotNull(file);
     }
 
-    [Fact]
+    [SkippableFact]
     public void PutFile_GetFile()
     {
         HelperDeleteFile("myfile.txt");
@@ -85,7 +85,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
     protected static string ToString(byte[] bytes) => Constant.Encoding_UTF8.GetString(bytes);
 
 
-    [Fact]
+    [SkippableFact]
     public void PutFile_Auto_Create_SubDir_Multiple()
     {
         var dirName = CallerInfo.GetName()!;
@@ -109,7 +109,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Assert.Contains(files, o => o.FullName == $"{wd}/{dirName}/4/5/6/myfile6.txt");
     }
 
-    [Fact]
+    [SkippableFact]
     public void Create_Directory_That_Already_Exists_Does_Not_Throw_Error()
     {
         var dirName = HelperDeleteDirectoryIfExist();
@@ -124,7 +124,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Assert.NotNull(dir);
     }
 
-    [Fact]
+    [SkippableFact]
     public void PutFile_Auto_Create_SubDir()
     {
         var dirName = CallerInfo.GetName()!;
@@ -143,7 +143,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Assert.Contains(files, o => o.Name == "myfile2.txt");
     }
 
-    [Fact]
+    [SkippableFact]
     public void Directory_Operations()
     {
         var dir = HelperGetDirectory("mydir");
