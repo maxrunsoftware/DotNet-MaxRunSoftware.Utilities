@@ -35,7 +35,7 @@ public class MySqlTests : DatabaseTests<MySql>
 {
     public MySqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test) { }
 
-    [Fact]
+    [SkippableFact]
     public void Test()
     {
         var result = sql.QueryStrings("SHOW SESSION VARIABLES");
@@ -44,7 +44,7 @@ public class MySqlTests : DatabaseTests<MySql>
             output.WriteLine(row.ToStringDelimited(", "));
         }
     }
-    [Fact]
+    [SkippableFact]
     public void GetServerProperties()
     {
 

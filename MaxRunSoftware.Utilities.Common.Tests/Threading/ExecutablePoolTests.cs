@@ -35,7 +35,7 @@ public class ExecutablePoolTests : TestBase
         public void Complete(ExecutablePool pool) => CompletedCount++;
     }
 
-    [Fact]
+    [SkippableFact]
     public void AllTasksExecuted()
     {
         var list = new List<Executable>();

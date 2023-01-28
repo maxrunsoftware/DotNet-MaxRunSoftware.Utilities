@@ -18,7 +18,7 @@ public class UtilHashTests : TestBase
 {
     public UtilHashTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void HashString()
     {
         var hash = Util.GenerateHashSHA256(Constant.Encoding_UTF8.GetBytes("some_text"));

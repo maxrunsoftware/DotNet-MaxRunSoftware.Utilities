@@ -19,7 +19,7 @@ public class DictionaryIndexedTests : TestBase
     public DictionaryIndexedTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
 
-    [Fact]
+    [SkippableFact]
     public void Order_Of_Items()
     {
         var count = 10000;

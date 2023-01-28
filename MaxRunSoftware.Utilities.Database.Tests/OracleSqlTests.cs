@@ -35,7 +35,7 @@ public class OracleSqlTests : DatabaseTests<OracleSql>
 {
     public OracleSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.OracleSql, Constants.OracleSql_ConnectionString_Test) { }
 
-    [Fact]
+    [SkippableFact]
     public void GetServerProperties()
     {
         var props = sql.GetServerProperties();

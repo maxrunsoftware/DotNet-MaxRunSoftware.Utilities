@@ -62,21 +62,21 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         sql = (T)databaseAppType.OpenSql(connectionString, loggerProvider);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetCurrentDatabase()
     {
         var o = sql.CurrentDatabaseName;
         WriteLine(nameof(sql.CurrentDatabaseName), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetCurrentSchema()
     {
         var o = sql.CurrentSchemaName;
         WriteLine(nameof(sql.CurrentSchemaName), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetDatabases()
     {
         var o = sql.GetDatabases().OrderBy(o => o).ToArray();
@@ -85,7 +85,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         WriteLine(nameof(sql.GetDatabases), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetSchemas()
     {
         var o = sql.GetSchemas().OrderBy(o => o).ToArray();
@@ -94,7 +94,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         WriteLine(nameof(sql.GetSchemas), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetTables()
     {
         var o = sql.GetTables().OrderBy(o => o).ToArray();
@@ -103,7 +103,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         WriteLine(nameof(sql.GetTables), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetTableColumns()
     {
         var o = sql.GetTableColumns().OrderBy(o => o).ToArray();
@@ -112,7 +112,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         WriteLine(nameof(sql.GetTableColumns), o);
     }
 
-    [Fact]
+    [SkippableFact]
     public void GetTableExists()
     {
         var tables = sql.GetTables().OrderBy(o => o).ToArray();

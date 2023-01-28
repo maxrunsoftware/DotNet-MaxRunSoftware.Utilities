@@ -18,7 +18,7 @@ public class UtilReflectionTests : TestBase
 {
     public UtilReflectionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void CreateInstance()
     {
         var vRandom = Util.CreateInstanceFactory(typeof(Random))();

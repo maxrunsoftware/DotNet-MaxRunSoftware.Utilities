@@ -18,44 +18,14 @@ namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
 public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
 {
-    // ReSharper disable once InconsistentNaming
-    private static readonly object skipMessageLock = new();
-    private static int skipMessage = -1;
-    public static string? SkipMessage
-    {
-        get
-        {
-            int i;
-            lock (skipMessageLock)
-            {
-                i = skipMessage;
-                if (i < 0)
-                {
-                    i = 0;
-                    var fluentFtpVersion = typeof(FluentFTP.FtpClient).Assembly.GetVersion().TrimOrNull() ?? "0.0.0.0";
-                    var fluentFtpFileVersion = typeof(FluentFTP.FtpClient).Assembly.GetFileVersion().TrimOrNull() ?? "0.0.0.0";
-                    if (fluentFtpVersion.StartsWith("44.0.1.") || fluentFtpFileVersion.StartsWith("44.0.1."))
-                    {
-                        i = 1;
-                    }
-
-                    skipMessage = i;
-                }
-            }
-
-            switch (i)
-            {
-                case 0: return null;
-                case 1: return "FluentFtp 44.0.1 is broken, waiting for next version in NuGet  https://github.com/robinrodricks/FluentFTP/issues/1156";
-                default: throw new NotImplementedException();
-            }
-
-        }
-    }
-
     public FtpClientFtpSTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        Skip.If(SkipMessage != null, SkipMessage);
+        Skip.If(
+            (typeof(FluentFTP.FtpClient).Assembly.GetVersion().TrimOrNull() ?? "0.0.0.0").StartsWith("44.0.1.")
+            || (typeof(FluentFTP.FtpClient).Assembly.GetFileVersion().TrimOrNull() ?? "0.0.0.0").StartsWith("44.0.1.")
+            , "FluentFtp 44.0.1 is broken, waiting for next version in NuGet  https://github.com/robinrodricks/FluentFTP/issues/1156"
+        );
+
     }
 
     protected override FtpClientFtp CreateClient() => new(new()

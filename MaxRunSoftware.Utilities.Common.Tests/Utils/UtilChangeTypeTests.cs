@@ -56,10 +56,10 @@ public class UtilChangeTypeTests : TestBase
     [InlineData("333.321", 333.321f)]
     public void String_Decimal(string actual, decimal expected) => TestItem(actual, expected);
 
-    [Fact]
+    [SkippableFact]
     public void String_Guid() => TestItem("93907b87-5572-4bac-aa30-14cfc6fef5e3", Guid.Parse("93907b87-5572-4bac-aa30-14cfc6fef5e3"));
 
-    [Fact]
+    [SkippableFact]
     public void String_MailAddress() => TestItem("abc@aol.com", new MailAddress("abc@aol.com"), (e, a) => Assert.Equal(e.Address, a.Address));
 
     [Theory]
@@ -176,7 +176,7 @@ public class UtilChangeTypeTests : TestBase
 
     }
 
-    [Fact]
+    [SkippableFact]
     public void CastImplicit()
     {
         //var tc = new TypeConverter();

@@ -19,7 +19,7 @@ public class ConstantCompareTests : TestBase
 {
     public ConstantCompareTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void StringComparer_OrdinalIgnoreCase_Ordinal_Sort_Correctly()
     {
         var list = "AazZCcbByYXx".ToCharArray().Select(o => o.ToString()).ToList();
@@ -28,7 +28,7 @@ public class ConstantCompareTests : TestBase
         Assert.Equal("AaBbCcXxYyZz", items);
     }
 
-    [Fact]
+    [SkippableFact]
     public void StringComparer_OrdinalIgnoreCase_OrdinalReversed_Sort_Correctly()
     {
         var list = "AazZCcbByYXx".ToCharArray().Select(o => o.ToString()).ToList();

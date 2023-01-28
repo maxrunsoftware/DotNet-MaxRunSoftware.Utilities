@@ -30,7 +30,7 @@ public class MethodSlimTests : TestBase
     {
         return typeof(TestClass).GetMethods().First(o => o.Name == name);
     }
-    [Fact]
+    [SkippableFact]
     public void TestMethodStaticA_Can_Create()
     {
         var mi = GetMethod(nameof(TestClass.TestMethodStaticA));
@@ -38,7 +38,7 @@ public class MethodSlimTests : TestBase
         output.WriteLine($"[{ms.Name}] {ms.NameFull}");
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestMethodStaticA_Can_InvokeStatic()
     {
         var mi = GetMethod(nameof(TestClass.TestMethodStaticA));

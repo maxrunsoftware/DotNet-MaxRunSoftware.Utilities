@@ -29,7 +29,7 @@ public class CommandLineArgumentParserTests : TestBase
 
     private CommandLineParseResult Parse(params string?[]? args) => Parse('-', '=', false, args);
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option()
     {
         var r = Parse("-a=1");
@@ -41,7 +41,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("1", r.Options.First().Value[0]);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_Multiple_Identifier()
     {
         var r = Parse("----a=1");
@@ -53,7 +53,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("1", r.Options.First().Value[0]);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_Multiple_Values()
     {
         var r = Parse("-a=42", " - a = 6 ");
@@ -67,7 +67,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("6", kvp.Value[1]);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_Whitespace_And_Multiple_In_Identifier()
     {
         var r = Parse(" - - a=1");
@@ -79,14 +79,14 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("1", r.Options.First().Value[0]);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_No_Identifier()
     {
         var r = Parse("  a=1");
         Assert.Empty(r.Options);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_OptionFlag_No_Name_Should_Be_Argument()
     {
         var r = Parse("-=1");
@@ -96,7 +96,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("-=1", r.Arguments.First());
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_OptionFlag_No_Name_With_Spaces_Should_Be_Argument()
     {
         var r = Parse(" - = 1 ");
@@ -106,7 +106,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("- = 1", r.Arguments.First());
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_Name_Keep_Whitespace_In_Middle()
     {
         var r = Parse(" - - a b c = 1 ");
@@ -118,7 +118,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("1", r.Options.First().Value[0]);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Option_Value_Keep_Whitespace_In_Middle()
     {
         var r = Parse(" - - a b c = 1 2 3");
@@ -131,7 +131,7 @@ public class CommandLineArgumentParserTests : TestBase
     }
 
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Flag()
     {
         var r = Parse("-a");
@@ -141,7 +141,7 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("a", r.Flags.First());
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Flag_With_Delimiter()
     {
         var r = Parse("- a =  ");
@@ -151,21 +151,21 @@ public class CommandLineArgumentParserTests : TestBase
         Assert.Equal("a", r.Flags.First());
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Flag_With_Multiple_Delimiter_Should_Not_Be_Flag()
     {
         var r = Parse("-a==");
         Assert.Empty(r.Flags);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Flag_No_Identifier()
     {
         var r = Parse("a=");
         Assert.Empty(r.Flags);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Parse_Argument()
     {
         var r = Parse(" a b c = 1 2 3  ");

@@ -18,7 +18,7 @@ public class ReflectionScannerTests : TestBase
 {
     public ReflectionScannerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void EqualsWork()
     {
         /*

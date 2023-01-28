@@ -18,7 +18,7 @@ public class ConstantBoolTests : TestBase
 {
     public ConstantBoolTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void TestTrue()
     {
         var vals = new[]
@@ -35,7 +35,7 @@ public class ConstantBoolTests : TestBase
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void TestFalse()
     {
         var vals = new[]

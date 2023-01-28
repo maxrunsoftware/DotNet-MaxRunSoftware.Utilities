@@ -35,7 +35,7 @@ public class MicrosoftSqlTests : DatabaseTests<MicrosoftSql>
 {
     public MicrosoftSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MicrosoftSql, Constants.MicrosoftSql_ConnectionString_Master) { }
 
-    [Fact]
+    [SkippableFact]
     public void GetServerProperties()
     {
         var props = sql.GetServerProperties();

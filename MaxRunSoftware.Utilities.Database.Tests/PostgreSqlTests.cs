@@ -30,7 +30,7 @@ public class PostgreSqlTests : DatabaseTests<PostgreSql>
 {
     public PostgreSqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.PostgreSql, Constants.PostgreSql_ConnectionString_Test) { }
 
-    [Fact]
+    [SkippableFact]
     public void GetServerProperties()
     {
         //var props = ((MicrosoftSql)sql).GetServerProperties();

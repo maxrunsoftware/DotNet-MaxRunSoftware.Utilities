@@ -18,7 +18,7 @@ public class SingleUseTests : TestBase
 {
     public SingleUseTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    [Fact]
+    [SkippableFact]
     public void SingleThreaded()
     {
         var su = new SingleUse();
