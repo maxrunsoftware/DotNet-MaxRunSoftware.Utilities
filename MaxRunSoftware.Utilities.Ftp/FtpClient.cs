@@ -19,46 +19,30 @@ public interface IFtpClient : IDisposable
     string? ServerInfo { get; }
 
     /// <summary>
-    /// The current directory on the remote host. It is expected to be an absolute path.
+    /// The current directory on the remote host. It is expected to return an absolute path.
     /// </summary>
     string WorkingDirectory { get; set; }
 
+    /// <summary>
+    /// The separator between multiple directories and directory and file name.
+    /// </summary>
     string DirectorySeparator { get; }
 
-    byte[] GetFile(string remoteFile, Action<FtpClientProgress>? handlerProgress);
+    public bool IsDisposed { get; }
 
-    void GetFile(string remoteFile, string localFile, Action<FtpClientProgress>? handlerProgress);
+    void GetFile(string remoteFile, Stream stream, Action<FtpClientProgress>? handlerProgress, bool flushStream);
 
-    void PutFile(string remoteFile, byte[] data, Action<FtpClientProgress>? handlerProgress);
-
-    void PutFile(string remoteFile, string localFile, Action<FtpClientProgress>? handlerProgress);
+    void PutFile(string remoteFile, Stream stream, Action<FtpClientProgress>? handlerProgress);
 
     void DeleteFile(string remoteFile);
 
-    void CreateDirectory(string remotePath);
+    FtpClientRemoteFileSystemObject CreateDirectory(string remotePath);
 
-    void DeleteDirectory(string remotePath);
+    bool DeleteDirectory(string remotePath);
 
-    IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string? remotePath);
+    IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException);
 
-    IEnumerable<FtpClientRemoteFileSystemObject> ListObjectsRecursive(string? remotePath, Func<string, Exception, bool>? handlerException);
+    FtpClientRemoteFileSystemObject? GetObject(string remotePath);
 
-    bool DirectoryExists(string remotePath);
-
-    bool FileExists(string remotePath);
-
-}
-
-
-public static class FtpClientExtensions
-{
-    public static byte[] GetFile(this IFtpClient client, string remoteFile) => client.GetFile(remoteFile, null);
-
-    public static void GetFile(this IFtpClient client, string remoteFile, string localFile) => client.GetFile(remoteFile, localFile, null);
-
-    public static void PutFile(this IFtpClient client, string remoteFile, string localFile) => client.PutFile(remoteFile, localFile, null);
-
-    public static void PutFile(this IFtpClient client, string remoteFile, byte[] data) => client.PutFile(remoteFile, data, null);
-
-    public static IEnumerable<FtpClientRemoteFileSystemObject> ListObjectsRecursive(this IFtpClient client, string? remotePath) => client.ListObjectsRecursive(remotePath, null);
+    string GetAbsolutePath(string remotePath);
 }

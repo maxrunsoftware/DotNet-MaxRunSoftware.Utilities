@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,28 +14,23 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-[Serializable]
-public sealed class SingleUse
+public class StreamCounted : StreamWrapped
 {
-    private readonly object locker;
-    private volatile bool isUsed;
+    public StreamCounted(Stream stream) : base(stream) { }
 
-    public SingleUse() : this(new()) { }
-    public SingleUse(object locker)
+    public long BytesWritten { get; private set; }
+    public long BytesRead { get; private set; }
+
+    public override int Read(byte[] buffer, int offset, int count)
     {
-        this.locker = locker.CheckNotNull(nameof(locker));
+        var c = stream.Read(buffer, offset, count);
+        BytesRead += c;
+        return c;
     }
 
-    public bool TryUse()
+    public override void Write(byte[] buffer, int offset, int count)
     {
-        if (isUsed) return false;
-        lock (locker)
-        {
-            if (isUsed) return false;
-            isUsed = true;
-            return true;
-        }
+        stream.Write(buffer, offset, count);
+        BytesWritten += count;
     }
-
-    public bool IsUsed => isUsed;
 }

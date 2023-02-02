@@ -95,22 +95,22 @@ public class FtpClientFtp : FtpClientBase
     private FtpClient? client;
     private FtpClient Client => client ?? throw new ObjectDisposedException(GetType().FullNameFormatted());
 
-    protected override string GetServerInfo() => Client.ServerOS + " : " + Client.ServerType;
+    protected override string GetServerInfoInternal() => Client.ServerOS + " : " + Client.ServerType;
 
-    protected override string GetWorkingDirectory() => Client.GetWorkingDirectory() ?? DirectorySeparator;
-    protected override void SetWorkingDirectory(string directory) => Client.SetWorkingDirectory(directory);
+    protected override string GetWorkingDirectoryInternal() => Client.GetWorkingDirectory() ?? DirectorySeparator;
+    protected override void SetWorkingDirectoryInternal(string directory) => Client.SetWorkingDirectory(directory);
 
     private readonly string directorySeparator;
-    protected override string GetDirectorySeparator() => directorySeparator;
+    protected override string GetDirectorySeparatorInternal() => directorySeparator;
 
-    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) =>
+    protected override void GetFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) =>
         Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new()
         {
             Progress = (Percent)progress.Progress,
             BytesTransferred = progress.TransferredBytes
         }));
 
-    protected override void PutFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
+    protected override void PutFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
     {
         Action<FtpProgress> ftpProgressHandler = progress => handlerProgress(new()
         {
@@ -140,48 +140,38 @@ public class FtpClientFtp : FtpClientBase
         }
     }
 
-    public override void CreateDirectory(string remotePath) => throw new NotImplementedException();
+    protected override void CreateDirectoryInternal(string remotePath) => throw new NotImplementedException();
     protected override void DeleteDirectoryInternal(string remotePath) => throw new NotImplementedException();
 
-    protected override void ListObjects(string? remotePath, List<FtpClientRemoteFileSystemObject> list)
+    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(FtpListItem? item)
     {
-        FtpListItem?[]? items;
-        if (string.IsNullOrWhiteSpace(remotePath))
+        if (item == null) return null;
+        var type = item.Type switch
         {
-            items = Client.GetListing();
-        }
-        else
-        {
-            items = Client.GetListing(remotePath);
-        }
-        foreach (var file in items.OrEmpty())
-        {
-            if (file == null) continue;
-            var name = file.Name;
-            if (name == null) continue;
-            var fullName = file.FullName ?? name;
-            if (!fullName.StartsWith(DirectorySeparator)) fullName = DirectorySeparator + fullName;
+            FtpObjectType.Directory => FtpClientRemoteFileSystemObjectType.Directory,
+            FtpObjectType.File => FtpClientRemoteFileSystemObjectType.File,
+            FtpObjectType.Link => FtpClientRemoteFileSystemObjectType.Link,
+            _ => FtpClientRemoteFileSystemObjectType.Unknown
+        };
 
-            var type = file.Type switch
-            {
-                FtpObjectType.Directory => FtpClientRemoteFileSystemObjectType.Directory,
-                FtpObjectType.File => FtpClientRemoteFileSystemObjectType.File,
-                FtpObjectType.Link => FtpClientRemoteFileSystemObjectType.Link,
-                _ => FtpClientRemoteFileSystemObjectType.Unknown
-            };
-
-            list.Add(new(name, fullName, type));
-        }
+       return CreateFileSystemObject(item.Name, item.FullName, type);
     }
+    protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list) =>
+        list.AddRange(Client.GetListing(remotePath).OrEmpty().Select(CreateFileSystemObject).WhereNotNull());
+
+    protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath) =>
+        CreateFileSystemObject(Client.GetObjectInfo(remotePath));
+
+    protected override string? GetAbsolutePathInternal(string remotePath) => throw new NotImplementedException();
 
 
-    protected override void DeleteFileSingle(string remoteFile)
+    protected override void DeleteFileInternal(string remoteFile)
     {
         log.LogDebug("Deleting remote file: {RemoteFile}", remoteFile);
         Client.DeleteFile(remoteFile);
     }
 
-    public override void Dispose()
+    protected override void DisposeInternal()
     {
         var c = client;
         client = null;
@@ -206,9 +196,4 @@ public class FtpClientFtp : FtpClientBase
             log.LogWarning(e, "Error disposing of {Object}", c.GetType().FullNameFormatted());
         }
     }
-
-
-    protected override bool FileExistsInternal(string remoteFile) => Client.FileExists(remoteFile);
-
-    protected override bool DirectoryExistsInternal(string remoteDirectory) => Client.DirectoryExists(remoteDirectory);
 }

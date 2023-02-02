@@ -140,7 +140,15 @@ public static class ExtensionsString
     public static string Remove(this string str, string toRemove, out int itemsRemoved, StringComparison? comparison = null)
     {
         // https://stackoverflow.com/q/541954
-        var strRemoved = comparison == null ? str.Replace(toRemove, string.Empty) : str.Replace(toRemove, string.Empty, comparison.Value);
+        string strRemoved;
+        if (comparison == null)
+        {
+            strRemoved = str.Replace(toRemove, string.Empty);
+        }
+        else
+        {
+            strRemoved = str.Replace(toRemove, string.Empty, comparison.Value);
+        }
         var countRemoved = (str.Length - strRemoved.Length) / toRemove.Length;
 
         itemsRemoved = countRemoved;
@@ -964,6 +972,17 @@ public static class ExtensionsString
 
     [Pure] public static string[] Split(this string str, ImmutableHashSet<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
 
+    [Pure]
+    public static (string Left, string? Right) SplitOnLast(this string str, string stringToSplitOn, StringComparison? comparison = null)
+    {
+        // https://stackoverflow.com/a/21733934
+
+        // ReSharper disable once StringLastIndexOfIsCultureSpecific.1
+        var i = comparison == null ? str.LastIndexOf(stringToSplitOn) : str.LastIndexOf(stringToSplitOn, comparison.Value);
+        return i < 0
+            ? (stringToSplitOn, null)
+            : (str.Substring(0, i), str.Substring(i + 1) );
+    }
     #endregion Split
 
     #region SplitDelimited

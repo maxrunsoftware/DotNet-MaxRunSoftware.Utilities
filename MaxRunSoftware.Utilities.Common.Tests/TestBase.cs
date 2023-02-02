@@ -63,17 +63,30 @@ public class TestBase
         Exception? exception,
         string formattedStateException);
 
-    private bool logDisabled;
 
-    protected virtual void LogDisable()
+    private class LogDisableCounter
     {
-        logDisabled = true;
+        private volatile int counter;
+        public void Increment() => Interlocked.Increment(ref counter);
+        public void Decrement() => Interlocked.Decrement(ref counter);
+        public bool IsLogEnabled => counter < 1;
     }
 
-    protected virtual void LogEnable()
+    private readonly LogDisableCounter logDisableCounter = new();
+    private class LogDisableDisposable : IDisposable
     {
-        logDisabled = false;
+        private readonly LogDisableCounter counter;
+        public LogDisableDisposable(LogDisableCounter counter)
+        {
+            this.counter = counter;
+            this.counter.Increment();
+        }
+        public void Dispose() => counter.Decrement();
     }
+    protected virtual IDisposable LogDisable() => new LogDisableDisposable(logDisableCounter);
+
+    private volatile int logEnableForce;
+    protected virtual void LogEnableForce() => Interlocked.Increment(ref logEnableForce);
 
     protected LogConverterDelegate LogConverter { get; set; }
     protected LogLevel LogLevel { get; set; }
@@ -88,7 +101,7 @@ public class TestBase
         LogEventDelegate d = (categoryName, logLevel, eventId, state, exception, formattedStateException) =>
         {
             var msg = LogConverter(categoryName, logLevel, eventId, state, exception, formattedStateException);
-            if (!logDisabled)
+            if (logEnableForce > 0 || logDisableCounter.IsLogEnabled)
             {
                 output.WriteLine(msg);
             }

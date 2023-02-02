@@ -14,6 +14,7 @@
 
 using Renci.SshNet;
 using Renci.SshNet.Common;
+using Renci.SshNet.Sftp;
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
@@ -42,9 +43,9 @@ public class FtpClientSFtp : FtpClientBase
         }
     }
 
-    protected override string GetDirectorySeparator() => "/"; // https://stackoverflow.com/a/45693117
-    protected override string GetWorkingDirectory() => Client.WorkingDirectory ?? DirectorySeparator;
-    protected override void SetWorkingDirectory(string directory) => Client.ChangeDirectory(directory);
+    protected override string GetDirectorySeparatorInternal() => "/"; // https://stackoverflow.com/a/45693117
+    protected override string GetWorkingDirectoryInternal() => Client.WorkingDirectory ?? DirectorySeparator;
+    protected override void SetWorkingDirectoryInternal(string directory) => Client.ChangeDirectory(directory);
 
 
     private static Percent CalcProgress(long? total, ulong bytes)
@@ -60,7 +61,7 @@ public class FtpClientSFtp : FtpClientBase
         return (Percent)percent;
     }
 
-    protected override void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
+    protected override void GetFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
     {
         long? remoteFileLength = null;
         try
@@ -82,9 +83,9 @@ public class FtpClientSFtp : FtpClientBase
         });
     }
 
-    protected override void PutFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
+    protected override void PutFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
     {
-        log.LogTraceMethod(new(remoteFile, localStream), LOG_ATTEMPT);
+        log.LogTraceMethod(new(remoteFile, localStream, handlerProgress), LOG_ATTEMPT);
         long? localStreamLength = null;
         try
         {
@@ -92,30 +93,20 @@ public class FtpClientSFtp : FtpClientBase
         }
         catch (Exception e)
         {
-            log.LogDebugMethod(new(remoteFile, localStream), e, "Could not get local file stream length");
+            log.LogDebugMethod(new(remoteFile, localStream, handlerProgress), e, "Could not get stream length");
         }
 
+        var remoteFileAbsolute = GetAbsolutePath(remoteFile);
 
-        string? GetRemoteFileDirName()
-        {
-            var rf = remoteFile.Trim();
-            while (rf.Length > 0 && rf.StartsWith(DirectorySeparator)) rf = rf.RemoveLeft().Trim();
-            while (rf.Length > 0 && rf.EndsWith(DirectorySeparator)) rf = rf.RemoveRight().Trim();
-
-            // https://stackoverflow.com/a/21733934
-            var idx = remoteFile.LastIndexOf(DirectorySeparator, StringComparison.Ordinal);
-            var dirName = idx < 0 ? null : remoteFile[..idx];
-            return dirName;
-        }
 
         void UploadFile()
         {
-            Client.UploadFile(localStream, remoteFile, true, bytes =>
+            Client.UploadFile(localStream, remoteFileAbsolute, true, bytes =>
             {
                 handlerProgress(new()
                 {
                     BytesTransferred = (long)bytes,
-                    Progress = CalcProgress(localStreamLength, bytes)
+                    Progress = CalcProgress(localStreamLength, bytes),
                 });
             });
         }
@@ -128,10 +119,11 @@ public class FtpClientSFtp : FtpClientBase
         catch (SftpPathNotFoundException e)
         {
             log.LogDebugMethod(new(remoteFile, localStream), e, LOG_FAILED + " got " + nameof(SftpPathNotFoundException) + ", perhaps directory does not exist, attempting " + nameof(CreateDirectory));
-            var dirName = GetRemoteFileDirName();
-            if (dirName == null)
+            var (dirName, _) = remoteFileAbsolute.SplitOnLast(DirectorySeparator);
+            if (string.IsNullOrEmpty(dirName))
             {
-                log.LogErrorMethod(new(remoteFile, localStream), LOG_FAILED + " could not determine actual directory name from {RemotePath}", remoteFile);
+                // We are trying to create a file in /file.txt and it is failing, so something weird is going on
+                log.LogErrorMethod(new(remoteFile, localStream), LOG_FAILED + " could not determine actual directory name from {RemotePath}", remoteFileAbsolute);
                 throw;
             }
 
@@ -143,29 +135,26 @@ public class FtpClientSFtp : FtpClientBase
             }
             catch (Exception ee)
             {
-                log.LogWarningMethod(new(remoteFile, localStream), ee, LOG_FAILED + " could not create directory {Directory} for file {File}", dirName, remoteFile);
+                log.LogWarningMethod(new(remoteFile, localStream), ee, LOG_FAILED + " could not create directory {Directory} for file {File}", dirName, remoteFileAbsolute);
                 success = false;
             }
 
-            if (success)
+            if (!success) throw;
+
+            try
             {
-                try
-                {
-                    UploadFile();
-                    return;
-                }
-                catch (Exception eee)
-                {
-                    log.LogWarningMethod(new(remoteFile, localStream), eee, LOG_FAILED + " second attempt to upload file {File}", remoteFile);
-                    throw;
-                }
+                UploadFile();
+            }
+            catch (Exception eee)
+            {
+                log.LogWarningMethod(new(remoteFile, localStream), eee, LOG_FAILED + " second attempt to upload file {File}", remoteFileAbsolute);
+                throw;
             }
 
-            throw;
         }
     }
 
-    public override void CreateDirectory(string remotePath)
+    protected override void CreateDirectoryInternal(string remotePath)
     {
         log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
         if (Client.Exists(remotePath))
@@ -181,7 +170,7 @@ public class FtpClientSFtp : FtpClientBase
         catch (SftpPathNotFoundException sftpPathNotFoundException)
         {
             log.LogDebugMethod(new(remotePath), sftpPathNotFoundException, LOG_FAILED + " so attempting to create each directory in parent hierarchy");
-            var dirs = GetAbsolutePath(remotePath).Split(DirectorySeparator).Where(o => o.Trim().Length > 0).ToArray();
+            var dirs = GetAbsolutePath(remotePath).Split(DirectorySeparator).Where(o => o.Length > 0).ToArray();
             log.LogTraceMethod(new(remotePath), "Creating {DirectoriesToCreateCount} directories: {DirectoriesToCreate}", dirs.Length, dirs.ToStringDelimited(" > "));
             var dirsAdded = new List<string>();
             foreach (var dir in dirs)
@@ -208,29 +197,23 @@ public class FtpClientSFtp : FtpClientBase
         log.LogInformation("Deleted remote directory {RemotePath}", remotePath);
     }
 
-    protected override void ListObjects(string? remotePath, List<FtpClientRemoteFileSystemObject> list)
+    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(SftpFile? item)
     {
-        remotePath = string.IsNullOrWhiteSpace(remotePath) ? WorkingDirectory : remotePath;
-        foreach (var file in Client.ListDirectory(remotePath).OrEmpty())
-        {
-            var name = file.Name;
-            if (name == null) continue;
-            var fullName = file.FullName ?? name;
-            if (!fullName.StartsWith(DirectorySeparator)) fullName = DirectorySeparator + fullName;
+        if (item == null) return null;
+        var type = FtpClientRemoteFileSystemObjectType.Unknown;
+        if (item.IsDirectory) { type = FtpClientRemoteFileSystemObjectType.Directory; }
+        else if (item.IsRegularFile) { type = FtpClientRemoteFileSystemObjectType.File; }
+        else if (item.IsSymbolicLink) type = FtpClientRemoteFileSystemObjectType.Link;
 
-
-            var type = FtpClientRemoteFileSystemObjectType.Unknown;
-            if (file.IsDirectory) { type = FtpClientRemoteFileSystemObjectType.Directory; }
-            else if (file.IsRegularFile) { type = FtpClientRemoteFileSystemObjectType.File; }
-            else if (file.IsSymbolicLink) type = FtpClientRemoteFileSystemObjectType.Link;
-
-            list.Add(new(name, fullName, type));
-        }
+        return CreateFileSystemObject(item.Name, item.FullName, type);
     }
 
-    protected override string? GetServerInfo() => Client.ConnectionInfo?.ClientVersion;
+    protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list) =>
+        list.AddRange(Client.ListDirectory(remotePath).OrEmpty().Select(CreateFileSystemObject).WhereNotNull());
 
-    protected override void DeleteFileSingle(string remoteFile)
+    protected override string? GetServerInfoInternal() => Client.ConnectionInfo?.ClientVersion;
+
+    protected override void DeleteFileInternal(string remoteFile)
     {
         log.LogTraceMethod(new(remoteFile), LOG_ATTEMPT);
         Client.DeleteFile(remoteFile);
@@ -253,13 +236,119 @@ public class FtpClientSFtp : FtpClientBase
         }
     }
 
-    public override void Dispose()
+    protected override void DisposeInternal()
     {
         var c = client;
         client = null;
         Ssh.Dispose(c, log);
     }
 
-    protected override bool DirectoryExistsInternal(string remotePath) => Client.Exists(remotePath);
-    protected override bool FileExistsInternal(string remotePath) => Client.Exists(remotePath);
+    protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath)
+    {
+        if (!Client.Exists(remotePath)) return null;
+        var obj = Client.Get(remotePath);
+        if (obj == null) return null;
+        return CreateFileSystemObject(obj);
+    }
+
+    private class SftpSessionCanonicalPathWrapper
+    {
+        private readonly FieldSlim? fieldSlim;
+        private readonly MethodSlim? methodSlim;
+
+        public bool IsValid => fieldSlim != null && methodSlim != null;
+        public string? GetCanonicalPath(string path, SftpClient instance)
+        {
+            if (!IsValid) return null;
+            if (fieldSlim == null || methodSlim == null) return null;
+
+            var sftpSession = fieldSlim.GetValue(instance);
+            if (sftpSession == null) instance.Connect();
+            sftpSession = fieldSlim.GetValue(instance);
+            if (sftpSession == null) return null;
+
+            var pathNew = methodSlim.Invoke(sftpSession, path);
+            return pathNew as string;
+        }
+
+        public SftpSessionCanonicalPathWrapper(Type type)
+        {
+            var fm = FindFieldMethod(type);
+            fieldSlim = fm?.Item1;
+            methodSlim = fm?.Item2;
+        }
+
+        private static (FieldSlim, MethodSlim)? FindFieldMethod(Type type)
+        {
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+            var fields = type.GetFieldSlims(flags);
+            foreach (var field in fields.Where(o => o.Type.Name == "ISftpSession"))
+            {
+                var method = FindMethod(field);
+                if (method != null) return (field, method);
+            }
+
+            foreach (var field in fields.Where(o => o.Name == "_sftpSession"))
+            {
+                var method = FindMethod(field);
+                if (method != null) return (field, method);
+            }
+
+            foreach (var field in fields)
+            {
+                var method = FindMethod(field);
+                if (method != null) return (field, method);
+            }
+
+            return null;
+        }
+
+        private static MethodSlim? FindMethod(FieldSlim field)
+        {
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            foreach (var method in field.Type.GetMethodSlims(flags))
+            {
+                if (method.Name != "GetCanonicalPath") continue;
+                if (method.Parameters.Length != 1) continue;
+                if (method.Parameters[0].Parameter.Type.Type != typeof(string)) continue;
+                if (method.ReturnType != null && method.ReturnType.Type != typeof(string)) continue;
+                return method;
+            }
+
+            return null;
+        }
+    }
+
+    // ReSharper disable once InconsistentNaming
+    private static readonly TypeCacheWeak<SftpSessionCanonicalPathWrapper> canonicalPathCache = new();
+    protected override string? GetAbsolutePathInternal(string remotePath)
+    {
+        try
+        {
+            if (Client.Exists(remotePath))
+            {
+                var pathFull = Client.Get(remotePath)?.FullName;
+                if (pathFull != null && IsAbsolutePath(pathFull)) return pathFull;
+            }
+        }
+        catch (SftpPathNotFoundException pathNotFoundException)
+        {
+            log.LogDebugMethod(new(remotePath), pathNotFoundException, LOG_FAILED + " path does not exist: {RemotePath}", remotePath);
+        }
+
+        var canonicalPathWrapper = canonicalPathCache.GetValue(Client.GetType(), t => new(t));
+        if (canonicalPathWrapper.IsValid)
+        {
+            log.LogTraceMethod(new(remotePath), "Attempting reflection to retrieve canonical path");
+            var pathFull = canonicalPathWrapper.GetCanonicalPath(remotePath, Client);
+            if (pathFull != null && IsAbsolutePath(pathFull)) return pathFull;
+        }
+        else
+        {
+            log.LogWarningMethod(new(remotePath), "Could not find GetCanonicalPath method");
+        }
+
+        return null;
+    }
 }

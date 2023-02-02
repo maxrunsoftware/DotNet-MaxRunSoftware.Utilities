@@ -45,8 +45,8 @@ public class FtpClientRemoteFileSystemObjectComparer : IComparer<FtpClientRemote
             return parts;
         }
 
-        var xParts = Split(x.FullName, DirectorySeparator);
-        var yParts = Split(y.FullName, DirectorySeparator);
+        var xParts = Split(x.NameFull, DirectorySeparator);
+        var yParts = Split(y.NameFull, DirectorySeparator);
 
         int c;
         var len = Math.Min(xParts.Length, yParts.Length);
@@ -70,15 +70,15 @@ public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSys
 {
     private readonly int getHashCode;
     public string Name { get; }
-    public string FullName { get; }
+    public string NameFull { get; }
     public FtpClientRemoteFileSystemObjectType Type { get; }
 
-    public FtpClientRemoteFileSystemObject(string name, string fullName, FtpClientRemoteFileSystemObjectType type)
+    public FtpClientRemoteFileSystemObject(string name, string nameFull, FtpClientRemoteFileSystemObjectType type)
     {
         Name = name;
-        FullName = fullName;
+        NameFull = nameFull;
         Type = type;
-        getHashCode = Util.Hash(Type, FullName);
+        getHashCode = Util.Hash(Type, NameFull);
     }
 
 
@@ -93,7 +93,7 @@ public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSys
     public bool IsMatch(string pathOrPattern, bool isCaseSensitive)
     {
         pathOrPattern = pathOrPattern.CheckNotNullTrimmed(nameof(pathOrPattern));
-        var source = pathOrPattern.StartsWith("/") ? FullName : Name;
+        var source = pathOrPattern.StartsWith("/") ? NameFull : Name;
         return source.EqualsWildcard(pathOrPattern, !isCaseSensitive);
     }
 
@@ -106,13 +106,13 @@ public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSys
 
         if (GetHashCode() != other.GetHashCode()) return false;
         if (Type != other.Type) return false;
-        if (!StringComparer.Ordinal.Equals(FullName, other.FullName)) return false;
+        if (!StringComparer.Ordinal.Equals(NameFull, other.NameFull)) return false;
 
         return true;
     }
 
     public override string ToString()
     {
-        return $"[{Type.ToString()[0]}] {FullName}";
+        return $"[{Type.ToString()[0]}] {NameFull}";
     }
 }

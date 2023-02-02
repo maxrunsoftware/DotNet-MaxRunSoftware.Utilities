@@ -49,12 +49,11 @@ public class CallerInfoMethod
 
     public CallerInfoMethod OffsetLineNumber(int offset) => new(this, offset);
 
-    public sealed class ArgumentSeparator
-    {
-        private ArgumentSeparator() { }
-    }
-
-
+    // @formatter:off
+    // ReSharper disable once ConvertToStaticClass
+    // ReSharper disable once ClassNeverInstantiated.Global
+    public sealed class ArgumentSeparator { private ArgumentSeparator() { } }
+    // @formatter:on
 
     // ReSharper disable once UnusedMember.Local
     private static string[] CodeBuild(int numMethods)

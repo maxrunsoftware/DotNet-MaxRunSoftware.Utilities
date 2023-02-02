@@ -187,7 +187,7 @@ public class UtilChangeTypeTests : TestBase
         var i = new CastImplicit_String("V");
         //var o = Convert.ChangeType(i, typeof(string));
         string o = i;
-        Assert.Equal("V", o);
+        Assert.Equal("Vc", o);
         //var s = (string)o;
         //Assert.Equal("Vc", s);
 

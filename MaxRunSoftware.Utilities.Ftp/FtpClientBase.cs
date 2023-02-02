@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
+
 namespace MaxRunSoftware.Utilities.Ftp;
 
 public abstract class FtpClientBase : IFtpClient
@@ -19,7 +21,8 @@ public abstract class FtpClientBase : IFtpClient
     protected FtpClientBase(ILoggerProvider loggerProvider)
     {
         log = loggerProvider.CreateLogger<FtpClientBase>();
-        serverInfo = Lzy.Create(GetServerInfo);
+        serverInfo = Lzy.Create(GetServerInfoInternal);
+        directorySeparator = Lzy.Create(GetDirectorySeparatorInternal);
     }
 
     private readonly ILogger log;
@@ -33,206 +36,162 @@ public abstract class FtpClientBase : IFtpClient
 
     public string? ServerInfo => serverInfo.Value;
     private readonly Lzy<string?> serverInfo;
-    protected abstract string? GetServerInfo();
+    protected abstract string? GetServerInfoInternal();
 
     #endregion ServerInfo
 
     #region WorkingDirectory
 
+    private string? workingDirectoryCached;
     public string WorkingDirectory
     {
         get
         {
-            var wd = GetWorkingDirectory();
-            wd = RemoveTrailingDirectorySeparator(wd);
+            if (workingDirectoryCached == null)
+            {
+                var path = GetWorkingDirectoryInternal();
 
-            wd = RemoveLeadingDirectorySeparator(wd);
+                while (path.Length > 0 && path.StartsWith(DirectorySeparator)) path = path.RemoveLeft();
+                while (path.Length > 0 && path.EndsWith(DirectorySeparator)) path = path.RemoveRight();
 
-            return DirectorySeparator + wd;
+                workingDirectoryCached = DirectorySeparator + path;
+            }
+
+            return workingDirectoryCached;
         }
         set
         {
-            var wdOld = WorkingDirectory;
-            if (StringComparer.Ordinal.Equals(wdOld, value))
+            var workingDirectoryCurrent = WorkingDirectory;
+            if (StringComparer.Ordinal.Equals(workingDirectoryCurrent, value))
             {
                 log.LogDebugMethod(new(value), LOG_IGNORED + " for '{Directory}' because we are already in that directory", value);
             }
             else
             {
-                log.LogInformation("Changing " + nameof(WorkingDirectory) + " from '{DirectoryOld}' to '{DirectoryNew}'", wdOld, value);
-                SetWorkingDirectory(value);
-                if (log.IsEnabled(LogLevel.Debug)) log.LogDebug(nameof(WorkingDirectory) + " is now '{Directory}'", GetWorkingDirectory());
+                workingDirectoryCached = null;
+                log.LogInformation("Changing " + nameof(WorkingDirectory) + " from '{WorkingDirectoryCurrent}' to '{WorkingDirectoryNew}'", workingDirectoryCurrent, value);
+                SetWorkingDirectoryInternal(value);
+                if (log.IsEnabled(LogLevel.Debug)) log.LogDebug(nameof(WorkingDirectory) + " is now '{Directory}'", WorkingDirectory);
             }
-
         }
     }
 
-    protected string RemoveLeadingDirectorySeparator(string path)
-    {
-        while (path.Length > 0 && path.StartsWith(DirectorySeparator)) path = path.RemoveLeft();
-        return path;
-    }
-    protected string RemoveTrailingDirectorySeparator(string path)
-    {
-        while (path.Length > 0 && path.EndsWith(DirectorySeparator)) path = path.RemoveRight();
-        return path;
-    }
-
-    protected bool IsAbsolutePath(string path) => path.StartsWith(DirectorySeparator);
-
-    protected string GetAbsolutePath(string path) => IsAbsolutePath(path) ? path : (WorkingDirectory + DirectorySeparator + path);
-
-    private string? directorySeparator;
-    public string DirectorySeparator => directorySeparator ??= GetDirectorySeparator();
-
-    protected abstract string GetDirectorySeparator();
-
-    protected abstract string GetWorkingDirectory();
-    protected abstract void SetWorkingDirectory(string directory);
+    protected abstract string GetWorkingDirectoryInternal();
+    protected abstract void SetWorkingDirectoryInternal(string directory);
 
     #endregion WorkingDirectory
 
+    #region DirectorySeparator
+
+    public string DirectorySeparator => directorySeparator.Value;
+    private readonly Lzy<string> directorySeparator;
+    protected abstract string GetDirectorySeparatorInternal();
+
+    #endregion DirectorySeparator
+
     #region GetFile
 
-    protected abstract void GetFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress);
+    protected abstract void GetFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress);
 
-    public byte[] GetFile(string remoteFile, Action<FtpClientProgress>? handlerProgress)
+    public void GetFile(string remoteFile, Stream stream, Action<FtpClientProgress>? handlerProgress, bool flushStream)
     {
-        //remoteFile = ToAbsolutePath(remoteFile);
-        //if (!ExistsFile(remoteFile)) throw new FileNotFoundException($"Remote file {remoteFile} does not exist", remoteFile);
         log.LogDebugMethod(new(remoteFile), LOG_ATTEMPT + " downloading {RemoteFile}", remoteFile);
 
         var methodInfo = new CallerInfoMethod(remoteFile).OffsetLineNumber(1);
         handlerProgress ??= progress => log.LogDebugMethod(methodInfo, " {Progress}", progress);
 
-        byte[] data;
-        using (var localStream = new MemoryStream())
-        {
-            GetFile(remoteFile, localStream, handlerProgress);
-            localStream.Flush();
-            data = localStream.ToArray();
-        }
+        var streamCounted = new StreamCounted(stream); // Don't USING because we don't want to dispose underlying stream
+        GetFileInternal(remoteFile, streamCounted, handlerProgress);
+        if (flushStream) streamCounted.Flush();
 
-        var dataLength = data.Length.ToStringCommas();
-        log.LogDebugMethod(new(remoteFile), LOG_SUCCESS + " downloading {DataLength} byte file", dataLength);
-        log.LogInformation("Downloaded {DataLength} byte file {RemoteFile}", dataLength, remoteFile);
-        return data;
-    }
-
-    public void GetFile(string remoteFile, string localFile, Action<FtpClientProgress>? handlerProgress)
-    {
-        localFile = Path.GetFullPath(localFile);
-        log.LogDebugMethod(new(remoteFile, localFile), LOG_ATTEMPT + " downloading {RemoteFile}", remoteFile);
-
-        if (File.Exists(localFile))
-        {
-            log.LogDebugMethod(new(remoteFile, localFile), "Deleting existing local file: {LocalFile}", localFile);
-            File.Delete(localFile);
-        }
-
-        //remoteFile = ToAbsolutePath(remoteFile);
-        //if (!ExistsFile(remoteFile)) throw new FileNotFoundException($"Remote file {remoteFile} does not exist", remoteFile);
-
-        var methodInfo = new CallerInfoMethod(remoteFile, localFile).OffsetLineNumber(1);
-        handlerProgress ??= progress => log.LogDebugMethod(methodInfo, " {Progress}", progress);
-
-        using (var localStream = Util.FileOpenWrite(localFile))
-        {
-            GetFile(remoteFile, localStream, handlerProgress);
-            localStream.Flush();
-        }
-
-        var fileLength = Util.FileGetLength(localFile).ToStringCommas();
-        log.LogDebugMethod(new(remoteFile, localFile), LOG_SUCCESS + " downloading {FileLength} byte file", fileLength);
-        log.LogInformation("Downloaded {FileLength} byte file {RemoteFile} --> {LocalFile}", fileLength, remoteFile, localFile);
+        var dataLength = streamCounted.BytesWritten.ToStringCommas();
+        log.LogDebugMethod(new(remoteFile), LOG_SUCCESS + " downloading {DataLength} bytes", dataLength);
+        log.LogInformation("Downloaded {DataLength} bytes {RemoteFile}", dataLength, remoteFile);
     }
 
     #endregion GetFile
 
     #region PutFile
 
-    protected abstract void PutFile(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress);
+    protected abstract void PutFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress);
 
-    public void PutFile(string remoteFile, string localFile, Action<FtpClientProgress>? handlerProgress)
-    {
-        localFile = Path.GetFullPath(localFile);
-        localFile.CheckFileExists();
-
-        var fileLength = Util.FileGetLength(localFile).ToStringCommas();
-        //remoteFile = ToAbsolutePath(remoteFile);
-        log.LogDebugMethod(new(remoteFile, localFile), LOG_ATTEMPT + " uploading {FileLength} byte file to {RemoteFile}", fileLength, remoteFile);
-
-        var methodInfo = new CallerInfoMethod(remoteFile, localFile).OffsetLineNumber(1);
-        handlerProgress ??= progress => log.LogDebugMethod(methodInfo, " {Progress}", progress);
-
-        using (var localStream = Util.FileOpenRead(localFile))
-        {
-            PutFile(remoteFile, localStream, handlerProgress);
-            //localFileStream.Flush();
-        }
-
-        log.LogDebugMethod(new(remoteFile, localFile), LOG_SUCCESS + " uploading {FileLength} byte file to {RemoteFile}", fileLength, remoteFile);
-        log.LogInformation("Uploaded {FileLength} byte file {LocalFile} --> {RemoteFile}", fileLength, localFile, remoteFile);
-    }
-
-    public void PutFile(string remoteFile, byte[] data, Action<FtpClientProgress>? handlerProgress)
+    public void PutFile(string remoteFile, Stream stream, Action<FtpClientProgress>? handlerProgress)
     {
         //remoteFile = ToAbsolutePath(remoteFile);
-        log.LogDebugMethod(new(remoteFile, data), LOG_ATTEMPT + " uploading {DataLength} bytes to {RemoteFile}", data.Length.ToStringCommas(), remoteFile);
+        var dataLength = "?";
+        try
+        {
+            dataLength = stream.Length.ToStringCommas();
+        }
+        catch (NotSupportedException e)
+        {
+            log.LogDebugMethod(new (remoteFile), e, "Could not determine {StreamType} length", stream.GetType().NameFormatted());
+        }
+        log.LogDebugMethod(new(remoteFile), LOG_ATTEMPT + " uploading {DataLength} bytes to {RemoteFile}", dataLength, remoteFile);
 
-        var methodInfo = new CallerInfoMethod(remoteFile, data).OffsetLineNumber(1);
+        var methodInfo = new CallerInfoMethod(remoteFile).OffsetLineNumber(1);
         handlerProgress ??= progress => log.LogDebugMethod(methodInfo, " {Progress}", progress);
 
-        using (var localStream = new MemoryStream(data))
-        {
-            PutFile(remoteFile, localStream, handlerProgress);
-            //localFileStream.Flush();
-        }
+        var streamCounted = new StreamCounted(stream); // Don't USING because we don't want to dispose underlying stream
+        PutFileInternal(remoteFile, streamCounted, handlerProgress);
 
-        log.LogDebugMethod(new(remoteFile, data), LOG_SUCCESS + " uploading {DataLength} bytes to {RemoteFile}", data.Length.ToStringCommas(), remoteFile);
-        log.LogInformation("Uploaded {FileLength} bytes --> {RemoteFile}", data.Length.ToStringCommas(), remoteFile);
+        dataLength = streamCounted.BytesRead.ToStringCommas();
+        log.LogDebugMethod(new(remoteFile), LOG_SUCCESS + " uploading {DataLength} bytes to {RemoteFile}", dataLength, remoteFile);
+        log.LogInformation("Uploaded {FileLength} bytes --> {RemoteFile}", dataLength, remoteFile);
     }
 
     #endregion PutFile
 
     #region DeleteFile
 
-    protected abstract void DeleteFileSingle(string remoteFile);
+    protected abstract void DeleteFileInternal(string remoteFile);
 
     public void DeleteFile(string remoteFile)
     {
         remoteFile = ToAbsolutePath(remoteFile);
-        var remoteFilesToDelete = new List<string>() { remoteFile };
 
-        if (remoteFile.ContainsAny("*", "?")) // wildcard
-        {
-            var pathParts = remoteFile.Split("/").TrimOrNull().WhereNotNull().ToList();
-            var remoteFileName = pathParts.PopTail();
-            var path = string.Empty;
-            if (pathParts.Count > 0) path = "/" + string.Join("/", pathParts);
-
-            remoteFilesToDelete = ListObjects(path)
-                .Where(o => o.Name.EqualsWildcard(remoteFileName))
-                .Select(o => o.FullName)
-                .ToList();
-
-        }
-
-        foreach (var file in remoteFilesToDelete)
-        {
-            log.LogDebugMethod(new(remoteFile), LOG_ATTEMPT + " delete of remote file {RemoteFile}", file);
-            DeleteFileSingle(file);
-            log.LogDebugMethod(new(remoteFile), LOG_SUCCESS + " delete of remote file {RemoteFile}", file);
-            log.LogInformation("Deleted remote file {RemoteFile}", file);
-        }
+        log.LogTraceMethod(new(remoteFile), LOG_ATTEMPT + " delete of remote file {RemoteFile}", remoteFile);
+        DeleteFileInternal(remoteFile);
+        log.LogTraceMethod(new(remoteFile), LOG_SUCCESS + " delete of remote file {RemoteFile}", remoteFile);
+        log.LogInformation("Deleted remote file {RemoteFile}", remoteFile);
     }
 
     #endregion DeleteFile
 
-    public abstract void CreateDirectory(string remotePath);
-    public void DeleteDirectory(string remotePath)
+    #region CreateDirectory
+
+    public FtpClientRemoteFileSystemObject CreateDirectory(string remotePath)
     {
-        log.LogDebugMethod(new (remotePath), LOG_ATTEMPT);
+        log.LogTraceMethod(new (remotePath), LOG_ATTEMPT);
+        var o = GetObject(remotePath);
+        if (o != null)
+        {
+            if (o.Type == FtpClientRemoteFileSystemObjectType.Directory) return o;
+            throw new ArgumentException($"Object {remotePath} already exists but is a {o.Type} not a {FtpClientRemoteFileSystemObjectType.Directory}", nameof(remotePath));
+        }
+
+        CreateDirectoryInternal(remotePath);
+
+        o = GetObject(remotePath);
+        if (o == null)
+        {
+            throw new ArgumentException($"Successfully created directory {remotePath} but could not retrieve directory object", nameof(remotePath));
+        }
+
+        log.LogTraceMethod(new (remotePath), LOG_SUCCESS);
+        return o;
+    }
+
+    protected abstract void CreateDirectoryInternal(string remotePath);
+
+    #endregion CreateDirectory
+
+    public bool DeleteDirectory(string remotePath)
+    {
+        log.LogTraceMethod(new (remotePath), LOG_ATTEMPT);
+        var obj = GetObject(remotePath);
+        if (obj == null) return false;
+
         try
         {
             DeleteDirectoryInternal(remotePath);
@@ -242,37 +201,40 @@ public abstract class FtpClientBase : IFtpClient
             log.LogDebugMethod(new(remotePath), e, LOG_FAILED + " " + nameof(DeleteDirectoryInternal) + " failed, retrying with recursive delete");
 
             // Maybe there are files/dirs in the directory that need to be deleted first
+            bool success;
             try
             {
                 var remoteDirectory = ParseDirectory(remotePath);
-                var objsAll = ListObjectsRecursive(remotePath, null).ToArray();
+                var objsAll = ListObjects(remotePath, true, null).ToArray();
                 var objsChildren = objsAll.Where(o => IsChild(remoteDirectory, o)).ToArray();
                 foreach (var file in objsChildren.Where(o => o.Type != FtpClientRemoteFileSystemObjectType.Directory))
                 {
-                    DeleteFile(file.FullName);
+                    DeleteFile(file.NameFull);
                 }
-                foreach (var dir in objsChildren.Where(o => o.Type == FtpClientRemoteFileSystemObjectType.Directory).OrderByDescending(o => o.FullName.Length))
+                foreach (var dir in objsChildren.Where(o => o.Type == FtpClientRemoteFileSystemObjectType.Directory).OrderByDescending(o => o.NameFull.Length))
                 {
-                    DeleteDirectoryInternal(dir.FullName);
+                    DeleteDirectoryInternal(dir.NameFull);
                 }
-                DeleteDirectoryInternal(remoteDirectory.FullName);
-                return;
+                DeleteDirectoryInternal(remoteDirectory.NameFull);
+                success = true;
             }
             catch (Exception ee)
             {
                 log.LogDebugMethod(new(remotePath), ee, LOG_FAILED);
+                success = false;
             }
 
-            throw;
+            if (!success) throw;
         }
-    }
 
+        return true;
+    }
 
     protected bool IsChild(FtpClientRemoteFileSystemObject parent, FtpClientRemoteFileSystemObject child)
     {
         if (parent.Equals(child)) return false;
-        if (child.FullName.Length <= parent.FullName.Length) return false;
-        if (!child.FullName.StartsWith(parent.FullName)) return false;
+        if (child.NameFull.Length <= parent.NameFull.Length) return false;
+        if (!child.NameFull.StartsWith(parent.NameFull)) return false;
         return true;
     }
 
@@ -312,46 +274,26 @@ public abstract class FtpClientBase : IFtpClient
 
     protected abstract void DeleteDirectoryInternal(string remotePath);
 
-
-
-    #region ListFiles
+    #region ListObjects
 
     private IComparer<FtpClientRemoteFileSystemObject>? objectComparer;
     public IComparer<FtpClientRemoteFileSystemObject> ObjectComparer => objectComparer ??= new FtpClientRemoteFileSystemObjectComparer(DirectorySeparator);
-    protected abstract void ListObjects(string remotePath, List<FtpClientRemoteFileSystemObject> list);
 
-    private void ListObjectsLog(string remoteDirectory, List<FtpClientRemoteFileSystemObject> items)
-    {
-        if (!log.IsEnabled(LogLevel.Trace)) return;
+    protected abstract void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list);
 
-        log.LogTrace("Retrieved directory listing of {ObjectsCount} objects for directory: {RemoteDirectory}", items.Count, remoteDirectory);
-        for (var i = 0; i < items.Count; i++)
-        {
-            log.LogTrace("  [{RunningCount}] {FileSystemObject}", Util.FormatRunningCount(i, items.Count), items[i]);
-        }
-    }
-
-    private bool ListObjectsIsIncluded(FtpClientRemoteFileSystemObject obj) =>
+    protected virtual bool ListObjectsIsIncluded(FtpClientRemoteFileSystemObject obj) =>
         obj is not { Type: FtpClientRemoteFileSystemObjectType.Directory, Name: "." or ".." };
 
-    public IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string? remotePath)
+    public virtual IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException)
     {
-        remotePath = remotePath.TrimOrNull() ?? WorkingDirectory;
-        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
-        log.LogDebug("Getting remote file system listing of {RemotePath}", remotePath);
-        var items = new List<FtpClientRemoteFileSystemObject>();
-        ListObjects(remotePath, items);
-        items.Sort(ObjectComparer);
-        ListObjectsLog(remotePath, items);
-        items = items.Where(ListObjectsIsIncluded).ToList();
-        log.LogDebugMethod(new(remotePath), LOG_COMPLETE + ", found {CountObjects} items", items.Count);
-        return items;
-    }
-
-    public IEnumerable<FtpClientRemoteFileSystemObject> ListObjectsRecursive(string? remotePath, Func<string, Exception, bool>? handlerException)
-    {
-        remotePath = remotePath.TrimOrNull() ?? WorkingDirectory;
         log.LogTraceMethod(new(remotePath, handlerException), LOG_ATTEMPT);
+
+        var remotePathObj = GetObject(remotePath);
+        if (remotePathObj == null) throw new DirectoryNotFoundException($"Remote directory {remotePath} does not exist");
+        if (remotePathObj.Type != FtpClientRemoteFileSystemObjectType.Directory) throw new DirectoryNotFoundException($"Remote object {remotePathObj.NameFull} is not a {FtpClientRemoteFileSystemObjectType.Directory} it is a {remotePathObj.Type}");
+        remotePath = remotePathObj.NameFull;
+        log.LogTraceMethod(new(remotePath, handlerException), LOG_ATTEMPT + " (AbsolutePath: {Path})", remotePath);
+        Debug.Assert(remotePath.StartsWith(DirectorySeparator));
 
         var stack = new Stack<string>();
         var checkedDirs = new HashSet<string>();
@@ -367,9 +309,17 @@ public abstract class FtpClientBase : IFtpClient
             var shouldContinue = true;
             try
             {
-                ListObjects(remoteDirectory, items);
+                ListObjectsInternal(remoteDirectory, items);
                 items.Sort(ObjectComparer);
-                ListObjectsLog(remoteDirectory, items);
+                if (log.IsEnabled(LogLevel.Trace))
+                {
+                    log.LogTrace("Retrieved directory listing of {ObjectsCount} objects for directory: {RemoteDirectory}", items.Count, remoteDirectory);
+                    for (var i = 0; i < items.Count; i++)
+                    {
+                        var notIncludedMarker = ListObjectsIsIncluded(items[i]) ? " " : "-";
+                        log.LogTrace("  {NotIncludedMarker}[{RunningCount}] {FileSystemObject}", notIncludedMarker, Util.FormatRunningCount(i, items.Count), items[i]);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -387,48 +337,170 @@ public abstract class FtpClientBase : IFtpClient
 
             foreach (var item in items.Where(ListObjectsIsIncluded))
             {
-                if (item.Type == FtpClientRemoteFileSystemObjectType.Directory && !checkedDirs.Contains(item.FullName))
+                if (item.Type == FtpClientRemoteFileSystemObjectType.Directory && !checkedDirs.Contains(item.NameFull))
                 {
-                    stack.Push(item.FullName);
+                    if (recursive) stack.Push(item.NameFull);
                 }
 
                 countObjectsFound++;
                 yield return item;
             }
         }
+
         log.LogDebugMethod(new(remotePath, handlerException), LOG_COMPLETE + ", found {CountObjects} items", countObjectsFound);
 
+
     }
 
+    #endregion ListObjects
 
-    #endregion ListFiles
+    #region GetObject
 
-    #region Exists
-
-    public bool DirectoryExists(string remotePath)
+    public virtual FtpClientRemoteFileSystemObject? GetObject(string remotePath)
     {
         log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
-        var result = DirectoryExistsInternal(remotePath);
-        log.LogTraceMethod(new(remotePath), LOG_COMPLETE);
-        return result;
-    }
-    protected abstract bool DirectoryExistsInternal(string remotePath);
+        var obj = GetObjectInternal(remotePath);
+        if (obj != null)
+        {
+            log.LogTraceMethod(new(remotePath), LOG_SUCCESS + " {Path}", obj.NameFull);
+        }
+        else
+        {
+            log.LogTraceMethod(new(remotePath), LOG_FAILED + " object does not exist {Path}", remotePath);
+        }
 
-    public bool FileExists(string remotePath)
+        return obj;
+    }
+
+    protected abstract FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath);
+
+    #endregion GetObject
+
+    #region GetAbsolutePath
+
+    protected virtual bool IsAbsolutePath(string remotePath)
     {
-        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
-        var result = FileExistsInternal(remotePath);
-        log.LogTraceMethod(new(remotePath), LOG_COMPLETE);
-        return result;
+        if (!remotePath.StartsWith(DirectorySeparator)) return false;
+        var pathParts = remotePath.Split(DirectorySeparator);
+        if (pathParts.Any(o => o is "." or "..")) return false;
+        return true;
     }
 
-    protected abstract bool FileExistsInternal(string remotePath);
 
-    #endregion Exists
+    public string GetAbsolutePath(string remotePath)
+    {
+        var remotePathAbsolute = GetAbsolutePathInternal(remotePath);
+        if (remotePathAbsolute != null) return remotePathAbsolute;
+
+        if (!remotePath.StartsWith(DirectorySeparator))
+        {
+            // relative path to current working directory
+            remotePath = WorkingDirectory + DirectorySeparator + remotePath;
+        }
+
+        if (IsAbsolutePath(remotePath)) return remotePath;
+
+        var remotePathParts = remotePath.Split(DirectorySeparator).Where(o => o.Length > 0).ToArray();
+        var remotePathReassembled = new Stack<string>();
+        foreach (var remotePathPart in remotePathParts)
+        {
+            if (remotePathPart == ".") continue;
+            if (remotePathPart == "..")
+            {
+                if (remotePathReassembled.Count > 0) remotePathReassembled.Pop();
+                continue;
+            }
+            remotePathReassembled.Push(remotePathPart);
+        }
+
+        if (remotePathReassembled.Count == 0) return DirectorySeparator; // we ended up at root
+        remotePathParts = remotePathReassembled.Reverse().ToArray();
+        return DirectorySeparator + remotePathParts.ToStringDelimited(DirectorySeparator);
+    }
+
+    protected abstract string? GetAbsolutePathInternal(string remotePath);
+
+    #endregion GetAbsolutePath
+
+    #region CreateFileSystemObject
+
+    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(string? name, string? nameFull, FtpClientRemoteFileSystemObjectType type)
+    {
+        if (nameFull != null && nameFull.Length == 0) nameFull = null;
+        if (name == null && nameFull == null) return null;
+
+        // is root? "/"
+        if (name == DirectorySeparator || nameFull == DirectorySeparator) return new(DirectorySeparator, DirectorySeparator, type);
+
+        if (name != null && name.Contains(DirectorySeparator)) throw new ArgumentException($"Argument '{nameof(name)}' with value '{name}' cannot contain {nameof(DirectorySeparator)} '{DirectorySeparator}'", nameof(name));
+
+        if (name != null && nameFull == null)
+        {
+            nameFull = WorkingDirectory + DirectorySeparator + name;
+        }
+
+        if (nameFull != null)
+        {
+            while (nameFull.Length > 0 && nameFull.EndsWith(DirectorySeparator)) nameFull = nameFull.RemoveRight();
+            if (!nameFull.StartsWith(DirectorySeparator)) nameFull = DirectorySeparator + nameFull;
+        }
+
+        if (name == null && nameFull != null)
+        {
+            var (_, right) = nameFull.SplitOnLast(DirectorySeparator);
+            name = string.IsNullOrEmpty(right) ? nameFull : right;
+        }
+
+        if (name == null || nameFull == null)
+        {
+            var infoMethod = new CallerInfoMethod();
+            var sb = new StringBuilder();
+            sb.Append("Could not determine " + (name == null ? nameof(name) : nameof(nameFull)) + $" {infoMethod.MemberName}(");
+            for (var i = 0; i < infoMethod.Args.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                var (argName, argValue) = infoMethod.Args[i];
+                if (!string.IsNullOrWhiteSpace(argName)) sb.Append($"{argName}: ");
+                var v = argValue switch
+                {
+                    null => "null",
+                    string argValueString => "\"" + argValueString + "\"",
+                    _ => argValue.ToString() ?? string.Empty,
+                };
+
+                sb.Append(v);
+            }
+            sb.Append(')');
+
+            throw new ArgumentException(sb.ToString(), name == null ? nameof(name) : nameof(nameFull));
+        }
+
+        return new(name, nameFull, type);
+    }
+
+    #endregion CreateFileSystemObject
 
     #region Dispose
 
-    public abstract void Dispose();
+    private readonly SingleUse isDisposed = new();
+    public bool IsDisposed => isDisposed.IsUsed;
+    public void Dispose()
+    {
+        if (!isDisposed.TryUse()) return;
+        log.LogTraceMethod(new(), LOG_ATTEMPT);
+        try
+        {
+            DisposeInternal();
+        }
+        catch (Exception e)
+        {
+            log.LogWarningMethod(new(), e, LOG_FAILED);
+        }
+
+        log.LogTraceMethod(new(), LOG_SUCCESS);
+    }
+
+    protected abstract void DisposeInternal();
 
     #endregion Dispose
 
