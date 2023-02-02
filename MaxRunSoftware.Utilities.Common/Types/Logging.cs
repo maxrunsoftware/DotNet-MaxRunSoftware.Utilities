@@ -137,10 +137,10 @@ public class LoggerProviderFunc : ILoggerProvider
 
         public virtual bool IsEnabled(LogLevel logLevel) => LogLevel.Contains(logLevel);
 
-        public virtual IDisposable BeginScope<TState>(TState state) => DisposableNoopInstance;
+        public virtual IDisposable BeginScope<TState>(TState state) where TState : notnull => DisposableNoopInstance;
 
         // ReSharper disable once InconsistentNaming
-        private static readonly DisposableNoop DisposableNoopInstance = new DisposableNoop();
+        private static readonly DisposableNoop DisposableNoopInstance = new();
         private sealed class DisposableNoop : IDisposable { public void Dispose() { } }
     }
 
@@ -174,9 +174,9 @@ public class LoggerFunc : ILogger
 
     public virtual bool IsEnabled(LogLevel logLevel) => LogLevel().Contains(logLevel);
 
-    public virtual IDisposable BeginScope<TState>(TState state) => DisposableNoopInstance;
+    public virtual IDisposable BeginScope<TState>(TState state) where TState : notnull => DisposableNoopInstance;
 
     // ReSharper disable once InconsistentNaming
-    private static readonly DisposableNoop DisposableNoopInstance = new DisposableNoop();
+    private static readonly DisposableNoop DisposableNoopInstance = new();
     private sealed class DisposableNoop : IDisposable { public void Dispose() { } }
 }
