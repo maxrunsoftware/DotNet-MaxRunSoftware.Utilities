@@ -78,16 +78,7 @@ public class TableCsvStreaming : ITable
                     }
                 }
 
-                //Avoids going beyond the end of the collection.
-                if (++curIndex >= _collection.Count)
-                {
-                    return false;
-                }
-                else
-                {
-                    // Set current box to next item in collection.
-                    curBox = _collection[curIndex];
-                }
+                // TODO: Implementation
                 return true;
             }
             public void Reset() => throw new NotImplementedException();
@@ -101,7 +92,7 @@ public class TableCsvStreaming : ITable
         public RowCollection(TableCsvStreaming table) => this.table = table;
         public IEnumerator<IRow> GetEnumerator()
         {
-
+            return new RowCollectionEnumerator(table);
         }
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         public int Count { get; }
@@ -172,6 +163,7 @@ public class Csv : IReadOnlyList<string[]>
             return CreateFromString(Util.FileRead(file, encoding), config);
         }
 
+        throw new NotImplementedException();
     }
     public IEnumerator<string[]> GetEnumerator() => throw new NotImplementedException();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
