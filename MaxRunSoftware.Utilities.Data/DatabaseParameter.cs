@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Data.Tests;
+namespace MaxRunSoftware.Utilities.Data;
 
-public class TestBase : Common.Tests.TestBase
+public class DatabaseParameter
 {
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+    public DatabaseParameter(string name, DbType type)
+    {
+        Name = name;
+        Type = type;
+    }
+
+    public string Name { get; }
+    public DbType Type { get; }
+}
+
+public class DatabaseParameterValue : DatabaseParameter
+{
+    public DatabaseParameterValue(string name, DbType type, object? value) : base(name: name, type: type)
+    {
+        Value = value;
+    }
+
+    public object? Value { get; }
 }

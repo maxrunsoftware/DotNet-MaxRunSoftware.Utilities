@@ -16,7 +16,7 @@
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
         <Summary>Various tools and helper functions</Summary>
         <Title>Max Run Software Utilities</Title>
-        <Copyright>(c) Max Run Software 2022</Copyright>
+        <Copyright>(c) Max Run Software 2023</Copyright>
         <IncludeSymbols>true</IncludeSymbols>
         <IncludeSource>true</IncludeSource>
         <Nullable>enable</Nullable>
@@ -51,11 +51,11 @@
         <None Remove="Sql\Oracle\" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
         <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Extensions\" />

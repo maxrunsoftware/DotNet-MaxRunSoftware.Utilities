@@ -1,19 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <ReleaseVersion>2.0.0</ReleaseVersion>
+        <Description>Various helper methods and functions</Description>
+        <PackageVersion>2.0.0-$(Configuration)-$(Platform)-$([System.DateTime]::UtcNow.ToString(yyyyMMdd-HHmmss))</PackageVersion>
+        <Authors>Max Run Software</Authors>
+        <PackOnBuild>true</PackOnBuild>
+        <PackageId>MaxRunSoftware.Utilities.Ftp</PackageId>
+        <PackageTags>Utility</PackageTags>
+        <PackageIconUrl></PackageIconUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+        <Owners>Max Run Software</Owners>
+        <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
+        <Summary>Various tools and helper functions</Summary>
+        <Title>Max Run Software Utilities</Title>
+        <Copyright>(c) Max Run Software 2023</Copyright>
+        <IncludeSymbols>true</IncludeSymbols>
+        <IncludeSource>true</IncludeSource>
         <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <AssemblyVersion>2.0.0</AssemblyVersion>
+        <FileVersion>2.0.0</FileVersion>
     </PropertyGroup>
-
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <WarningLevel>4</WarningLevel>
+        <DocumentationFile>bin\Debug\net6.0\MaxRunSoftware.Ftp.xml</DocumentationFile>
+        <NoWarn>1701;1702;1591</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugType>
+        </DebugType>
+        <WarningLevel>4</WarningLevel>
+        <DocumentationFile>bin\Release\net6.0\MaxRunSoftware.Ftp.xml</DocumentationFile>
+    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
     </ItemGroup>
-
     <ItemGroup>
+        <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
         <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
         <PackageReference Include="FluentFTP" Version="44.0.1" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     </ItemGroup>
-
 </Project>
