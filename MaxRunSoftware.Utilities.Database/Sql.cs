@@ -503,7 +503,13 @@ public abstract class Sql : IDisposable
     public List<object?[]> QueryObjects(string sql, params DatabaseParameterValue[] values)
     {
         var result = Query(sql, values);
-        return result == null ? new List<object?[]>() : new(result.Rows.Select(row => row.ToArray()));
+        var list = new List<object?[]>();
+        if (result != null)
+        {
+            list = result.Rows.Select<DataReaderResultRow, object?[]>(row => row.ToArray()).ToList();
+        }
+
+        return list;
     }
     public List<object?[]> QueryObjects(string sql, out Exception? exception, params DatabaseParameterValue[] values)
     {

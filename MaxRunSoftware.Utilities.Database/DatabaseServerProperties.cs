@@ -22,7 +22,7 @@ public abstract class DatabaseServerProperties
     public static Dictionary<string, string?> ToDictionaryHorizontal(DataReaderResult result)
     {
         var cols = result.Columns.Names;
-        var row = result.Rows.FirstOrDefault();
+        var row = result.Rows.Count > 0 ? result.Rows[0] : null;
         var values = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
         if (row == null) return values;
         for (var i = 0; i < cols.Count; i++)

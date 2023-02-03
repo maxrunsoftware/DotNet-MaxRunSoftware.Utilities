@@ -16,7 +16,7 @@ using System.Numerics;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class DataReaderResult
+public class DataReaderResult : ITable
 {
     public int Index { get; }
     public DataReaderResultColumnCollection Columns { get; }
@@ -26,9 +26,17 @@ public class DataReaderResult
     {
         //Constant.GetLogger<DataReaderResult>().LogTrace("Reading " + nameof(DataReaderResult) + "[{Index}]", index);
         Index = index;
-        Columns = new DataReaderResultColumnCollection(reader, this); // Important to construct Columns before Rows
-        Rows = new DataReaderResultRowCollection(reader, this);
+        Columns = new(reader, this); // Important to construct Columns before Rows
+        Rows = new(reader, this);
     }
+
+    #region ITable
+
+    IReadOnlyList<IRow> ITable.Rows => Rows;
+    IReadOnlyList<IColumn> ITable.Columns => Columns;
+
+    #endregion ITable
+
 }
 
 public static class DataReaderResultExtensions
@@ -66,7 +74,7 @@ public static class DataReaderResultExtensions
     //public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
 }
 
-public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultColumn>
+public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultColumn>, IReadOnlyList<IColumn>
 {
     private readonly List<DataReaderResultColumn> columns;
     private readonly Dictionary<string, List<DataReaderResultColumn>> columnsByName = new(StringComparer.OrdinalIgnoreCase);
@@ -119,12 +127,18 @@ public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultCo
 
     public int Count => columns.Count;
 
+    IEnumerator<IColumn> IEnumerable<IColumn>.GetEnumerator() => throw new NotImplementedException();
     public IEnumerator<DataReaderResultColumn> GetEnumerator() => columns.GetEnumerator();
 
+    #region IReadOnlyList<IColumn>
+
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IColumn IReadOnlyList<IColumn>.this[int index] => this[index];
+
+    #endregion IReadOnlyList<IColumn>
 }
 
-public class DataReaderResultColumn
+public class DataReaderResultColumn : IColumn
 {
     private DataReaderSchemaColumn SchemaColumn { get; }
 
@@ -144,7 +158,7 @@ public class DataReaderResultColumn
     }
 }
 
-public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>
+public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>, IReadOnlyList<IRow>
 {
     public DataReaderResult Result { get; }
 
@@ -156,7 +170,7 @@ public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>
     {
         Result = result;
         var nullableColumnIndexes = Result.Columns.nullableColumns;
-        rows = reader.GetValuesAll().Select(valueRow => new DataReaderResultRow(valueRow, nullableColumnIndexes)).ToList();
+        rows = reader.GetValuesAll().Select((valueRow, i) => new DataReaderResultRow(i, valueRow, nullableColumnIndexes)).ToList();
     }
 
     public IEnumerator<DataReaderResultRow> GetEnumerator() => rows.GetEnumerator();
@@ -165,14 +179,21 @@ public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>
 
     public int Count => rows.Count;
 
+    #region IReadOnlyList<IRow>
+
+    IEnumerator<IRow> IEnumerable<IRow>.GetEnumerator() => GetEnumerator();
+    IRow IReadOnlyList<IRow>.this[int index] => this[index];
+
+    #endregion IReadOnlyList<IRow>
 }
 
-public class DataReaderResultRow : IReadOnlyList<object?>
+public class DataReaderResultRow : IRow
 {
     private readonly object?[] objs;
 
-    public DataReaderResultRow(object?[] data)
+    public DataReaderResultRow(int index, object?[] data)
     {
+        Index = index;
         for (var i = 0; i < data.Length; i++)
         {
             if (data[i] == DBNull.Value) data[i] = null;
@@ -181,8 +202,9 @@ public class DataReaderResultRow : IReadOnlyList<object?>
         objs = data;
     }
 
-    public DataReaderResultRow(object?[] data, bool[] nullableColumnIndexes)
+    public DataReaderResultRow(int index, object?[] data, bool[] nullableColumnIndexes)
     {
+        Index = index;
         for (var i = 0; i < data.Length; i++)
         {
             if (data[i] == null)
@@ -208,6 +230,7 @@ public class DataReaderResultRow : IReadOnlyList<object?>
     public object? this[int index] => objs[index];
 
     public object?[] ToArray() => objs.Copy();
+    public int Index { get; }
 }
 
 public static class DataReaderResultRowExtensions
