@@ -73,13 +73,25 @@ public static class Extensions
 
     #region IDisposable
 
-    public static void DisposeSafely(this IDisposable? disposable, Action<string, Exception> onErrorLog)
+
+    public static void DisposeSafely(this IDisposable? disposable, ILoggerProvider loggerProvider)
     {
-        onErrorLog.CheckNotNull(nameof(onErrorLog));
+        disposable.DisposeSafely(loggerProvider.CreateLogger(typeof(Extensions)));
+    }
+
+    public static void DisposeSafely(this IDisposable? disposable, ILogger logger, LogLevel logLevel = LogLevel.Warning)
+    {
+        logger.CheckNotNull(nameof(logger));
         if (disposable == null) return;
 
-        try { disposable.Dispose(); }
-        catch (Exception e) { onErrorLog($"Error calling {disposable.GetType().FullNameFormatted()}.Dispose() : {e.Message}", e); }
+        try
+        {
+            disposable.Dispose();
+        }
+        catch (Exception e)
+        {
+            logger.Log(logLevel, e, "Exception calling {Type}." + nameof(IDisposable.Dispose) + "()", disposable.GetType().FullNameFormatted());
+        }
     }
 
     #endregion IDisposable

@@ -21,11 +21,11 @@ public class UtilHashTests : TestBase
     [SkippableFact]
     public void HashString()
     {
-        var hash = Util.GenerateHashSHA256(Constant.Encoding_UTF8.GetBytes("some_text"));
-        output.WriteLine(hash);
+        var hash = Util.GenerateHashSHA256(Constant.Encoding_UTF8_Without_BOM.GetBytes("some_text"));
+        WriteLine(hash);
 
-        hash = Util.GenerateHashSHA256(new byte[] {});
-        output.WriteLine(hash);
+        hash = Util.GenerateHashSHA256(Array.Empty<byte>());
+        WriteLine(hash);
         // 9476537661fea5f2c41aebe7e0ea1d7e933051129ae6e9374e34d9db8d7a3be6
         // 0000000000000000000000000000000000000000000000000000000000000000
     }

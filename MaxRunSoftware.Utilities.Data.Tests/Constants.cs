@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using MaxRunSoftware.Utilities.Common.Tests;
+
 namespace MaxRunSoftware.Utilities.Data.Tests;
 
 // ReSharper disable InconsistentNaming
@@ -19,6 +21,13 @@ namespace MaxRunSoftware.Utilities.Data.Tests;
 
 public static class Constants
 {
+    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new []
+    {
+        SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableColumns), "takes too long"),
+        SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableExists), "takes too long"),
+    }.ToImmutableArray();
+
+
     private static readonly string DEFAULT_SERVER = "172.16.46.16";
     private static readonly string DEFAULT_PASSWORD = "testPass1!";
 

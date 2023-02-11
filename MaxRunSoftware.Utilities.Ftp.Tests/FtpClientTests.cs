@@ -19,7 +19,7 @@ using MaxRunSoftware.Utilities.Common;
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
-public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpClientBase
+public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
 {
     protected T Client { get; private set; }
     protected FtpClientTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
@@ -28,12 +28,14 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Client = CreateClient();
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         var c = Client;
         Client = null!;
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
         c?.Dispose();
+
+        base.Dispose();
     }
 
     protected abstract T CreateClient();
@@ -66,7 +68,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Assert.Null(file);
         Client.PutFile("myfile.txt", ToBytes("Hello World"));
         file = GetFile("myfile.txt");
-        output.WriteLine(nameof(Client.PutFile) + ": " + file);
+        WriteLine(nameof(Client.PutFile) + ": " + file);
         Assert.NotNull(file);
     }
 
@@ -82,7 +84,7 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Client.PutFile("myfile.txt", fileOldBytes);
         file = GetFile("myfile.txt");
         Assert.NotNull(file);
-        output.WriteLine(nameof(Client.PutFile) + ": " + file);
+        WriteLine(nameof(Client.PutFile) + ": " + file);
 
         var fileNewBytes = Client.GetFile("myfile.txt");
         Assert.NotEmpty(fileNewBytes);
@@ -191,10 +193,10 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
         Client.WorkingDirectory = "..";
         Assert.DoesNotContain(Client.DirectorySeparator + dir.Name, Client.WorkingDirectory);
 
-        Client.PutFile(ConvertPath($"./{dir.Name}/myfile1.txt"), Constant.Encoding_UTF8.GetBytes("My File 1"));
-        Client.PutFile(ConvertPath($"{dir.Name}/myfile2.txt"), Constant.Encoding_UTF8.GetBytes("My File 2"));
+        Client.PutFile(ConvertPath($"./{dir.Name}/myfile1.txt"), Constant.Encoding_UTF8_Without_BOM.GetBytes("My File 1"));
+        Client.PutFile(ConvertPath($"{dir.Name}/myfile2.txt"), Constant.Encoding_UTF8_Without_BOM.GetBytes("My File 2"));
         Client.WorkingDirectory = ConvertPath($"./{dir.Name}");
-        Client.PutFile("myfile3.txt", Constant.Encoding_UTF8.GetBytes("My File 3"));
+        Client.PutFile("myfile3.txt", Constant.Encoding_UTF8_Without_BOM.GetBytes("My File 3"));
         Client.WorkingDirectory = "..";
 
         var files = Client.ListObjects(dir.Name)
@@ -209,8 +211,8 @@ public abstract class FtpClientTests<T> : TestBase, IDisposable where T : FtpCli
 
     protected string ConvertPath(string unixPath) => unixPath.Replace("/", Client.DirectorySeparator);
 
-    protected static byte[] ToBytes(string str) => Constant.Encoding_UTF8.GetBytes(str);
-    protected static string ToString(byte[] bytes) => Constant.Encoding_UTF8.GetString(bytes);
+    protected static byte[] ToBytes(string str) => Constant.Encoding_UTF8_Without_BOM.GetBytes(str);
+    protected static string ToString(byte[] bytes) => Constant.Encoding_UTF8_Without_BOM.GetString(bytes);
 
     private void HelperDeleteFile(string filename)
     {

@@ -13,169 +13,90 @@
 // limitations under the License.
 
 
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+
+// ReSharper disable InconsistentNaming
 namespace MaxRunSoftware.Utilities.Common;
 
-public abstract class EqualityComparerBase<T> : IEqualityComparer<T>, IEqualityComparer
+public abstract class ComparerBase
 {
-    protected virtual bool CheckTypeExact => false;
+    #region Helpers
 
-    public bool Equals(T? x, T? y)
+    protected static int H<TT>(TT? obj) => Util.Hash(obj);
+    protected static int H(params object?[] objs) => objs.Length == 0 ? 0 : Util.HashEnumerable(objs);
+    protected static int HOrdinal(string? s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
+    protected static int HOrdinalIgnoreCase(string? s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
+
+    protected static bool EC<TT>(TT? x, TT? y) where TT : class, IEquatable<TT>
     {
         if (ReferenceEquals(x, y)) return true;
-        if (ReferenceEquals(x, null)) return true;
-        if (ReferenceEquals(y, null)) return true;
-        // ReSharper disable ConditionIsAlwaysTrueOrFalse
-        if (x == null && y == null) return true;
-        if (x == null) return false;
-        if (y == null) return false;
-        // ReSharper restore ConditionIsAlwaysTrueOrFalse
-        if (CheckTypeExact && x.GetType() != y.GetType()) return false;
-        //if (GetHashCode(x) != GetHashCode(y)) return false;
-        return EqualsInternal(x, y);
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return false;
+        return x.Equals(y);
     }
-
-    protected abstract bool EqualsInternal(T x, T y);
-
-    public int GetHashCode(T obj)
+    protected static bool ES<TT>(TT x, TT y) where TT : struct => x.Equals(y);
+    protected static bool ES<TT>(TT x, TT? y) where TT : struct => y.HasValue && ES(x, y.Value);
+    protected static bool ES<TT>(TT? x, TT y) where TT : struct => x.HasValue && ES(x.Value, y);
+    protected static bool ES<TT>(TT? x, TT? y) where TT : struct
     {
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-        // ReSharper disable once HeuristicUnreachableCode
-        if (obj == null) return 0;
-        var v = new List<object?>();
-        if (CheckTypeExact) v.Add(obj.GetType());
-        GetHashCodeValues(obj, v);
-        if (v.Count == 0) return 0;
-        return Util.HashEnumerable(v);
+        if (!x.HasValue) return !y.HasValue;
+        if (!y.HasValue) return !x.HasValue;
+        return ES(x.Value, y.Value);
     }
 
-    protected abstract void GetHashCodeValues(T obj, List<object?> v);
-
-    protected int HashOrdinalIgnoreCase(string? s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
-    protected int HashOrdinal(string? s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
-
-    protected bool EqualsOrdinalIgnoreCase(string o1, string o2) => StringComparer.OrdinalIgnoreCase.Equals(o1, o2);
-    protected bool EqualsOrdinal(string o1, string o2) => StringComparer.Ordinal.Equals(o1, o2);
-
-    public new bool Equals(object? x, object? y)
+    protected static bool EO(object? x, object? y)
     {
-        if (x is T xt && y is T yt) return Equals(xt, yt);
-
-        return false;
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return false;
+        return x.Equals(y);
     }
 
-    public int GetHashCode(object obj)
-    {
-        if (obj is T ot) return GetHashCode(ot);
+    protected static bool EOrdinal(string? x, string? y) => StringComparer.Ordinal.Equals(x, y);
+    protected static bool EOrdinalIgnoreCase(string? x, string? y) => StringComparer.OrdinalIgnoreCase.Equals(x, y);
 
-        return 0;
-    }
-}
+    protected static int? CNullable(int i) => i == 0 ? null : i;
 
-public abstract class ComparerBase<T> : EqualityComparerBase<T>, IComparer<T>, IComparer
-{
-    public int Compare(T? x, T? y)
+    protected static int? CC<TT>(TT? x, TT? y) where TT : class, IComparable<TT>
     {
         if (ReferenceEquals(x, y)) return 0;
         if (ReferenceEquals(x, null)) return -1;
         if (ReferenceEquals(y, null)) return 1;
-        // ReSharper disable ConditionIsAlwaysTrueOrFalse
-        if (x == null && y == null) return 0;
-        if (x == null) return -1;
-        if (y == null) return 1;
-        // ReSharper restore ConditionIsAlwaysTrueOrFalse
-        if (CheckTypeExact)
-        {
-            var c = new TypeSlim(x.GetType()).CompareTo(new TypeSlim(y.GetType()));
-            if (c != 0) return c;
-        }
-
-        //if (GetHashCode(x) != GetHashCode(y)) return false;
-        return CompareInternal(x, y);
+        return CNullable(x.CompareTo(y));
     }
 
-    protected abstract int CompareInternal(T x, T y);
-
-    protected int CompareOrdinalIgnoreCase(string o1, string o2) => StringComparer.OrdinalIgnoreCase.Compare(o1, o2);
-    protected int CompareOrdinal(string o1, string o2) => StringComparer.Ordinal.Compare(o1, o2);
-
-    public int Compare(object? x, object? y)
+    protected static int? CS<TT>(TT x, TT y) where TT : struct, IComparable<TT> => CNullable(x.CompareTo(y));
+    protected static int? CS<TT>(TT x, TT? y) where TT : struct, IComparable<TT> => y.HasValue ? CS(x, y.Value) : 1;
+    protected static int? CS<TT>(TT? x, TT y) where TT : struct, IComparable<TT> => x.HasValue ? CS(x.Value, y) : -1;
+    protected static int? CS<TT>(TT? x, TT? y) where TT : struct, IComparable<TT>
     {
-        if (x is T xt) return y is T yt ? Compare(xt, yt) : 1;
-        if (y is T) return -1;
-
-        return 0;
+        if (x.HasValue) return CS(x.Value, y);
+        if (y.HasValue) return CS(x, y.Value);
+        return null;
     }
-}
 
-public abstract class ComparerListBase<T, TList> : ComparerBase<TList> where TList : IReadOnlyList<T>
-{
-    protected override bool EqualsInternal(TList x, TList y)
+    protected static int? CE<TT>(TT x, TT y) where TT : struct, Enum => CNullable(x.CompareTo(y));
+    protected static int? CE<TT>(TT x, TT? y) where TT : struct, Enum => y.HasValue ? CE(x, y.Value) : 1;
+    protected static int? CE<TT>(TT? x, TT y) where TT : struct, Enum => x.HasValue ? CE(x.Value, y) : -1;
+    protected static int? CE<TT>(TT? x, TT? y) where TT : struct, Enum
     {
-        var count = x.Count;
-        if (count != y.Count) return false;
-        for (var i = 0; i < count; i++)
-        {
-            var xItem = x[i];
-            var yItem = y[i];
-            if (ReferenceEquals(xItem, yItem)) continue;
-            if (ReferenceEquals(xItem, null)) return false;
-            if (ReferenceEquals(yItem, null)) return false;
-            if (!EqualsInternal(xItem, yItem)) return false;
-        }
-
-        return true;
+        if (x.HasValue) return CE(x.Value, y);
+        if (y.HasValue) return CE(x, y.Value);
+        return null;
     }
 
-    protected abstract bool EqualsInternal(T x, T y);
-
-
-    protected override int CompareInternal(TList x, TList y)
+    protected static int? CO(object? x, object? y)
     {
-        var xCount = x.Count;
-        var yCount = y.Count;
-        var count = Math.Min(xCount, yCount);
-
-        for (var i = 0; i < count; i++)
-        {
-            var xItem = x[i];
-            var yItem = y[i];
-            if (ReferenceEquals(xItem, yItem)) continue;
-            if (ReferenceEquals(xItem, null)) return -1;
-            if (ReferenceEquals(yItem, null)) return 1;
-            var c = CompareInternal(xItem, yItem);
-            if (c != 0) return c;
-        }
-
-        return xCount - yCount;
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+        if (x is IComparable xComparable) return CNullable(xComparable.CompareTo(y));
+        throw new ArgumentException($"Object {x.GetType().FullNameFormatted()} does not implement {nameof(IComparable)}", nameof(x));
     }
 
-    protected abstract int CompareInternal(T x, T y);
+    protected static int? COrdinal(string x, string y) => CNullable(StringComparer.Ordinal.Compare(x, y));
+    protected static int? COrdinalIgnoreCase(string x, string y) => CNullable(StringComparer.OrdinalIgnoreCase.Compare(x, y));
+    protected static int? COrdinalIgnoreCaseThenOrdinal(string x, string y) => CNullable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x, y));
 
-
-    protected override void GetHashCodeValues(TList obj, List<object?> v)
-    {
-        var count = obj.Count;
-        if (count == 0) return;
-        v.Add(count);
-        foreach (var item in obj)
-        {
-            if (ReferenceEquals(item, null)) v.Add(0);
-            else
-            {
-                var itemsToHash = new List<object?>();
-                GetHashCodeValues(item, itemsToHash);
-                var itemsHashed = Util.Hash(itemsToHash);
-                v.Add(itemsHashed);
-            }
-        }
-    }
-
-    protected abstract void GetHashCodeValues(T obj, List<object?> v);
-}
-
-public class ComparerListComparable<T, TList> : ComparerListBase<T, TList> where TList : IReadOnlyList<T> where T : IEquatable<T>, IComparable<T>
-{
-    protected override bool EqualsInternal(T x, T y) => x.Equals(y);
-    protected override int CompareInternal(T x, T y) => x.CompareTo(y);
-    protected override void GetHashCodeValues(T obj, List<object?> v) => v.Add(obj.GetHashCode());
+    #endregion Helpers
 }

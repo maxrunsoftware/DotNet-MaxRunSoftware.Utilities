@@ -659,7 +659,7 @@ public static class ExtensionsString
     #region NewLine
 
     [Pure]
-    public static string[] SplitOnNewline(this string str, StringSplitOptions options = StringSplitOptions.None) => str.Split(new[] { Constant.NewLine_Windows, Constant.NewLine_Unix, Constant.NewLine_Mac }, options);
+    public static string[] SplitOnNewline(this string str, StringSplitOptions options = StringSplitOptions.None) => str.Split(new[] { Constant.NewLine_CRLF, Constant.NewLine_LF, Constant.NewLine_CR }, options);
 
     #endregion NewLine
 
@@ -787,14 +787,14 @@ public static class ExtensionsString
 
         if (str.Length == 0) return nl;
 
-        str = str.Remove(Constant.NewLine_Windows, out var cWin);
-        str = str.Remove(Constant.NewLine_Unix, out var cUnix);
-        str.Remove(Constant.NewLine_Mac, out var cMac);
+        str = str.Remove(Constant.NewLine_CRLF, out var cWin);
+        str = str.Remove(Constant.NewLine_LF, out var cUnix);
+        str.Remove(Constant.NewLine_CR, out var cMac);
 
         var d = new SortedDictionary<int, List<string>>();
-        d.AddToList(cWin, Constant.NewLine_Windows);
-        d.AddToList(cUnix, Constant.NewLine_Unix);
-        d.AddToList(cMac, Constant.NewLine_Mac);
+        d.AddToList(cWin, Constant.NewLine_CRLF);
+        d.AddToList(cUnix, Constant.NewLine_LF);
+        d.AddToList(cMac, Constant.NewLine_CR);
 
         var list = d.ToListReversed().First().Value;
 
@@ -806,11 +806,11 @@ public static class ExtensionsString
         {
             if (nl.In(list[0], list[1])) return nl;
 
-            if (Constant.NewLine_Windows.In(list[0], list[1])) return Constant.NewLine_Windows;
+            if (Constant.NewLine_CRLF.In(list[0], list[1])) return Constant.NewLine_CRLF;
 
-            if (Constant.NewLine_Unix.In(list[0], list[1])) return Constant.NewLine_Unix;
+            if (Constant.NewLine_LF.In(list[0], list[1])) return Constant.NewLine_LF;
 
-            if (Constant.NewLine_Mac.In(list[0], list[1])) return Constant.NewLine_Mac;
+            if (Constant.NewLine_CR.In(list[0], list[1])) return Constant.NewLine_CR;
 
             return nl;
         }
@@ -937,7 +937,7 @@ public static class ExtensionsString
         return newArray;
     }
 
-    [Pure] public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).Split(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
+    [Pure] public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).SplitOn(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
 
     /// <summary>
     /// This regex (^[a-z]+|[A-Z]+(?![a-z])|[A-Z][a-z]+) can be used to extract all words from the camelCase or PascalCase name.
@@ -966,11 +966,13 @@ public static class ExtensionsString
         return words;
     }
 
-    [Pure] public static string[] Split(this string str, IEnumerable<string> stringsToSplitOn) => str.Split(stringsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] SplitOn(this string str, params string[] stringsToSplitOn) => str.SplitOn((IEnumerable<string>)stringsToSplitOn);
 
-    [Pure] public static string[] Split(this string str, ImmutableArray<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] SplitOn(this string str, IEnumerable<string> stringsToSplitOn) => str.Split(stringsToSplitOn.OrderByDescending(o => o.Length).ToArray(), StringSplitOptions.None);
 
-    [Pure] public static string[] Split(this string str, ImmutableHashSet<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
+    [Pure] public static string[] SplitOn(this string str, params char[] charsToSplitOn) => str.SplitOn((IEnumerable<char>)charsToSplitOn);
+
+    [Pure] public static string[] SplitOn(this string str, IEnumerable<char> charsToSplitOn) => str.Split(charsToSplitOn.ToArray(), StringSplitOptions.None);
 
     [Pure]
     public static (string Left, string? Right) SplitOnLast(this string str, string stringToSplitOn, StringComparison? comparison = null)

@@ -321,7 +321,7 @@ public class FtpClientSFtp : FtpClientBase
     }
 
     // ReSharper disable once InconsistentNaming
-    private static readonly TypeCacheWeak<SftpSessionCanonicalPathWrapper> canonicalPathCache = new();
+    private static readonly DictionaryWeakType<SftpSessionCanonicalPathWrapper> canonicalPathCache = new();
     protected override string? GetAbsolutePathInternal(string remotePath)
     {
         try

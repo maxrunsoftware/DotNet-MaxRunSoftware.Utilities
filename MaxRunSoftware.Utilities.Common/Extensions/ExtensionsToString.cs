@@ -130,7 +130,7 @@ public static class ExtensionsToString
         public bool HasProperty => slimObj != null;
     }
     // ReSharper disable once InconsistentNaming
-    private static readonly TypeCacheWeak<ToStringGuessFormatGetLength> toStringGuessFormatCount = new ();
+    private static readonly DictionaryWeakType<ToStringGuessFormatGetLength> toStringGuessFormatCount = new ();
     public static string? ToStringGuessFormat(this object? obj) => ToStringGuessFormat(obj, false);
 
     public static string? ToStringGuessFormat(this object? obj, bool showEnumerableValues)

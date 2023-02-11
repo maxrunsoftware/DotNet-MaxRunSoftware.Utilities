@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Drawing;
+using System.Globalization;
 using System.Net;
 using System.Net.Mail;
+using System.Numerics;
 using System.Security;
 
 namespace MaxRunSoftware.Utilities.Common;
@@ -59,6 +62,26 @@ public static class ExtensionsStringConversion
         convertersNullable = Lzy.Create(ConvertersNullable_Build);
     }
 
+    private delegate bool Try<T>(string? str, out T output) where T : struct;
+
+    private static bool ToNullableTryStruct<T>(string? str, out T? output, Try<T> func) where T : struct
+    {
+        str = str.TrimOrNull();
+        if (str == null)
+        {
+            output = default;
+            return true;
+        }
+
+        var r = func(str, out var o);
+        output = r ? o : default;
+        return r;
+    }
+
+    private static T? ToOrNull<T>(string? str, Try<T> func) where T : struct => func(str, out var o) ? o : default(T?);
+
+    #region Primitive
+
     #region bool
 
     public static bool ToBool(this string str)
@@ -78,19 +101,9 @@ public static class ExtensionsStringConversion
 
     public static bool? ToBoolNullable(this string? str) => str.TrimOrNull()?.ToBool();
 
-    public static bool ToBoolNullableTry(this string? str, out bool? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToBoolNullableTry(this string? str, out bool? output) => ToNullableTryStruct(str, out output, ToBoolTry);
 
-        var r = str.ToBoolTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static bool? ToBoolOrNull(this string? str) => ToOrNull<bool>(str, ToBoolTry);
 
     #endregion bool
 
@@ -102,19 +115,9 @@ public static class ExtensionsStringConversion
 
     public static byte? ToByteNullable(this string? str) => str.TrimOrNull()?.ToByte();
 
-    public static bool ToByteNullableTry(this string? str, out byte? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToByteNullableTry(this string? str, out byte? output) => ToNullableTryStruct(str, out output, ToByteTry);
 
-        var r = str.ToByteTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static byte? ToByteOrNull(this string? str) => ToOrNull<byte>(str, ToByteTry);
 
     #endregion byte
 
@@ -126,19 +129,9 @@ public static class ExtensionsStringConversion
 
     public static sbyte? ToSByteNullable(this string? str) => str.TrimOrNull()?.ToSByte();
 
-    public static bool ToSByteNullableTry(this string? str, out sbyte? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToSByteNullableTry(this string? str, out sbyte? output) => ToNullableTryStruct(str, out output, ToSByteTry);
 
-        var r = str.ToSByteTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static sbyte? ToSByteOrNull(this string? str) => ToOrNull<sbyte>(str, ToSByteTry);
 
     #endregion sbyte
 
@@ -150,19 +143,9 @@ public static class ExtensionsStringConversion
 
     public static char? ToCharNullable(this string? str) => str.TrimOrNull()?.ToChar();
 
-    public static bool ToCharNullableTry(this string? str, out char? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToCharNullableTry(this string? str, out char? output) => ToNullableTryStruct(str, out output, ToCharTry);
 
-        var r = str.ToCharTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static char? ToCharOrNull(this string? str) => ToOrNull<char>(str, ToCharTry);
 
     #endregion char
 
@@ -174,19 +157,9 @@ public static class ExtensionsStringConversion
 
     public static short? ToShortNullable(this string? str) => str.TrimOrNull()?.ToShort();
 
-    public static bool ToShortNullableTry(this string? str, out short? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToShortNullableTry(this string? str, out short? output) => ToNullableTryStruct(str, out output, ToShortTry);
 
-        var r = str.ToShortTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static short? ToShortOrNull(this string? str) => ToOrNull<short>(str, ToShortTry);
 
     #endregion short
 
@@ -198,19 +171,9 @@ public static class ExtensionsStringConversion
 
     public static ushort? ToUShortNullable(this string? str) => str.TrimOrNull()?.ToUShort();
 
-    public static bool ToUShortNullableTry(this string? str, out ushort? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToUShortNullableTry(this string? str, out ushort? output) => ToNullableTryStruct(str, out output, ToUShortTry);
 
-        var r = str.ToUShortTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static ushort? ToUShortOrNull(this string? str) => ToOrNull<ushort>(str, ToUShortTry);
 
     #endregion ushort
 
@@ -222,19 +185,9 @@ public static class ExtensionsStringConversion
 
     public static int? ToIntNullable(this string? str) => str.TrimOrNull()?.ToInt();
 
-    public static bool ToIntNullableTry(this string? str, out int? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToIntNullableTry(this string? str, out int? output) => ToNullableTryStruct(str, out output, ToIntTry);
 
-        var r = str.ToIntTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static int? ToIntOrNull(this string? str) => ToOrNull<int>(str, ToIntTry);
 
     #endregion int
 
@@ -246,19 +199,9 @@ public static class ExtensionsStringConversion
 
     public static uint? ToUIntNullable(this string? str) => str.TrimOrNull()?.ToUInt();
 
-    public static bool ToUIntNullableTry(this string? str, out uint? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToUIntNullableTry(this string? str, out uint? output) => ToNullableTryStruct(str, out output, ToUIntTry);
 
-        var r = str.ToUIntTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static uint? ToUIntOrNull(this string? str) => ToOrNull<uint>(str, ToUIntTry);
 
     #endregion uint
 
@@ -270,19 +213,9 @@ public static class ExtensionsStringConversion
 
     public static long? ToLongNullable(this string? str) => str.TrimOrNull()?.ToLong();
 
-    public static bool ToLongNullableTry(this string? str, out long? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToLongNullableTry(this string? str, out long? output) => ToNullableTryStruct(str, out output, ToLongTry);
 
-        var r = str.ToLongTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static long? ToLongOrNull(this string? str) => ToOrNull<long>(str, ToLongTry);
 
     #endregion long
 
@@ -294,19 +227,9 @@ public static class ExtensionsStringConversion
 
     public static ulong? ToULongNullable(this string? str) => str.TrimOrNull()?.ToULong();
 
-    public static bool ToULongNullableTry(this string? str, out ulong? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToULongNullableTry(this string? str, out ulong? output) => ToNullableTryStruct(str, out output, ToULongTry);
 
-        var r = str.ToULongTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static ulong? ToULongOrNull(this string? str) => ToOrNull<ulong>(str, ToULongTry);
 
     #endregion ulong
 
@@ -318,19 +241,9 @@ public static class ExtensionsStringConversion
 
     public static float? ToFloatNullable(this string? str) => str.TrimOrNull()?.ToFloat();
 
-    public static bool ToFloatNullableTry(this string? str, out float? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToFloatNullableTry(this string? str, out float? output) => ToNullableTryStruct(str, out output, ToFloatTry);
 
-        var r = str.ToFloatTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static float? ToFloatOrNull(this string? str) => ToOrNull<float>(str, ToFloatTry);
 
     #endregion float
 
@@ -342,19 +255,9 @@ public static class ExtensionsStringConversion
 
     public static double? ToDoubleNullable(this string? str) => str.TrimOrNull()?.ToDouble();
 
-    public static bool ToDoubleNullableTry(this string? str, out double? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToDoubleNullableTry(this string? str, out double? output) => ToNullableTryStruct(str, out output, ToDoubleTry);
 
-        var r = str.ToDoubleTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static double? ToDoubleOrNull(this string? str) => ToOrNull<double>(str, ToDoubleTry);
 
     #endregion double
 
@@ -366,91 +269,131 @@ public static class ExtensionsStringConversion
 
     public static decimal? ToDecimalNullable(this string? str) => str.TrimOrNull()?.ToDecimal();
 
-    public static bool ToDecimalNullableTry(this string? str, out decimal? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToDecimalNullableTry(this string? str, out decimal? output) => ToNullableTryStruct(str, out output, ToDecimalTry);
 
-        var r = str.ToDecimalTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static decimal? ToDecimalOrNull(this string? str) => ToOrNull<decimal>(str, ToDecimalTry);
 
     #endregion decimal
 
+    #endregion Primitive
+
     #region DateTime
 
-    public static DateTime ToDateTime(this string str) => DateTime.Parse(str.Trim());
+    #region DateTime
 
-    public static bool ToDateTimeTry(this string? str, out DateTime output) => DateTime.TryParse(str.TrimOrNull(), out output);
+    public static DateTime ToDateTime(this string str)
+    {
+        str = str.Trim();
+        if (str.ToDateTimeTry(out var o)) return o;
+        return DateTime.Parse(str);
+    }
+
+    public static bool ToDateTimeTry(this string? str, out DateTime output)
+    {
+        str = str.TrimOrNull();
+        var r = DateTime.TryParse(str, out output);
+        if (r) return r;
+        if (str == null) return r;
+
+        // char.IsDigit allows other weird things https://stackoverflow.com/a/228565
+        static bool IsDigit(char c) => c is '0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9';
+
+        // Only allow digits
+        if (str.All(IsDigit))
+        {
+            // ReSharper disable once CommentTypo
+            //const string formatFixed = "yyyyMMddHHmmss"; // yyyy-MM-dd HH:mm:ss.ffffff
+            var format = str.Length switch
+            {
+                8 => "yyyyMMdd",
+                10 => "yyyyMMddHH",
+                12 => "yyyyMMddHHmm",
+                14 => "yyyyMMddHHmmss",
+                > 14 => "yyyyMMddHHmmss".PadRight(str.Length, 'f'),
+                _ => null,
+            };
+
+            if (format != null) r = DateTime.TryParseExact(str, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out output);
+        }
+
+        if (r) return r;
+
+        var strStripped = new string(str.ToCharArray().Where(IsDigit).ToArray());
+        if (strStripped.Length > 0 && strStripped.Length != str.Length)
+        {
+            r = strStripped.ToDateTimeTry(out output);
+        }
+
+        if (r) return r;
+
+        // TODO: Any other attempts at processing
+
+        return r;
+    }
 
     public static DateTime? ToDateTimeNullable(this string? str) => str.TrimOrNull()?.ToDateTime();
 
-    public static bool ToDateTimeNullableTry(this string? str, out DateTime? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToDateTimeNullableTry(this string? str, out DateTime? output) => ToNullableTryStruct(str, out output, ToDateTimeTry);
 
-        var r = str.ToDateTimeTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static DateTime? ToDateTimeOrNull(this string? str) => ToOrNull<DateTime>(str, ToDateTimeTry);
 
     #endregion DateTime
 
     #region DateOnly
 
-    public static DateOnly ToDateOnly(this string str) => DateOnly.Parse(str.Trim());
+    public static DateOnly ToDateOnly(this string str)
+    {
+        str = str.Trim();
+        if (str.ToDateOnlyTry(out var o)) return o;
+        return DateOnly.Parse(str);
+    }
 
-    public static bool ToDateOnlyTry(this string? str, out DateOnly output) => DateOnly.TryParse(str.TrimOrNull(), out output);
+    public static bool ToDateOnlyTry(this string? str, out DateOnly output)
+    {
+        str = str.TrimOrNull();
+        var r = DateOnly.TryParse(str, out output);
+        if (r || str == null) return r;
+
+        r = str.ToDateTimeTry(out var dateTime);
+        if (r) output = DateOnly.FromDateTime(dateTime);
+
+        return r;
+    }
 
     public static DateOnly? ToDateOnlyNullable(this string? str) => str.TrimOrNull()?.ToDateOnly();
 
-    public static bool ToDateOnlyNullableTry(this string? str, out DateOnly? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToDateOnlyNullableTry(this string? str, out DateOnly? output) => ToNullableTryStruct(str, out output, ToDateOnlyTry);
 
-        var r = str.ToDateOnlyTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static DateOnly? ToDateOnlyOrNull(this string? str) => ToOrNull<DateOnly>(str, ToDateOnlyTry);
 
     #endregion DateOnly
 
     #region TimeOnly
 
-    public static TimeOnly ToTimeOnly(this string str) => TimeOnly.Parse(str.Trim());
+    public static TimeOnly ToTimeOnly(this string str)
+    {
+        str = str.Trim();
+        if (str.ToTimeOnlyTry(out var o)) return o;
+        return TimeOnly.Parse(str);
+    }
 
-    public static bool ToTimeOnlyTry(this string? str, out TimeOnly output) => TimeOnly.TryParse(str.TrimOrNull(), out output);
+    public static bool ToTimeOnlyTry(this string? str, out TimeOnly output)
+    {
+        str = str.TrimOrNull();
+        var r = TimeOnly.TryParse(str, out output);
+        if (r || str == null) return r;
+
+        r = str.ToDateTimeTry(out var dateTime);
+        if (r) output = TimeOnly.FromDateTime(dateTime);
+
+        return r;
+    }
 
     public static TimeOnly? ToTimeOnlyNullable(this string? str) => str.TrimOrNull()?.ToTimeOnly();
 
-    public static bool ToTimeOnlyNullableTry(this string? str, out TimeOnly? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToTimeOnlyNullableTry(this string? str, out TimeOnly? output) => ToNullableTryStruct(str, out output, ToTimeOnlyTry);
 
-        var r = str.ToTimeOnlyTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static TimeOnly? ToTimeOnlyOrNull(this string? str) => ToOrNull<TimeOnly>(str, ToTimeOnlyTry);
 
     #endregion TimeOnly
 
@@ -462,21 +405,15 @@ public static class ExtensionsStringConversion
 
     public static TimeSpan? ToTimeSpanNullable(this string? str) => str.TrimOrNull()?.ToTimeSpan();
 
-    public static bool ToTimeSpanNullableTry(this string? str, out TimeSpan? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToTimeSpanNullableTry(this string? str, out TimeSpan? output) => ToNullableTryStruct(str, out output, ToTimeSpanTry);
 
-        var r = str.ToTimeSpanTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static TimeSpan? ToTimeSpanOrNull(this string? str) => ToOrNull<TimeSpan>(str, ToTimeSpanTry);
 
     #endregion TimeSpan
+
+    #endregion DateTime
+
+    #region System
 
     #region Enum
 
@@ -491,14 +428,16 @@ public static class ExtensionsStringConversion
         str = str.TrimOrNull();
         if (str == null)
         {
-            output = null;
+            output = default;
             return true;
         }
 
-        var r = str.ToEnumTry(enumType, out var o);
-        output = r ? o : null;
+        var r = ToEnumTry(str, enumType, out var o);
+        output = r ? o : default;
         return r;
     }
+
+    public static object? ToEnumOrNull(this string? str, Type enumType) => ToEnumTry(str, enumType, out var o) ? o : default;
 
     #endregion Enum
 
@@ -510,19 +449,9 @@ public static class ExtensionsStringConversion
 
     public static Guid? ToGuidNullable(this string? str) => str.TrimOrNull()?.ToGuid();
 
-    public static bool ToGuidNullableTry(this string? str, out Guid? output)
-    {
-        str = str.TrimOrNull();
-        if (str == null)
-        {
-            output = null;
-            return true;
-        }
+    public static bool ToGuidNullableTry(this string? str, out Guid? output) => ToNullableTryStruct(str, out output, ToGuidTry);
 
-        var r = str.ToGuidTry(out var o);
-        output = r ? o : null;
-        return r;
-    }
+    public static Guid? ToGuidOrNull(this string? str) => ToOrNull<Guid>(str, ToGuidTry);
 
     #endregion Guid
 
@@ -551,6 +480,8 @@ public static class ExtensionsStringConversion
         return IPAddress.TryParse(str, out output);
     }
 
+    public static IPAddress? ToIPAddressOrNull(this string? str) => ToIPAddressTry(str, out var o) ? o : default;
+
     #endregion IPAddress
 
     #region Uri
@@ -574,6 +505,8 @@ public static class ExtensionsStringConversion
         return Uri.TryCreate(str, UriKind.Absolute, out output);
     }
 
+    public static Uri? ToUriOrNull(this string? str) => ToUriTry(str, out var o) ? o : default;
+
     #endregion Uri
 
     #region MailAddress
@@ -596,7 +529,7 @@ public static class ExtensionsStringConversion
 
         try
         {
-            output = new MailAddress(str);
+            output = new(str);
             return true;
         }
         catch (Exception)
@@ -605,6 +538,8 @@ public static class ExtensionsStringConversion
             return false;
         }
     }
+
+    public static MailAddress? ToMailAddressOrNull(this string? str) => ToMailAddressTry(str, out var o) ? o : default;
 
     #endregion MailAddress
 
@@ -618,4 +553,85 @@ public static class ExtensionsStringConversion
     }
 
     #endregion SecureString
+
+    #region BigInteger
+
+    public static BigInteger ToBigInteger(this string str) => BigInteger.Parse(str.Trim());
+
+    public static bool ToBigIntegerTry(this string? str, out BigInteger output) => BigInteger.TryParse(str.TrimOrNull(), out output);
+
+    public static BigInteger? ToBigIntegerNullable(this string? str) => str.TrimOrNull()?.ToBigInteger();
+
+    public static bool ToBigIntegerNullableTry(this string? str, out BigInteger? output) => ToNullableTryStruct(str, out output, ToBigIntegerTry);
+
+    public static BigInteger? ToBigIntegerOrNull(this string? str) => ToOrNull<BigInteger>(str, ToBigIntegerTry);
+
+    #endregion BigInteger
+
+    #region Color
+
+    public static Color ToColor(this string str)
+    {
+        str = str.CheckNotNullTrimmed();
+        try
+        {
+            return ColorTranslator.FromHtml(str);
+        }
+        catch (Exception) { }
+
+        var hex = str.Where(o => o.IsHex()).ToStringJoined();
+        if (hex.Length.In(3, 6)) return ColorTranslator.FromHtml(str);
+
+        var rgbNumsChars = (Constant.Chars_0_9_String + ",").ToHashSet();
+        var rgbNums = str
+            .Where(o => rgbNumsChars.Contains(o))
+            .ToStringJoined()
+            .Split(',')
+            .TrimOrNull()
+            .Select(o => o.ToByteOrNull())
+            .WhereNotNull()
+            .Select(o => (int)o)
+            .ToArray();
+        if (rgbNums.Length == 3) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2]);
+        if (rgbNums.Length == 4) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2], rgbNums[3]);
+
+        var colorNameChars = (Constant.Chars_A_Z_Upper_String + Constant.Chars_A_Z_Lower_String).ToHashSet();
+        var colorName = str.Where(o => colorNameChars.Contains(o)).ToStringJoined();
+        if (colorName.Length > 0)
+        {
+            try
+            {
+                return ColorTranslator.FromHtml(str);
+            }
+            catch (Exception) { }
+        }
+
+        throw new ArgumentException($"Could not parse to {nameof(Color)} -> " + str, nameof(str));
+    }
+
+    public static bool ToColorTry(this string? str, out Color output)
+    {
+        if (str != null)
+        {
+            try
+            {
+                output = ToColor(str);
+                return true;
+            } catch (Exception) {}
+        }
+
+        output = default;
+        return false;
+    }
+
+    public static Color? ToColorNullable(this string? str) => str.TrimOrNull()?.ToColor();
+
+    public static bool ToColorNullableTry(this string? str, out Color? output) => ToNullableTryStruct(str, out output, ToColorTry);
+
+    public static Color? ToColorOrNull(this string? str) => ToOrNull<Color>(str, ToColorTry);
+
+    #endregion Color
+
+    #endregion System
+
 }

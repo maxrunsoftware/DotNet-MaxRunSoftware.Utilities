@@ -21,7 +21,6 @@ public static partial class Util
 {
 
 
-
     public static TOutput? ChangeType<TInput, TOutput>(TInput? obj) => (TOutput?)ChangeType(obj, typeof(TOutput));
 
     public static TOutput? ChangeType<TOutput>(object? obj) => (TOutput?)ChangeType(obj, typeof(TOutput));
@@ -105,9 +104,9 @@ public static partial class Util
                 return Enum.Parse(outputType, str, true); // Should throw exception
             }
 
-            if (ExtensionsStringConversion.ConvertersNullable.TryGetValue(outputType, out var converterNullable)) return converterNullable.InvokeStatic(str);
+            if (ExtensionsStringConversion.ConvertersNullable.TryGetValue(outputType, out var converterNullable)) return converterNullable.Invoke(null, str);
 
-            if (ExtensionsStringConversion.Converters.TryGetValue(outputType, out var converter)) return converter.InvokeStatic(str);
+            if (ExtensionsStringConversion.Converters.TryGetValue(outputType, out var converter)) return converter.Invoke(null, str);
         }
 
         if (inputType.IsEnum) return ChangeType(obj.ToString(), outputType);

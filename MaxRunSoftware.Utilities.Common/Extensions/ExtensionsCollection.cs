@@ -239,6 +239,24 @@ public static class ExtensionsCollection
         }
     }
 
+    public static IEnumerable<T?> ToNullable<T>(this IEnumerable<T> enumerable) where T : struct => enumerable.Select(o => (T?)o);
+
+    public static T?[] ToArray<T>(this IEnumerable<T> enumerable, int length)
+    {
+        if (length == 0) return Array.Empty<T?>();
+        var array = new T?[length];
+        var i = 0;
+        foreach (var item in enumerable)
+        {
+            array[i++] = item;
+            if (i == length) break;
+        }
+
+        return array;
+    }
+
+    public static Queue<T> ToQueue<T>(this IEnumerable<T> enumerable) => new(enumerable);
+
     #endregion Misc
 
     #region Multidimensional Arrays
@@ -939,11 +957,11 @@ public static class ExtensionsCollection
         return newArray;
     }
 
-    public static IEnumerable<T?> WhereNotNull<T>(this IEnumerable<T?> enumerable) where T : struct
+    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> enumerable) where T : struct
     {
         foreach (var item in enumerable)
         {
-            if (item != null) yield return item;
+            if (item.HasValue) yield return item.Value;
         }
     }
 
@@ -1200,4 +1218,105 @@ public static class ExtensionsCollection
     }
 
     #endregion Equals
+
+    #region Take
+
+    public static (T? Item1, T? Item2) Take2Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(2);
+        return (a[0], a[1]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3) Take3Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(3);
+        return (a[0], a[1], a[2]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3, T? Item4) Take4Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(4);
+        return (a[0], a[1], a[2], a[3]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3, T? Item4, T? Item5) Take5Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(5);
+        return (a[0], a[1], a[2], a[3], a[4]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3, T? Item4, T? Item5, T? Item6) Take6Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(6);
+        return (a[0], a[1], a[2], a[3], a[4], a[5]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3, T? Item4, T? Item5, T? Item6, T? Item7) Take7Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(7);
+        return (a[0], a[1], a[2], a[3], a[4], a[5], a[6]);
+    }
+
+    public static (T? Item1, T? Item2, T? Item3, T? Item4, T? Item5, T? Item6, T? Item7, T? Item8) Take8Nullable<T>(this IEnumerable<T> enumerable)
+    {
+        var a = enumerable.ToArray(8);
+        return (a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
+    }
+
+    #endregion Take
+
+    #region Permutate
+
+    public static IEnumerable<T[]> Permutate<T>(this IEnumerable<T> enumerable)
+    {
+        static long Factorial(int n)
+        {
+            long result = n;
+            for (var i = 1; i < n; i++) result *= i;
+            return result;
+        }
+
+        static void Swap<TT>(ref TT a, ref TT b) => (a, b) = (b, a);
+
+        static TT[] Generate<TT>(TT[] array, IReadOnlyList<int> sequence)
+        {
+            var clone = (TT[]) array.Clone();
+            for (var i = 0; i < clone.Length - 1; i++) Swap(ref clone[i], ref clone[i + sequence[i]]);
+            return clone;
+        }
+
+        static int[] Sequence(long number, int size, long[] factorials)
+        {
+            var sequence = new int[size];
+            for (var j = 0; j < sequence.Length; j++)
+            {
+                var facto = factorials[sequence.Length - j];
+                sequence[j] = (int)(number / facto);
+                number = (int)(number % facto);
+            }
+            return sequence;
+        }
+
+        var array = enumerable as T[] ?? enumerable.ToArray();
+
+        var factorials = Enumerable.Range(0, array.Length + 1)
+            .Select(Factorial)
+            .ToArray();
+
+        for (var i = 0L; i < factorials[array.Length]; i++)
+        {
+            var sequence = Sequence(i, array.Length - 1, factorials);
+            yield return Generate(array, sequence);
+        }
+    }
+
+
+
+
+
+
+
+
+
+    #endregion Permutate
 }

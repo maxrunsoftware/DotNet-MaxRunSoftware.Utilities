@@ -30,7 +30,10 @@ public sealed class MethodSlimParameter
 
 
 [PublicAPI]
-public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>, IComparable, IEquatable<MethodInfo>, IComparable<MethodInfo>
+public sealed class MethodSlim :
+    IEquatable<MethodSlim>, IEquatable<MethodInfo>,
+    IComparable<MethodSlim>, IComparable<MethodInfo>, IComparable,
+    ISlimValueGetterArgs
 {
     public string Name { get; }
 
@@ -119,8 +122,8 @@ public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>
 
     #region Override
 
-
     public override string ToString() => NameFull;
+
 
     #region Equals
 
@@ -248,24 +251,22 @@ public sealed class MethodSlim : IEquatable<MethodSlim>, IComparable<MethodSlim>
 
     #region Extras
 
-    public object? Invoke(object instance, params object?[] args)
+    public object? Invoke(object? instance, params object?[] args)
     {
         return invoker.Value.Invoke(instance, args);
     }
 
-    public object? InvokeStatic(params object?[] args)
-    {
-        return invoker.Value.Invoke(null, args);
-    }
+    public object? GetValue(object? instance) => GetValue(instance, Array.Empty<object?>());
+    public object? GetValue(object? instance, object?[] args) => Invoke(instance, args);
 
     #endregion Extras
 }
 
 public static class MethodSlimExtensions
 {
-    public static MethodSlim[] GetMethodSlims(this TypeSlim type, BindingFlags flags) =>
+    public static ImmutableArray<MethodSlim> GetMethodSlims(this TypeSlim type, BindingFlags flags) =>
         type.Type.GetMethodSlims(flags);
 
-    public static MethodSlim[] GetMethodSlims(this Type type, BindingFlags flags) =>
-        type.GetMethods(flags).Select(o => new MethodSlim(o)).ToArray();
+    public static ImmutableArray<MethodSlim> GetMethodSlims(this Type type, BindingFlags flags) =>
+        type.GetMethods(flags).Select(o => new MethodSlim(o)).ToImmutableArray();
 }

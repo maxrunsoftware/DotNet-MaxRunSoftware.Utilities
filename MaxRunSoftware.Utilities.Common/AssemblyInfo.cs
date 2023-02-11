@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.CompilerServices;
-
 namespace MaxRunSoftware.Utilities.Common;
 
-public sealed class TypeCacheWeak<TValue> where TValue : class?
+public static class AssemblyInfo
 {
-    private readonly ConditionalWeakTable<Type, TValue> table = new();
-
-    public TValue GetValue(Type type, ConditionalWeakTable<Type, TValue>.CreateValueCallback func) => table.GetValue(type, func);
-
-    public void Clear() => table.Clear();
+    public static string Value => "2.0.0";
 }

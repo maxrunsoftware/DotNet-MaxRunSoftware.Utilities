@@ -12,17 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Ftp.Tests;
+using Microsoft.Extensions.Logging;
 
-public class FtpClientSFtpTests : FtpClientTests<FtpClientSFtp>
+namespace MaxRunSoftware.Utilities.Common.Tests;
+
+public class TestBaseTests : TestBase
 {
-    public FtpClientSFtpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-    protected override FtpClientSFtp CreateClient() => new(new()
+    public TestBaseTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+
+    [SkippableFact]
+    public void Log_Colors()
     {
-        Host = Constants.SFTP_HOST,
-        Port = Constants.SFTP_PORT,
-        Username = Constants.SFTP_USERNAME,
-        Password = Constants.SFTP_PASSWORD,
-        WorkingDirectory = Constants.SFTP_DIRECTORY,
-    }, LoggerProvider);
+        IsColorEnabled = true;
+        var logLevels = Util.GetEnumValues<LogLevel>().OrderBy(o => (int)o).ToArray();
+        foreach (var logLevel in logLevels)
+        {
+            LogLevel = logLevel;
+            log.Log(logLevel, "My [{LogLevel}] Message", logLevel.ToString());
+        }
+    }
 }

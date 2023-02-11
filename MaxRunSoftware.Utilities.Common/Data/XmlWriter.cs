@@ -40,7 +40,7 @@ public class XmlWriter : IDisposable
     {
         stream = new StringBuilder();
         var settings = new XmlWriterSettings();
-        settings.Encoding = Constant.Encoding_UTF8;
+        settings.Encoding = Constant.Encoding_UTF8_Without_BOM;
         settings.Indent = formatted;
         settings.NewLineOnAttributes = false;
         settings.OmitXmlDeclaration = true;

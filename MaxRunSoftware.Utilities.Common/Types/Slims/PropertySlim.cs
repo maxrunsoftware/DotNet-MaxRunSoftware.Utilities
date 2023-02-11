@@ -17,7 +17,8 @@ namespace MaxRunSoftware.Utilities.Common;
 [PublicAPI]
 public sealed class PropertySlim :
     IEquatable<PropertySlim>, IEquatable<PropertyInfo>,
-    IComparable, IComparable<PropertySlim>, IComparable<PropertyInfo>
+    IComparable, IComparable<PropertySlim>, IComparable<PropertyInfo>,
+    ISlimValueGetter, ISlimValueSetter
 {
     public string Name { get; }
     public string NameClassFull { get; }
@@ -184,17 +185,16 @@ public sealed class PropertySlim :
     #endregion Extras
 }
 
-
 public static class PropertySlimExtensions
 {
     public static PropertyInfo ToPropertyInfo(this PropertySlim obj) => obj;
     public static PropertySlim ToPropertySlim(this PropertyInfo obj) => obj;
 
-    public static PropertySlim[] GetPropertySlims(this TypeSlim type, BindingFlags flags) =>
+    public static ImmutableArray<PropertySlim> GetPropertySlims(this TypeSlim type, BindingFlags flags) =>
         type.Type.GetPropertySlims(flags);
 
-    public static PropertySlim[] GetPropertySlims(this Type type, BindingFlags flags) =>
-        type.GetProperties(flags).Select(o => new PropertySlim(o)).ToArray();
+    public static ImmutableArray<PropertySlim> GetPropertySlims(this Type type, BindingFlags flags) =>
+        type.GetProperties(flags).Select(o => new PropertySlim(o)).ToImmutableArray();
 
     public static PropertySlim? GetPropertySlim(this TypeSlim type, string name, BindingFlags? flags = null) =>
         type.Type.GetPropertySlim(name, flags);

@@ -71,9 +71,20 @@ public static partial class Constant
     #region NewLine
 
     public static readonly string NewLine = Environment.NewLine;
-    public const string NewLine_Windows = "\r\n";
-    public const string NewLine_Unix = "\n";
-    public const string NewLine_Mac = "\r";
+    public const string NewLine_CR = "\r";
+    public const string NewLine_LF = "\n";
+    public const string NewLine_CRLF = NewLine_CR + NewLine_LF;
+
+    public const string NewLine_Windows = NewLine_CRLF;
+    public const string NewLine_Unix = NewLine_LF;
+
+    public static readonly ImmutableArray<string> NewLines =
+        new HashSet<string>(new[] { NewLine_CR, NewLine_LF, NewLine_CRLF, Environment.NewLine })
+            .Where(o => o.Length > 0)
+            .OrderBy(o => o.Length)
+            .ThenBy(o => o)
+            .ToImmutableArray();
+
 
     #endregion NewLine
 
@@ -82,39 +93,24 @@ public static partial class Constant
     /// <summary>
     /// UTF8 encoding WITHOUT the Byte Order Marker
     /// </summary>
-    public static readonly Encoding Encoding_UTF8 = new UTF8Encoding(false); // Thread safe according to https://stackoverflow.com/a/3024405
+    public static readonly Encoding Encoding_UTF8_Without_BOM = new UTF8Encoding(false); // Thread safe according to https://stackoverflow.com/a/3024405
 
     /// <summary>
     /// UTF8 encoding WITH the Byte Order Marker
     /// </summary>
-    public static readonly Encoding Encoding_UTF8_BOM = new UTF8Encoding(true); // Thread safe according to https://stackoverflow.com/a/3024405
-
-    public static readonly ImmutableDictionary<string, Encoding> Encodings = Encodings_Create();
-    private static ImmutableDictionary<string, Encoding> Encodings_Create()
-    {
-        var d = new Dictionary<string, Encoding>(StringComparer.OrdinalIgnoreCase);
-        foreach (var encoding in Encoding.GetEncodings())
-        {
-            var enc = encoding.GetEncoding();
-            d[encoding.Name] = enc;
-            d[encoding.DisplayName] = enc;
-        }
-        return d.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
-    }
+    public static readonly Encoding Encoding_UTF8_With_BOM = new UTF8Encoding(true); // Thread safe according to https://stackoverflow.com/a/3024405
 
     #endregion Encoding
 
     #region Path
 
-    public static readonly ImmutableHashSet<char> PathDelimiters = PathDelimiters_Create();
-
-    private static ImmutableHashSet<char> PathDelimiters_Create()
+    public static readonly ImmutableHashSet<char> PathDelimiters = new HashSet<char>(new[]
     {
-        var hs = new HashSet<char>(new[] { '/', '\\', Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
-        var b = ImmutableHashSet.CreateBuilder<char>();
-        foreach (var c in hs) b.Add(c);
-        return b.ToImmutable();
-    }
+        '/',
+        '\\',
+        Path.DirectorySeparatorChar,
+        Path.AltDirectorySeparatorChar,
+    }).ToImmutableHashSet();
 
     public static readonly ImmutableHashSet<string> PathDelimiters_String = ImmutableHashSet.Create(PathDelimiters.Select(o => o.ToString()).ToArray());
 

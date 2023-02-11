@@ -32,8 +32,8 @@ public class DataReaderResult : ITable
 
     #region ITable
 
-    IReadOnlyList<IRow> ITable.Rows => Rows;
-    IReadOnlyList<IColumn> ITable.Columns => Columns;
+    IReadOnlyList<ITableRow> ITable.Rows => Rows;
+    IReadOnlyList<ITableColumn> ITable.Columns => Columns;
 
     #endregion ITable
 
@@ -74,7 +74,7 @@ public static class DataReaderResultExtensions
     //public static SqlType GetSqlType(this SqlResultColumn sqlResultColumn, Sql sql) => sql.GetSqlDbType(sqlResultColumn.DataTypeName);
 }
 
-public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultColumn>, IReadOnlyList<IColumn>
+public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultColumn>, IReadOnlyList<ITableColumn>
 {
     private readonly List<DataReaderResultColumn> columns;
     private readonly Dictionary<string, List<DataReaderResultColumn>> columnsByName = new(StringComparer.OrdinalIgnoreCase);
@@ -127,18 +127,18 @@ public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultCo
 
     public int Count => columns.Count;
 
-    IEnumerator<IColumn> IEnumerable<IColumn>.GetEnumerator() => throw new NotImplementedException();
+    IEnumerator<ITableColumn> IEnumerable<ITableColumn>.GetEnumerator() => throw new NotImplementedException();
     public IEnumerator<DataReaderResultColumn> GetEnumerator() => columns.GetEnumerator();
 
     #region IReadOnlyList<IColumn>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    IColumn IReadOnlyList<IColumn>.this[int index] => this[index];
+    ITableColumn IReadOnlyList<ITableColumn>.this[int index] => this[index];
 
     #endregion IReadOnlyList<IColumn>
 }
 
-public class DataReaderResultColumn : IColumn
+public class DataReaderResultColumn : ITableColumn
 {
     private DataReaderSchemaColumn SchemaColumn { get; }
 
@@ -158,7 +158,7 @@ public class DataReaderResultColumn : IColumn
     }
 }
 
-public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>, IReadOnlyList<IRow>
+public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>, IReadOnlyList<ITableRow>
 {
     public DataReaderResult Result { get; }
 
@@ -181,13 +181,13 @@ public class DataReaderResultRowCollection : IReadOnlyList<DataReaderResultRow>,
 
     #region IReadOnlyList<IRow>
 
-    IEnumerator<IRow> IEnumerable<IRow>.GetEnumerator() => GetEnumerator();
-    IRow IReadOnlyList<IRow>.this[int index] => this[index];
+    IEnumerator<ITableRow> IEnumerable<ITableRow>.GetEnumerator() => GetEnumerator();
+    ITableRow IReadOnlyList<ITableRow>.this[int index] => this[index];
 
     #endregion IReadOnlyList<IRow>
 }
 
-public class DataReaderResultRow : IRow
+public class DataReaderResultRow : ITableRow
 {
     private readonly object?[] objs;
 

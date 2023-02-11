@@ -17,7 +17,8 @@ namespace MaxRunSoftware.Utilities.Common;
 [PublicAPI]
 public sealed class FieldSlim :
     IEquatable<FieldSlim>, IEquatable<FieldInfo>,
-    IComparable, IComparable<FieldSlim>, IComparable<FieldInfo>
+    IComparable, IComparable<FieldSlim>, IComparable<FieldInfo>,
+    ISlimValueGetter, ISlimValueSetter
 {
     public string Name { get; }
     public string NameClassFull { get; }
@@ -152,11 +153,11 @@ public static class FieldSlimExtensions
     public static FieldInfo ToFieldInfo(this FieldSlim obj) => obj;
     public static FieldSlim ToPropertySlim(this FieldInfo obj) => obj;
 
-        public static FieldSlim[] GetFieldSlims(this TypeSlim type, BindingFlags flags) =>
+        public static ImmutableArray<FieldSlim> GetFieldSlims(this TypeSlim type, BindingFlags flags) =>
             type.Type.GetFieldSlims(flags);
 
-        public static FieldSlim[] GetFieldSlims(this Type type, BindingFlags flags) =>
-            type.GetFields(flags).Select(o => new FieldSlim(o)).ToArray();
+        public static ImmutableArray<FieldSlim> GetFieldSlims(this Type type, BindingFlags flags) =>
+            type.GetFields(flags).Select(o => new FieldSlim(o)).ToImmutableArray();
 
         public static FieldSlim? GetFieldSlim(this TypeSlim type, string name, BindingFlags? flags = null) =>
             type.Type.GetFieldSlim(name, flags);

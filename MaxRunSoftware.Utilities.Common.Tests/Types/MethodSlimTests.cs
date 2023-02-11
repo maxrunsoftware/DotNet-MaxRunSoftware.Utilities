@@ -18,7 +18,7 @@ public class MethodSlimTests : TestBase
 {
     public MethodSlimTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
-    public class TestClass
+    public class TestClassA
     {
         public static string TestMethodStaticA(int a)
         {
@@ -28,27 +28,27 @@ public class MethodSlimTests : TestBase
 
     private static MethodInfo GetMethod(string name)
     {
-        return typeof(TestClass).GetMethods().First(o => o.Name == name);
+        return typeof(TestClassA).GetMethods().First(o => o.Name == name);
     }
     [SkippableFact]
     public void TestMethodStaticA_Can_Create()
     {
-        var mi = GetMethod(nameof(TestClass.TestMethodStaticA));
+        var mi = GetMethod(nameof(TestClassA.TestMethodStaticA));
         var ms = new MethodSlim(mi);
-        output.WriteLine($"[{ms.Name}] {ms.NameFull}");
+        WriteLine($"[{ms.Name}] {ms.NameFull}");
     }
 
     [SkippableFact]
     public void TestMethodStaticA_Can_InvokeStatic()
     {
-        var mi = GetMethod(nameof(TestClass.TestMethodStaticA));
+        var mi = GetMethod(nameof(TestClassA.TestMethodStaticA));
         var ms = new MethodSlim(mi);
         var x = 2;
-        var o = ms.InvokeStatic(x);
+        var o = ms.Invoke(null, x);
         Assert.NotNull(o!);
         Assert.IsType<string>(o);
         var y = (string)o;
-        output.WriteLine($"[{ms.Name}]: {y}");
+        WriteLine($"[{ms.Name}]: {y}");
     }
 
 

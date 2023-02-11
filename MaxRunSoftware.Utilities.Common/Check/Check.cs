@@ -237,7 +237,7 @@ public static class Check
         [CallerArgumentExpression("obj")] string? callerArgumentExpression = null
     ) where T : IComparable<T?> => obj == null
         ? throw CheckNotNullException.Create(type, name, parent, callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression)
-        : obj.CompareTo(maxInclusive) >= 0
+        : obj.CompareTo(maxInclusive) > 0
             ? throw CheckMaxException.Create(type, name, parent, obj, maxInclusive, callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression)
             : obj;
 
@@ -385,7 +385,8 @@ public static class CheckUtil
         var n = name.TrimOrNull();
         if (n == null)
         {
-            if (Check.DefaultUseArgumentExpressionForName) n = c.ArgumentExpression;
+            //if (Check.DefaultUseArgumentExpressionForName) n = c.ArgumentExpression;
+            n = c.ArgumentExpression;
             n ??= Check.DefaultUndefinedName;
         }
 

@@ -15,6 +15,62 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
+public sealed class TempDirectory : IDisposable
+{
+    private readonly ILogger log;
+    public string Path { get; }
+
+    internal TempDirectory(string path, ILoggerProvider? loggerProvider)
+    {
+        log = loggerProvider.CreateLoggerNullable(GetType());
+        log.LogDebug("Creating temporary directory {Path}", path);
+        Directory.CreateDirectory(path);
+        Path = path;
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (Directory.Exists(Path))
+            {
+                log.LogDebug("Deleting temporary directory {Path}", Path);
+                Directory.Delete(Path, true);
+                log.LogDebug("Successfully deleted temporary directory {Path}", Path);
+            }
+        }
+        catch (Exception e) { log.LogWarning(e, "Error deleting temporary directory {Path}", Path); }
+    }
+}
+
+public sealed class TempFile : IDisposable
+{
+    private readonly ILogger log;
+    public string Path { get; }
+
+    internal TempFile(string path, bool createEmptyFile,  ILoggerProvider? loggerProvider)
+    {
+        log = loggerProvider.CreateLoggerNullable(GetType());
+        log.LogDebug("Creating temporary file {Path}", path);
+        if (createEmptyFile) File.WriteAllBytes(path, Array.Empty<byte>());
+        Path = path;
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            if (File.Exists(Path))
+            {
+                log.LogDebug("Deleting temporary file {Path}", Path);
+                File.Delete(Path);
+                log.LogDebug("Successfully deleted temporary file {Path}", Path);
+            }
+        }
+        catch (Exception e) { log.LogWarning(e, "Error deleting temporary file {Path}", Path); }
+    }
+}
+
 // ReSharper disable InconsistentNaming
 public static partial class Util
 {
@@ -275,7 +331,7 @@ public static partial class Util
         }
     }
 
-    public static string FileRead(string path, Encoding encoding) => encoding.GetString(FileRead(path));
+    public static string FileRead(string path, Encoding encoding) => File.ReadAllText(path, encoding);
 
     public static void FileWrite(string path, byte[] data, bool append = false)
     {
@@ -320,113 +376,41 @@ public static partial class Util
 
     private static readonly object lockTemp = new();
 
-    private sealed class TempDirectory : IDisposable
-    {
-        private readonly ILogger log;
-        private readonly string path;
-
-        public TempDirectory(string path, ILoggerProvider? loggerProvider)
-        {
-            log = loggerProvider.CreateLoggerNullable(GetType());
-            log.LogDebug("Creating temporary directory {Path}", path);
-            Directory.CreateDirectory(path);
-            this.path = path;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (Directory.Exists(path))
-                {
-                    log.LogDebug("Deleting temporary directory {Path}", path);
-                    Directory.Delete(path, true);
-                    log.LogDebug("Successfully deleted temporary directory {Path}", path);
-                }
-            }
-            catch (Exception e) { log.LogWarning(e, "Error deleting temporary directory {Path}", path); }
-        }
-    }
-
-    private sealed class TempFile : IDisposable
-    {
-        private readonly ILogger log;
-        private readonly string path;
-
-        public TempFile(string path, ILoggerProvider? loggerProvider)
-        {
-            log = loggerProvider.CreateLoggerNullable(GetType());
-            log.LogDebug("Creating temporary file {Path}", path);
-            File.WriteAllBytes(path, Array.Empty<byte>());
-            this.path = path;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    log.LogDebug("Deleting temporary file {Path}", path);
-                    File.Delete(path);
-                    log.LogDebug("Successfully deleted temporary file {Path}", path);
-                }
-            }
-            catch (Exception e) { log.LogWarning(e, "Error deleting temporary file {Path}", path); }
-        }
-    }
-
-    public static IDisposable CreateTempDirectory(string basePath, out string path, ILoggerProvider? loggerProvider = null)
+    public static TempDirectory CreateTempDirectory(string basePath, ILoggerProvider? loggerProvider = null)
     {
         lock (lockTemp)
         {
-            var parentDir = basePath;
             string p;
-            do { p = Path.GetFullPath(Path.Combine(parentDir, Path.GetRandomFileName())); } while (Directory.Exists(p));
+            do
+            {
+                p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
+            } while (Directory.Exists(p));
 
-            var t = new TempDirectory(p, loggerProvider: loggerProvider);
-            path = p;
-            return t;
+            return new(p, loggerProvider: loggerProvider);
         }
     }
 
-    public static IDisposable CreateTempDirectory(string basePath, string directoryName, ILoggerProvider? loggerProvider = null)
+    public static TempDirectory CreateTempDirectory(ILoggerProvider? loggerProvider = null) =>
+        CreateTempDirectory(Path.GetTempPath(), loggerProvider: loggerProvider);
+
+
+    public static TempFile CreateTempFile(string basePath, bool createEmptyFile = false, ILoggerProvider? loggerProvider = null)
     {
         lock (lockTemp)
         {
-            return CreateTempDirectory(
-                Path.GetFullPath(Path.Combine(basePath, directoryName)),
-                loggerProvider: loggerProvider
-            );
-        }
-    }
-
-    public static IDisposable CreateTempDirectory(string path, ILoggerProvider? loggerProvider = null)
-    {
-        lock (lockTemp)
-        {
-            return new TempDirectory(
-                Path.GetFullPath(path),
-                loggerProvider: loggerProvider
-                );
-        }
-    }
-
-    public static IDisposable CreateTempDirectory(out string path, ILoggerProvider? loggerProvider = null) => CreateTempDirectory(Path.GetTempPath(), out path, loggerProvider: loggerProvider);
-
-    public static IDisposable CreateTempFile(out string path, ILoggerProvider? loggerProvider = null)
-    {
-        lock (lockTemp)
-        {
-            var parentDir = Path.GetTempPath();
             string p;
-            do { p = Path.GetFullPath(Path.Combine(parentDir, Path.GetRandomFileName())); } while (File.Exists(p));
+            do
+            {
+                p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
+            } while (File.Exists(p));
 
-            var t = new TempFile(p, loggerProvider: loggerProvider);
-            path = p;
-            return t;
+            return new(p, createEmptyFile: createEmptyFile, loggerProvider: loggerProvider);
         }
     }
+
+    public static TempFile CreateTempFile(bool createEmptyFile = false, ILoggerProvider? loggerProvider = null) =>
+        CreateTempFile(Path.GetTempPath(), createEmptyFile: createEmptyFile, loggerProvider: loggerProvider);
+
 
     #endregion Temp
 

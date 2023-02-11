@@ -54,12 +54,12 @@ public abstract class DatabaseFixtureCollection<T> : ICollectionFixture<T> where
     // ICollectionFixture<> interfaces.
 }
 
-public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
+public abstract class DatabaseTests<T> : TestBase where T : Sql
 {
     protected readonly T sql;
     protected DatabaseTests(ITestOutputHelper testOutputHelper, DatabaseAppType databaseAppType, string connectionString) : base(testOutputHelper)
     {
-        sql = (T)databaseAppType.OpenSql(connectionString, loggerProvider);
+        sql = (T)databaseAppType.OpenSql(connectionString, LoggerProvider);
     }
 
     [SkippableFact]
@@ -131,7 +131,7 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
 
     protected void WriteLine(string methodName, object? outData)
     {
-        output.WriteLine($"[{sql.DatabaseAppType}] {methodName}: {ToStringParse(outData)}");
+        WriteLine($"[{sql.DatabaseAppType}] {methodName}: {ToStringParse(outData)}");
     }
 
     protected void WriteLine<TItem>(string methodName, TItem?[] outData)
@@ -148,5 +148,9 @@ public abstract class DatabaseTests<T> : TestBase, IDisposable where T : Sql
         return o.ToStringGuessFormat();
     }
 
-    public void Dispose() => sql.Dispose();
+    public override void Dispose()
+    {
+        sql.Dispose();
+        base.Dispose();
+    }
 }

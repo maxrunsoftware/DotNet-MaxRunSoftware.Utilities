@@ -66,6 +66,60 @@ public static partial class Util
         return result.ToString();
     }
 
+    private sealed class EncodingParser
+    {
+        private readonly ImmutableHashSet<char> stripCharacters = Constant.Chars_Alphanumeric.ToImmutableHashSet();
+        private string StripCharacters(string s) => new(s.ToCharArray().Where(o => stripCharacters.Contains(o)).ToArray());
+
+        private readonly Dictionary<string, Encoding> cache = new(StringComparer.OrdinalIgnoreCase);
+        public EncodingParser()
+        {
+            cache.AddRange(Encoding.ASCII, "ASCII");
+            cache.AddRange(Encoding.BigEndianUnicode, "BigEndianUnicode");
+            cache.AddRange(Encoding.Default, "Default");
+            cache.AddRange(Encoding.Unicode, "Unicode");
+            cache.AddRange(Encoding.UTF32, "UTF32");
+            cache.AddRange(Encoding.Latin1, "Latin1");
+            cache.AddRange(Constant.Encoding_UTF8_With_BOM, "UTF8", "UTF8_BOM", "UTF8_BOM_YES", "UTF8_With_BOM");
+            cache.AddRange(Constant.Encoding_UTF8_Without_BOM, "UTF8_BOM_NO", "UTF8_NoBOM", "UTF8_Without_BOM");
+            foreach (var kvp in cache.ToArray())
+            {
+                var keyStripped = StripCharacters(kvp.Key);
+                if (keyStripped.Length != kvp.Key.Length) cache.Add(keyStripped, kvp.Value);
+            }
+        }
+        public Encoding? ParseEncodingString(string name)
+        {
+            if (name.Length == 0) return null;
+            if (cache.TryGetValue(name, out var v)) return v;
+            name = name.Trim();
+            if (name.Length == 0) return null;
+            if (cache.TryGetValue(name, out v)) return Add(name, v);
+
+            v = null;
+            try
+            {
+                v = Encoding.GetEncoding(name);
+            }
+            catch (Exception) { }
+            if (v != null) return Add(name, v);
+
+            var nameStripped = StripCharacters(name);
+            if (nameStripped != name) return ParseEncodingString(nameStripped);
+            return null;
+        }
+
+        private Encoding Add(string encodingString, Encoding encoding)
+        {
+            cache[encodingString] = encoding;
+            return encoding;
+        }
+    }
+
+    private static readonly EncodingParser encodingParser = new();
+    private static readonly object encodingParserLock = new();
+
+
     /// <summary>
     /// Parses an encoding name string to an Encoding. Common values are...
     /// ASCII
@@ -73,29 +127,21 @@ public static partial class Util
     /// Default
     /// Unicode
     /// UTF32
-    /// UTF8
+    /// UTF8 / UTF8_BOM / UTF8_BOM_YES / UTF8_With_BOM
+    /// UTF8_BOM_NO / UTF8_NoBOM / UTF8_Without_BOM
     /// Note: UTF8 is the standard UTF8 with the BOM
     /// </summary>
     /// <param name="encoding">The encoding name string</param>
     /// <returns>The Encoding or ArgumentException if not found</returns>
     public static Encoding ParseEncoding(string encoding)
     {
-        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encoding, out var enc)) return enc;
+        lock (encodingParserLock)
+        {
+            var enc = encodingParser.ParseEncodingString(encoding);
+            if (enc == null) throw new ArgumentException($"Encoding {encoding} not found", nameof(encoding));
+            return enc;
+        }
 
-        var charsLower = Constant.Encodings.Keys.SelectMany(o => o.ToCharArray()).Select(char.ToLower).ToHashSet();
-        var encodingCleaned = new string(encoding
-            .ToCharArray()
-            .Select(char.ToLower)
-            .Where(o => charsLower.Contains(o))
-            .ToArray()
-        );
-
-        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encodingCleaned, out enc)) return enc;
-
-        encodingCleaned = encodingCleaned.Trim();
-        if (encoding.Length > 0 && Constant.Encodings.TryGetValue(encodingCleaned, out enc)) return enc;
-
-        throw new ArgumentException($"Unknown encoding '{encoding}'", nameof(encoding));
     }
 
     private sealed class CreateDisposableClass : IDisposable

@@ -36,12 +36,12 @@ public class MySqlTests : DatabaseTests<MySql>
     public MySqlTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test) { }
 
     [SkippableFact]
-    public void Test()
+    public void Show_Session_Variables()
     {
         var result = sql.QueryStrings("SHOW SESSION VARIABLES");
         foreach (var row in result)
         {
-            output.WriteLine(row.ToStringDelimited(", "));
+            WriteLine(row.ToStringDelimited(", "));
         }
     }
     [SkippableFact]

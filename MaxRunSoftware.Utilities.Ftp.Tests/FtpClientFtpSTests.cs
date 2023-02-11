@@ -43,5 +43,5 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
             ConnectTimeout = 1000 * 5,
             ReadTimeout = 1000 * 5,
         },
-    }, loggerProvider);
+    }, LoggerProvider);
 }

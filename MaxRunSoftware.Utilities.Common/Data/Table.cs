@@ -16,18 +16,61 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public interface ITable
 {
-    IReadOnlyList<IColumn>? Columns { get; }
-    IReadOnlyList<IRow> Rows { get; }
+    IReadOnlyList<ITableColumn>? Columns { get; }
+    IReadOnlyList<ITableRow> Rows { get; }
 }
 
-public interface IColumn
+
+public class Table : ITable
+{
+    public Table(IReadOnlyList<ITableColumn>? columns, IReadOnlyList<ITableRow> rows)
+    {
+        Columns = columns;
+        Rows = rows;
+    }
+
+    public IReadOnlyList<ITableColumn>? Columns { get; }
+    public IReadOnlyList<ITableRow> Rows { get; }
+}
+
+
+
+
+public interface ITableColumn
 {
     int Index { get; }
     string? Name { get; }
 }
 
-public interface IRow : IReadOnlyList<object?>
+public class TableColumn : ITableColumn
+{
+    public TableColumn(int index, string? name)
+    {
+        Index = index;
+        Name = name;
+    }
+
+    public int Index { get; }
+    public string? Name { get; }
+}
+
+public interface ITableRow : IReadOnlyList<object?>
 {
     int Index { get; }
+}
 
+public class TableRow : ITableRow
+{
+    private readonly IReadOnlyList<object?> data;
+    public TableRow(int index, IReadOnlyList<object?> data)
+    {
+        Index = index;
+        this.data = data;
+    }
+    public IEnumerator<object?> GetEnumerator() => data.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    public int Count => data.Count;
+    public object? this[int index] => data[index];
+
+    public int Index { get; }
 }
