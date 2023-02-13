@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -446,7 +446,7 @@ public class CheckNotNullException : ArgumentNullException
             "cannot be null",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckNotNullException(d.Type, d.CallerInfo, d.Name, d.Message, parent);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent);
     }
 }
 
@@ -477,7 +477,7 @@ public class CheckNotEmptyException : CheckOutOfRangeException
             "cannot be empty",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckNotEmptyException(d.Type, d.CallerInfo, d.Name, d.Message, parent);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent);
     }
 }
 
@@ -497,7 +497,7 @@ public class CheckMinException : CheckOutOfRangeException
             $"must be greater than or equal to {min} but was {value}",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckMinException(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, min);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, min);
     }
 }
 
@@ -517,7 +517,7 @@ public class CheckMaxException : CheckOutOfRangeException
             $"must be less than or equal to {max} but was {value}",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckMaxException(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, max);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, max);
     }
 }
 
@@ -545,7 +545,7 @@ public class CheckFileExistsException : FileNotFoundException
             $"file not found {path}",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckFileExistsException(d.Type, d.CallerInfo, d.Name, d.Message, parent, path);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent, path);
     }
 }
 
@@ -573,7 +573,7 @@ public class CheckDirectoryExistsException : DirectoryNotFoundException
             $"directory not found {path}",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckDirectoryExistsException(d.Type, d.CallerInfo, d.Name, d.Message, parent, path);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent, path);
     }
 }
 
@@ -623,6 +623,6 @@ public class CheckIsAssignableToException : CheckTypeException
             $"{value.NameFormatted()} is not assignable to {targetType.NameFormatted()}",
             callerFilePath, callerLineNumber, callerMemberName, callerArgumentExpression);
 
-        return new CheckIsAssignableToException(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, targetType);
+        return new(d.Type, d.CallerInfo, d.Name, d.Message, parent, value, targetType);
     }
 }
