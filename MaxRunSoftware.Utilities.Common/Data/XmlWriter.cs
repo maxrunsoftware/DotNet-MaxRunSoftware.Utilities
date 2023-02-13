@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class XmlWriter : IDisposable
 
     public XmlWriter(bool formatted = false)
     {
-        stream = new StringBuilder();
+        stream = new();
         var settings = new XmlWriterSettings();
         settings.Encoding = Constant.Encoding_UTF8_Without_BOM;
         settings.Indent = formatted;

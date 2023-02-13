@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,6 +60,8 @@ public static class JavaPropertiesExtensions
         using (var stream = new MemoryStream(byteArray)) { properties.Load(stream, Constant.Encoding_UTF8_Without_BOM); }
     }
 }
+
+// @formatter:off
 
 /// <summary>
 /// Hold Java style properties as key-value pairs and allow them to be loaded from or
@@ -183,14 +185,14 @@ public class JavaProperties : Hashtable
         Hashtable combined;
         if (defaults != null)
         {
-            combined = new Hashtable(defaults);
+            combined = new(defaults);
             for (var e = Keys.GetEnumerator(); e.MoveNext();)
             {
                 var key = e.Current?.ToString();
                 if (key != null) combined.Add(key, this[key]);
             }
         }
-        else { combined = new Hashtable(this); }
+        else { combined = new(this); }
 
         return combined.Keys.GetEnumerator();
     }
@@ -240,14 +242,14 @@ public class JavaPropertyReader
             '\\', STATE_key_escape, ACTION_escape,
             ':', STATE_after_separator, ACTION_ignore,
             '=', STATE_after_separator, ACTION_ignore,
-            MATCH_any, STATE_key, ACTION_add_to_key
+            MATCH_any, STATE_key, ACTION_add_to_key,
         },
         new[]
         {
             //STATE_comment
             MATCH_end_of_input, STATE_finish, ACTION_ignore,
             MATCH_terminator, STATE_start, ACTION_ignore,
-            MATCH_any, STATE_comment, ACTION_ignore
+            MATCH_any, STATE_comment, ACTION_ignore,
         },
         new[]
         {
@@ -258,13 +260,13 @@ public class JavaPropertyReader
             '\\', STATE_key_escape, ACTION_escape,
             ':', STATE_after_separator, ACTION_ignore,
             '=', STATE_after_separator, ACTION_ignore,
-            MATCH_any, STATE_key, ACTION_add_to_key
+            MATCH_any, STATE_key, ACTION_add_to_key,
         },
         new[]
         {
             //STATE_key_escape
             MATCH_terminator, STATE_key_ws, ACTION_ignore,
-            MATCH_any, STATE_key, ACTION_add_to_key
+            MATCH_any, STATE_key, ACTION_add_to_key,
         },
         new[]
         {
@@ -275,7 +277,7 @@ public class JavaPropertyReader
             '\\', STATE_key_escape, ACTION_escape,
             ':', STATE_after_separator, ACTION_ignore,
             '=', STATE_after_separator, ACTION_ignore,
-            MATCH_any, STATE_key, ACTION_add_to_key
+            MATCH_any, STATE_key, ACTION_add_to_key,
         },
         new[]
         {
@@ -286,7 +288,7 @@ public class JavaPropertyReader
             '\\', STATE_value_escape, ACTION_escape,
             ':', STATE_after_separator, ACTION_ignore,
             '=', STATE_after_separator, ACTION_ignore,
-            MATCH_any, STATE_value, ACTION_add_to_value
+            MATCH_any, STATE_value, ACTION_add_to_value,
         },
         new[]
         {
@@ -295,7 +297,7 @@ public class JavaPropertyReader
             MATCH_terminator, STATE_start, ACTION_store_property,
             MATCH_whitespace, STATE_after_separator, ACTION_ignore,
             '\\', STATE_value_escape, ACTION_escape,
-            MATCH_any, STATE_value, ACTION_add_to_value
+            MATCH_any, STATE_value, ACTION_add_to_value,
         },
         new[]
         {
@@ -303,13 +305,13 @@ public class JavaPropertyReader
             MATCH_end_of_input, STATE_finish, ACTION_store_property,
             MATCH_terminator, STATE_start, ACTION_store_property,
             '\\', STATE_value_escape, ACTION_escape,
-            MATCH_any, STATE_value, ACTION_add_to_value
+            MATCH_any, STATE_value, ACTION_add_to_value,
         },
         new[]
         {
             //STATE_value_escape
             MATCH_terminator, STATE_value_ws, ACTION_ignore,
-            MATCH_any, STATE_value, ACTION_add_to_value
+            MATCH_any, STATE_value, ACTION_add_to_value,
         },
         new[]
         {
@@ -318,8 +320,8 @@ public class JavaPropertyReader
             MATCH_terminator, STATE_start, ACTION_store_property,
             MATCH_whitespace, STATE_value_ws, ACTION_ignore,
             '\\', STATE_value_escape, ACTION_escape,
-            MATCH_any, STATE_value, ACTION_add_to_value
-        }
+            MATCH_any, STATE_value, ACTION_add_to_value,
+        },
     };
 
     /*
@@ -653,7 +655,7 @@ public class JavaPropertyReader
         var bufferedStream = new BufferedStream(stream, bufferSize);
         // the default encoding ISO-8859-1 (codepage 28592) will be used if we do not pass explicitly different encoding
         var parserEncoding = encoding ?? JavaProperties.DefaultEncoding;
-        reader = new BinaryReader(bufferedStream, parserEncoding);
+        reader = new(bufferedStream, parserEncoding);
 
         var state = STATE_start;
         do
@@ -872,3 +874,5 @@ public class JavaPropertyParseException : Exception
     /// <param name="message">A descriptive message for the exception</param>
     public JavaPropertyParseException(string message) : base(message) { }
 }
+
+// @formatter:on

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ public class JsonWriter : IDisposable
     {
         private readonly JsonWriter writer;
 
-        public ObjectToken(JsonWriter writer) { this.writer = writer; }
+        public ObjectToken(JsonWriter writer)
+        {
+            this.writer = writer;
+        }
 
         public void Dispose() => writer.EndObject();
     }
@@ -31,7 +34,10 @@ public class JsonWriter : IDisposable
     {
         private readonly JsonWriter writer;
 
-        public ArrayToken(JsonWriter writer) { this.writer = writer; }
+        public ArrayToken(JsonWriter writer)
+        {
+            this.writer = writer;
+        }
 
         public void Dispose() => writer.EndArray();
     }
@@ -43,8 +49,8 @@ public class JsonWriter : IDisposable
 
     public JsonWriter(bool formatted = false)
     {
-        stream = new MemoryStream();
-        writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = formatted });
+        stream = new();
+        writer = new(stream, new() { Indented = formatted });
     }
 
     public void Dispose()

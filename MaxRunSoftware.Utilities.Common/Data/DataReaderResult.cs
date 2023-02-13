@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ public class DataReaderResult : ITable
     IReadOnlyList<ITableColumn> ITable.Columns => Columns;
 
     #endregion ITable
-
 }
 
 public static class DataReaderResultExtensions
@@ -85,6 +84,7 @@ public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultCo
     public DataReaderResult Result { get; }
     public IReadOnlyList<string> Names { get; }
     public DataReaderResultColumn this[int index] => columns[index];
+
     public DataReaderResultColumn this[string name]
     {
         get
@@ -106,7 +106,6 @@ public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultCo
 
     public DataReaderResultColumnCollection(IDataReader reader, DataReaderResult result)
     {
-
         Result = result;
         columns = reader.GetSchema().Select(o => new DataReaderResultColumn(o, this)).OrderBy(o => o.Index).ToList();
         nullableColumns = new bool[columns.Count];
@@ -117,6 +116,7 @@ public class DataReaderResultColumnCollection : IReadOnlyList<DataReaderResultCo
             columnsByName.AddToList(column.Name, column);
             columnsByNameCaseSensitive.AddToList(column.Name, column);
         }
+
         Names = columns.Select(o => o.Name).ToList().AsReadOnly();
     }
 
@@ -310,6 +310,6 @@ public static class DataReaderResultRowExtensions
 
         d.AddRange(o => o.ToGuid(), typeof(Guid), typeof(Guid?));
 
-        return new (d);
+        return new(d);
     }
 }

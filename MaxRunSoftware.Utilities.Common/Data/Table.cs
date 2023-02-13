@@ -20,7 +20,6 @@ public interface ITable
     IReadOnlyList<ITableRow> Rows { get; }
 }
 
-
 public class Table : ITable
 {
     public Table(IReadOnlyList<ITableColumn>? columns, IReadOnlyList<ITableRow> rows)
@@ -32,9 +31,6 @@ public class Table : ITable
     public IReadOnlyList<ITableColumn>? Columns { get; }
     public IReadOnlyList<ITableRow> Rows { get; }
 }
-
-
-
 
 public interface ITableColumn
 {

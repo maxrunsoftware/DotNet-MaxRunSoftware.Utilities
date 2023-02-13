@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,8 +71,6 @@ public abstract class YamlReader
     /// </code>
     /// </example>
     public abstract List<YamlReaderItem> Read(string yaml);
-
-
 }
 
 [PublicAPI]
@@ -87,7 +85,7 @@ public class YamlReaderItem
     private Dictionary<string, YamlReaderItem>? dictionary;
     public Dictionary<string, YamlReaderItem> GetDictionary()
     {
-        if (Type != YamlReaderItemType.Dictionary || ValueRaw == null) throw new Exception("Not dictionary");
+        if (Type != YamlReaderItemType.Dictionary || ValueRaw == null) throw new("Not dictionary");
         if (dictionary != null) return dictionary;
 
         var dictionaryNew = new Dictionary<string, YamlReaderItem>();
@@ -126,7 +124,7 @@ public class YamlReaderItem
     private List<YamlReaderItem>? list;
     public List<YamlReaderItem> GetList()
     {
-        if (Type != YamlReaderItemType.List || ValueRaw == null) throw new Exception("Not list");
+        if (Type != YamlReaderItemType.List || ValueRaw == null) throw new("Not list");
         if (list != null) return list;
 
         var listNew = new List<YamlReaderItem>();
@@ -143,7 +141,7 @@ public class YamlReaderItem
     private string? valueString;
     public string? GetString()
     {
-        if (Type != YamlReaderItemType.Value) throw new Exception("Not value");
+        if (Type != YamlReaderItemType.Value) throw new("Not value");
         return valueString ??= ValueRaw?.ToString();
     }
 

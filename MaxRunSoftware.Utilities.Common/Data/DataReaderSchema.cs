@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -134,13 +134,19 @@ public class DataReaderSchemaColumnExtended
 
     public override string ToString()
     {
-        if (Values.Count < 1) return GetType().NameFormatted() + " { }" + Constant.NewLine;
+        if (Values.Count < 1) return GetType().NameFormatted() + " ( )" + Constant.NewLine;
         var maxColumnLen = Values.Keys.Select(o => o.Length).Max() + 3;
 
         var sb = new StringBuilder();
-        sb.AppendLine(GetType().NameFormatted() + " {");
-        foreach (var val in Values) sb.AppendLine("  " + (val.Key + " :").PadRight(maxColumnLen) + (val.Value.ToStringGuessFormat() ?? string.Empty));
-        sb.AppendLine("}");
+        sb.AppendLine(GetType().NameFormatted() + " (");
+        foreach (var value in Values)
+        {
+            var key = (value.Key + " :").PadRight(maxColumnLen);
+            var val = value.Value.ToStringGuessFormat() ?? string.Empty;
+            sb.AppendLine($"  {key}{val}");
+        }
+
+        sb.AppendLine(")");
 
         return sb.ToString();
     }
