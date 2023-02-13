@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ namespace MaxRunSoftware.Utilities.Common;
 public static class ExtensionsLogging
 {
     #region LogMethod Overloads
+
     // @formatter:off
 
     /// <summary>Called by methods that wish to also log their caller info.</summary><param name="log">The log to make logging statements to</param><param name="callerInfo">Method caller info</param><param name="message">Log message</param><param name="args">Log message arguments</param>
@@ -58,6 +59,7 @@ public static class ExtensionsLogging
     public static void LogCriticalMethod(this ILogger log, CallerInfoMethod callerInfo, Exception? exception, [StructuredMessageTemplate] string message, params object?[] args) => log.LogMethod(LogLevel.Critical, callerInfo, exception, message, args);
 
     // @formatter:on
+
     #endregion LogMethod Overloads
 
     /// <summary>Called by methods that wish to also log their caller info.</summary>
@@ -149,6 +151,6 @@ public static class ExtensionsLogging
         LogLevel.Error => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error,
         LogLevel.Critical => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error or LogLevel.Critical,
         LogLevel.None => false,
-        _ => throw new ArgumentOutOfRangeException(nameof(loggingLevel), loggingLevel, null)
+        _ => throw new ArgumentOutOfRangeException(nameof(loggingLevel), loggingLevel, null),
     };
 }

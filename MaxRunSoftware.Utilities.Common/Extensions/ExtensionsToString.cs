@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -84,7 +84,7 @@ public static class ExtensionsToString
             DateTimeToStringFormat.YYYY_MM_DD_HH_MM_SS => dateTime.ToString("yyyy-MM-dd HH:mm:ss"),
             DateTimeToStringFormat.HH_MM_SS => dateTime.ToString("HH:mm:ss"),
             DateTimeToStringFormat.HH_MM_SS_FFF => dateTime.ToString("HH:mm:ss.fff"),
-            _ => throw new NotImplementedException(nameof(DateTimeToStringFormat) + "." + format + " is not implemented")
+            _ => throw new NotImplementedException(nameof(DateTimeToStringFormat) + "." + format + " is not implemented"),
         };
 
     private sealed class ToStringGuessFormatGetLength
@@ -96,7 +96,6 @@ public static class ExtensionsToString
 
         public ToStringGuessFormatGetLength(Type type)
         {
-
             var slimProperties = type.GetPropertySlims(BindingFlags.Public | BindingFlags.Instance)
                 .Where(o => o.IsGettablePublic)
                 .Where(o => Constant.Types_Numeric.Contains(o.Type))
@@ -117,12 +116,10 @@ public static class ExtensionsToString
                 ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(long))
                 ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(int))
                 ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(long))
-
                 ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(int?))
                 ?? slimProperties.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameCount, o.Name) && o.Type == typeof(long?))
                 ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(int?))
                 ?? slimFields.FirstOrDefault(o => StringComparer.Ordinal.Equals(nameLength, o.Name) && o.Type == typeof(long?))
-
                 ?? null
                 ;
         }
@@ -130,8 +127,9 @@ public static class ExtensionsToString
         public long? GetValue(object instance) => slimObj?.GetValue(instance) as long?;
         public bool HasProperty => slimObj != null;
     }
+
     // ReSharper disable once InconsistentNaming
-    private static readonly DictionaryWeakType<ToStringGuessFormatGetLength> toStringGuessFormatCount = new ();
+    private static readonly DictionaryWeakType<ToStringGuessFormatGetLength> toStringGuessFormatCount = new();
     public static string? ToStringGuessFormat(this object? obj) => ToStringGuessFormat(obj, false);
 
     public static string? ToStringGuessFormat(this object? obj, bool showEnumerableValues)
@@ -147,8 +145,10 @@ public static class ExtensionsToString
             try
             {
                 return obj.GetType().FullNameFormatted() + $"[{objStream.Length}]";
-            } catch (Exception) {}
+            }
+            catch (Exception) { }
         }
+
         if (obj is Type objType) return objType.FullNameFormatted();
 
         var t = obj.GetType();
@@ -185,7 +185,9 @@ public static class ExtensionsToString
         try
         {
             state = connection.State.ToString();
-        } catch (Exception) {}
+        }
+        catch (Exception) { }
+
         items.Add((nameof(connection.State), state));
 
 
@@ -193,14 +195,15 @@ public static class ExtensionsToString
         try
         {
             connectionString = connection.ConnectionString.TrimOrNull();
-        } catch (Exception) {}
+        }
+        catch (Exception) { }
 
         string? connectionStringModified = null;
         if (connectionString != null)
         {
             try
             {
-                var csb = new DbConnectionStringBuilder { ConnectionString = connectionString, };
+                var csb = new DbConnectionStringBuilder { ConnectionString = connectionString };
                 var keysToRemove = new HashSet<string>();
 
                 foreach (var keyObj in csb.Keys)

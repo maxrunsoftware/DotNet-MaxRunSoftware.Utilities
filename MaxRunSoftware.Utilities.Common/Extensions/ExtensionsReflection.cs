@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -94,7 +94,7 @@ public static class ExtensionsReflection
             "mscorlib,",
             "netstandard,",
             "Microsoft.CSharp",
-            "Microsoft.VisualStudio"
+            "Microsoft.VisualStudio",
         };
 
         foreach (var module in assembly.Modules)
@@ -355,9 +355,9 @@ public static class ExtensionsReflection
     {
         var resourceNames = assembly.GetEmbeddedResourceNames();
         var resourceName = resourceNames.Single(o => o.EndsWith(filename, StringComparison.OrdinalIgnoreCase));
-        if (resourceName == null) throw new Exception($"Could not find resource file: {filename}");
+        if (resourceName == null) throw new($"Could not find resource file: {filename}");
         using var stream = assembly.GetManifestResourceStream(resourceName);
-        if (stream == null) throw new Exception($"Could not open stream for resource: {resourceName}  {filename}");
+        if (stream == null) throw new($"Could not open stream for resource: {resourceName}  {filename}");
         return stream.ReadAll();
     }
 

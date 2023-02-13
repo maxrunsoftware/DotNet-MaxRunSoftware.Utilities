@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -133,7 +133,7 @@ public static class ExtensionsString
     {
         var chars = input.CheckNotNull(nameof(input)).ToCharArray();
         chars[index] = newChar;
-        return new string(chars);
+        return new(chars);
     }
 
     [Pure]
@@ -149,6 +149,7 @@ public static class ExtensionsString
         {
             strRemoved = str.Replace(toRemove, string.Empty, comparison.Value);
         }
+
         var countRemoved = (str.Length - strRemoved.Length) / toRemove.Length;
 
         itemsRemoved = countRemoved;
@@ -683,7 +684,7 @@ public static class ExtensionsString
                 else
                     list.Add(sb.ToString());
 
-                sb = new StringBuilder();
+                sb = new();
             }
             else
                 sb.Append(c);
@@ -722,7 +723,7 @@ public static class ExtensionsString
     [Pure]
     public static List<string?> TrimOrNull(this List<string?>? strings)
     {
-        if (strings == null) return new List<string?>();
+        if (strings == null) return new();
         var l = new List<string?>(strings.Count);
         l.AddRange(strings.Select(str => str.TrimOrNull()));
         return l;
@@ -889,7 +890,6 @@ public static class ExtensionsString
 
     #region EndsWithAny
 
-
     [Pure] public static bool EndsWithAny(this string str, params string[] strings) => EndsWithAny(str, StringComparison.CurrentCulture, strings);
 
     [Pure] public static bool EndsWithAny(this string str, StringComparison comparison, params string[] strings) => strings.OrEmpty().Any(s => str.EndsWith(s, comparison));
@@ -983,8 +983,9 @@ public static class ExtensionsString
         var i = comparison == null ? str.LastIndexOf(stringToSplitOn) : str.LastIndexOf(stringToSplitOn, comparison.Value);
         return i < 0
             ? (stringToSplitOn, null)
-            : (str.Substring(0, i), str.Substring(i + 1) );
+            : (str.Substring(0, i), str.Substring(i + 1));
     }
+
     #endregion Split
 
     #region SplitDelimited

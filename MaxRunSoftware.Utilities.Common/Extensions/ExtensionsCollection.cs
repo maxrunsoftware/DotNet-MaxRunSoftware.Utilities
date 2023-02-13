@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -229,7 +229,7 @@ public static class ExtensionsCollection
             list.Add(item);
             if (list.Count < chunkSize) continue;
             var result = list;
-            list = new List<T?>(chunkSize);
+            list = new(chunkSize);
             yield return result;
         }
 
@@ -1034,7 +1034,7 @@ public static class ExtensionsCollection
         var listCreated = false;
         if (!dictionary.TryGetValue(key, out var list))
         {
-            list = new List<TValue>();
+            list = new();
             dictionary.Add(key, list);
             listCreated = true;
         }
@@ -1162,8 +1162,8 @@ public static class ExtensionsCollection
         return c;
     }
 
-        public static IOrderedEnumerable<string> OrderByOrdinalIgnoreCaseThenOrdinal(this IEnumerable<string> obj) => obj.OrderBy(o => o, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
-        public static IOrderedEnumerable<T> OrderByOrdinalIgnoreCaseThenOrdinal<T>(this IEnumerable<T> obj, Func<T, string> keySelector) => obj.OrderBy(keySelector, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+    public static IOrderedEnumerable<string> OrderByOrdinalIgnoreCaseThenOrdinal(this IEnumerable<string> obj) => obj.OrderBy(o => o, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+    public static IOrderedEnumerable<T> OrderByOrdinalIgnoreCaseThenOrdinal<T>(this IEnumerable<T> obj, Func<T, string> keySelector) => obj.OrderBy(keySelector, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
 
     #endregion CompareTo
 
@@ -1280,7 +1280,7 @@ public static class ExtensionsCollection
 
         static TT[] Generate<TT>(TT[] array, IReadOnlyList<int> sequence)
         {
-            var clone = (TT[]) array.Clone();
+            var clone = (TT[])array.Clone();
             for (var i = 0; i < clone.Length - 1; i++) Swap(ref clone[i], ref clone[i + sequence[i]]);
             return clone;
         }
@@ -1294,6 +1294,7 @@ public static class ExtensionsCollection
                 sequence[j] = (int)(number / facto);
                 number = (int)(number % facto);
             }
+
             return sequence;
         }
 
@@ -1309,14 +1310,6 @@ public static class ExtensionsCollection
             yield return Generate(array, sequence);
         }
     }
-
-
-
-
-
-
-
-
 
     #endregion Permutate
 }

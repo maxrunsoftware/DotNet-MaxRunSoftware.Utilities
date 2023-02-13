@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,6 +37,7 @@ public static class ExtensionsStringConversion
 
             b.Add(m.ReturnType.Type, m);
         }
+
         return b.ToImmutable();
     }
 
@@ -53,6 +54,7 @@ public static class ExtensionsStringConversion
             if (!m.Name.EndsWith("Nullable")) continue;
             b.Add(m.ReturnType.Type, m);
         }
+
         return b.ToImmutable();
     }
 
@@ -96,7 +98,6 @@ public static class ExtensionsStringConversion
         if (str != null) return Constant.String_Bool.TryGetValue(str, out output);
         output = default;
         return false;
-
     }
 
     public static bool? ToBoolNullable(this string? str) => str.TrimOrNull()?.ToBool();
@@ -547,10 +548,7 @@ public static class ExtensionsStringConversion
 
     public static SecureString ToSecureString(this string str) => new NetworkCredential("", str).SecurePassword;
 
-    public static SecureString? ToSecureStringNullable(this string? str)
-    {
-        return str == null ? null : ToSecureString(str);
-    }
+    public static SecureString? ToSecureStringNullable(this string? str) => str == null ? null : ToSecureString(str);
 
     #endregion SecureString
 
@@ -618,7 +616,8 @@ public static class ExtensionsStringConversion
             {
                 output = ToColor(str);
                 return true;
-            } catch (Exception) {}
+            }
+            catch (Exception) { }
         }
 
         output = default;
@@ -634,5 +633,4 @@ public static class ExtensionsStringConversion
     #endregion Color
 
     #endregion System
-
 }

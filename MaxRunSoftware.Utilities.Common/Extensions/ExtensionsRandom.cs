@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -146,7 +146,7 @@ public static class ExtensionsRandom
         var b = (int)(uint.MaxValue * random.NextDouble());
         var c = (int)(uint.MaxValue * random.NextDouble());
         var n = random.NextBool();
-        return new decimal(a, b, c, n, 0);
+        return new(a, b, c, n, 0);
     }
 
     public static DateTime NextDateTime(this Random random, DateTime? minInclusive = null, DateTime? maxInclusive = null)
@@ -162,7 +162,7 @@ public static class ExtensionsRandom
         if (kind == DateTimeKind.Unspecified) kind = maxKind;
 
         var ticks = random.NextInt64(minInclusive.Value.Ticks, maxInclusive.Value.Ticks + 1L);
-        return new DateTime(ticks, kind);
+        return new(ticks, kind);
     }
 
     public static DateOnly NextDateOnly(this Random random, DateOnly? minInclusive = null, DateOnly? maxInclusive = null)
@@ -174,7 +174,7 @@ public static class ExtensionsRandom
         var maxDateTime = maxInclusive.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
 
         var dt = NextDateTime(random, minDateTime, maxDateTime);
-        return new DateOnly(dt.Year, dt.Month, dt.Day);
+        return new(dt.Year, dt.Month, dt.Day);
     }
 
     public static TimeOnly NextTimeOnly(this Random random, TimeOnly? minInclusive = null, TimeOnly? maxInclusive = null)
@@ -187,7 +187,7 @@ public static class ExtensionsRandom
         var maxDateTime = new DateTime(dtMin + maxInclusive.Value.Ticks, DateTimeKind.Utc);
 
         var dt = NextDateTime(random, minDateTime, maxDateTime);
-        return new TimeOnly(dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
+        return new(dt.Hour, dt.Minute, dt.Second, dt.Millisecond);
     }
 
     public static byte[] NextBytes(this Random random, int length)
