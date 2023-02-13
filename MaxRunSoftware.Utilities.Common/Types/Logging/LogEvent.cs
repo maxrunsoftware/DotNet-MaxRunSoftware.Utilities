@@ -14,51 +14,16 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class LogEvent
-{
-    public string CategoryName { get; }
-    public LogLevel LogLevel { get; }
-    public EventId EventId { get; }
-    public Type StateType { get; }
-    public object? StateObject { get; }
-    public Exception? Exception { get; }
-    public LoggerFormatterDelegate Formatter { get; }
-    public IReadOnlyList<Tuple<string?, object?>> State { get; }
-    public string Text { get; }
-
-    // ReSharper disable once InconsistentNaming
-    private static readonly LogStateParser logStateParser = new();
-
-    public LogEvent(
-        string categoryName,
-        LogLevel logLevel,
-        EventId eventId,
-        Type stateType,
-        object? stateObject,
-        Exception? exception,
-        LoggerFormatterDelegate formatter,
-        string text
-    )
-    {
-        CategoryName = categoryName;
-        LogLevel = logLevel;
-        EventId = eventId;
-        StateType = stateType;
-        StateObject = stateObject;
-        Exception = exception;
-        Formatter = formatter;
-        Text = text;
-        State = logStateParser.Parse(stateObject);
-    }
-
-
-
-
-
-
-
-
-
-
-
-}
+[PublicAPI]
+public record LogEvent(
+    string CategoryName,
+    LogLevel LogLevel,
+    EventId EventId,
+    Type StateType,
+    object? StateObject,
+    LogState? State,
+    Exception? Exception,
+    LoggerDelegateFormatter Formatter,
+    string Text,
+    IImmutableStack<LogScope> Scopes
+);

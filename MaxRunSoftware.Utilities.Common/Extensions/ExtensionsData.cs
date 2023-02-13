@@ -107,23 +107,23 @@ public static class ExtensionsData
         {
             if (connection.State != ConnectionState.Closed)
             {
-                log?.LogTrace("Closing database connection {ConnectionType}", connectionType);
+                log?.LogTraceMethod(new(connection), "Closing database connection {ConnectionType}", connectionType);
                 connection.Close();
             }
         }
         catch (Exception e)
         {
-            log?.LogWarning(e, "Exception closing database connection {ConnectionType}", connectionType);
+            log?.LogWarningMethod(new(connection), e, "Exception closing database connection {ConnectionType}", connectionType);
         }
 
         try
         {
-            log?.LogTrace("Disposing database connection {ConnectionType}", connectionType);
+            log?.LogTraceMethod(new(connection), "Disposing database connection {ConnectionType}", connectionType);
             connection.Dispose();
         }
         catch (Exception e)
         {
-            log?.LogWarning(e, "Exception disposing database connection {ConnectionType}", connectionType);
+            log?.LogWarningMethod(new(connection), e, "Exception disposing database connection {ConnectionType}", connectionType);
         }
     }
 

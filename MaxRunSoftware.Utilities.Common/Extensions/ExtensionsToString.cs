@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using System.Security;
@@ -155,7 +156,6 @@ public static class ExtensionsToString
 
         if (t == typeof(DateTime?)) return ((DateTime?)obj).Value.ToString(DateTimeToStringFormat.ISO_8601);
 
-
         if (obj is IEnumerable enumerable)
         {
             var name = (t.IsArray ? t.GetElementType() ?? t : t).FullNameFormatted();
@@ -164,12 +164,71 @@ public static class ExtensionsToString
                 return name + enumerable.ToStringItems();
             }
 
-            var getLengthFunc = toStringGuessFormatCount.GetValue(t, tt => new(tt));
+            var getLengthFunc = toStringGuessFormatCount.GetOrAdd(t, tt => new(tt));
             if (getLengthFunc.HasProperty) return $"{name}[" + (getLengthFunc.GetValue(obj)?.ToString() ?? "?") + "]";
             //return $"{name}[?]";
         }
 
+        if (obj is IDbConnection dbConnection) return ToStringGuessFormat(dbConnection);
+
         return obj.ToString();
+    }
+
+    private static string ToStringGuessFormat(IDbConnection connection)
+    {
+        var str = connection.ToString();
+        if (!string.IsNullOrWhiteSpace(str) && str != connection.GetType().FullName) return str;
+
+        var items = new List<(string, string?)>();
+
+        string? state = null;
+        try
+        {
+            state = connection.State.ToString();
+        } catch (Exception) {}
+        items.Add((nameof(connection.State), state));
+
+
+        string? connectionString = null;
+        try
+        {
+            connectionString = connection.ConnectionString.TrimOrNull();
+        } catch (Exception) {}
+
+        string? connectionStringModified = null;
+        if (connectionString != null)
+        {
+            try
+            {
+                var csb = new DbConnectionStringBuilder { ConnectionString = connectionString, };
+                var keysToRemove = new HashSet<string>();
+
+                foreach (var keyObj in csb.Keys)
+                {
+                    var keyString = keyObj?.ToString();
+                    if (keyString == null) continue;
+                    var keyStringTrimmed = keyString.TrimOrNull();
+                    if (keyStringTrimmed == null) continue;
+                    if (keyStringTrimmed.ContainsAny(StringComparison.OrdinalIgnoreCase, "Password", "PWD")) keysToRemove.Add(keyString);
+                }
+
+                foreach (var keyToRemove in keysToRemove) csb[keyToRemove] = "*****";
+                connectionStringModified = csb.ConnectionString.TrimOrNull();
+            }
+            catch (Exception) { }
+        }
+
+        var connectionStringFinal = connectionStringModified ?? connectionString;
+        if (connectionStringFinal != null) connectionStringFinal = "\"" + connectionStringFinal + "\"";
+        items.Add((nameof(connection.ConnectionString), connectionStringFinal));
+
+        var sb = new StringBuilder();
+        sb.Append(connection.GetType().FullNameFormatted());
+        sb.Append('(');
+        sb.Append(items.Select(o => o.Item1 + ": " + (o.Item2 ?? "?")).ToStringDelimited(", "));
+        sb.Append(')');
+
+        return sb.ToString();
     }
 
     public static IEnumerable<string?> ToStringsGuessFormat(this IEnumerable<object> enumerable)

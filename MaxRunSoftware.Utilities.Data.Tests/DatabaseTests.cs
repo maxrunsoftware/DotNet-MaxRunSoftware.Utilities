@@ -38,7 +38,8 @@ public abstract class DatabaseFixture : IDisposable
 
     protected int ExecuteNonQuery(DatabaseAppType appType, string connectionString, string sql, int timeoutSeconds = 60 * 5)
     {
-        using var c = appType.OpenConnection(connectionString);
+        using var c = appType.CreateConnection(connectionString);
+        c.Open();
         using var cmd = c.CreateCommand();
         cmd.CommandType = CommandType.Text;
         cmd.CommandTimeout = timeoutSeconds;
@@ -57,23 +58,25 @@ public abstract class DatabaseFixtureCollection<T> : ICollectionFixture<T> where
 public abstract class DatabaseTests<T> : TestBase where T : Sql
 {
     protected readonly T sql;
+    protected DatabaseAppType DatabaseAppType { get; }
     protected DatabaseTests(ITestOutputHelper testOutputHelper, DatabaseAppType databaseAppType, string connectionString) : base(testOutputHelper)
     {
-        sql = (T)databaseAppType.OpenSql(connectionString, LoggerProvider);
+        sql = (T)databaseAppType.CreateSql(connectionString, LoggerProvider);
+        DatabaseAppType = sql.DatabaseAppType;
     }
 
     [SkippableFact]
     public void GetCurrentDatabase()
     {
         var o = sql.CurrentDatabaseName;
-        WriteLine(nameof(sql.CurrentDatabaseName), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
     public void GetCurrentSchema()
     {
         var o = sql.CurrentSchemaName;
-        WriteLine(nameof(sql.CurrentSchemaName), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
@@ -82,7 +85,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         var o = sql.GetDatabases().OrderBy(o => o).ToArray();
         Assert.NotNull(o);
         Assert.NotEmpty(o);
-        WriteLine(nameof(sql.GetDatabases), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
@@ -91,7 +94,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         var o = sql.GetSchemas().OrderBy(o => o).ToArray();
         Assert.NotNull(o);
         Assert.NotEmpty(o);
-        WriteLine(nameof(sql.GetSchemas), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
@@ -100,7 +103,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         var o = sql.GetTables().OrderBy(o => o).ToArray();
         Assert.NotNull(o);
         Assert.NotEmpty(o);
-        WriteLine(nameof(sql.GetTables), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
@@ -109,7 +112,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         var o = sql.GetTableColumns().OrderBy(o => o).ToArray();
         Assert.NotNull(o);
         Assert.NotEmpty(o);
-        WriteLine(nameof(sql.GetTableColumns), o);
+        WriteLine(new(), o);
     }
 
     [SkippableFact]
@@ -124,21 +127,21 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         {
             var table = tables[i];
             var result = sql.GetTableExists(table);
-            WriteLine(nameof(sql.GetTableExists), "[" + Util.FormatRunningCount(i, tables.Length) + $"] {table} -> {result}");
+            WriteLine(new(), "[" + Util.FormatRunningCount(i, tables.Length) + $"] {table} -> {result}");
             Assert.True(result);
         }
     }
 
-    protected void WriteLine(string methodName, object? outData)
+    protected void WriteLine(CallerInfoMethod info, object? outData)
     {
-        WriteLine($"[{sql.DatabaseAppType}] {methodName}: {ToStringParse(outData)}");
+        log.LogInformationMethod(info, $"[{DatabaseAppType}] {ToStringParse(outData)}");
     }
 
-    protected void WriteLine<TItem>(string methodName, TItem?[] outData)
+    protected void WriteLine<TItem>(CallerInfoMethod info, TItem?[] outData)
     {
         for (var i = 0; i < outData.Length; i++)
         {
-            WriteLine(methodName, "[" + Util.FormatRunningCount(i, outData.Length) + "] " + ToStringParse(outData[i]));
+            WriteLine(info, "[" + Util.FormatRunningCount(i, outData.Length) + "] " + ToStringParse(outData[i]));
         }
     }
 

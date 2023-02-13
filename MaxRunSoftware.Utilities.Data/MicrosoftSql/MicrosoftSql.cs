@@ -22,6 +22,12 @@ namespace MaxRunSoftware.Utilities.Data;
 public class MicrosoftSql : Sql
 {
     public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
+    public static SqlConnection CreateConnectionz(string connectionString)
+    {
+        var c = new SqlConnection(connectionString);
+        c.ToString();
+        return new(connectionString);
+    }
 
     public MicrosoftSql(string connectionString, ILoggerProvider loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
     public MicrosoftSql(IDbConnection connection, ILoggerProvider loggerProvider) : base(connection, loggerProvider)

@@ -145,7 +145,8 @@ public static class TerminalFormat
 
         if (foreground != null) sb.Append(foreground);
         if (background != null) sb.Append(background);
-
+        sb.Append(str);
+        sb.Append(TerminalSGR.Reset.ToAnsi());
         return sb.ToString();
     }
 

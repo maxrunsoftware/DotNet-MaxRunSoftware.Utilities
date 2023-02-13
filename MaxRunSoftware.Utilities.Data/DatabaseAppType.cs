@@ -68,17 +68,6 @@ public static class DatabaseAppTypeExtensions
     public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
         ConnectionFactories[connectionType](connectionString);
 
-    public static IDbConnection OpenConnection(this DatabaseAppType connectionType, string connectionString)
-    {
-        var connection = CreateConnection(connectionType, connectionString);
-        connection.Open();
-        return connection;
-    }
-
     public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerProvider loggerProvider) =>
         SqlFactories[connectionType](CreateConnection(connectionType, connectionString), loggerProvider);
-
-    public static Sql OpenSql(this DatabaseAppType connectionType, string connectionString, ILoggerProvider loggerProvider)  =>
-        SqlFactories[connectionType](OpenConnection(connectionType, connectionString), loggerProvider);
-
 }

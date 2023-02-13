@@ -31,10 +31,10 @@ public static class ExtensionsStringConversion
         var b = ImmutableDictionary.CreateBuilder<Type, MethodSlim>();
         foreach (var m in ((TypeSlim)typeof(ExtensionsStringConversion)).GetMethodSlims(BindingFlags.Public | BindingFlags.Static))
         {
-            if (m.Name.EndsWith("Try")) continue;
             if (!m.Name.StartsWith("To")) continue;
             if (m.ReturnType == null) continue;
-            if (m.Name.EndsWith("Nullable")) continue;
+            if (m.Name.EndsWithAny(StringComparison.OrdinalIgnoreCase, "Try", "Nullable", "OrNull")) continue;
+
             b.Add(m.ReturnType.Type, m);
         }
         return b.ToImmutable();
@@ -579,21 +579,22 @@ public static class ExtensionsStringConversion
         }
         catch (Exception) { }
 
-        var hex = str.Where(o => o.IsHex()).ToStringJoined();
-        if (hex.Length.In(3, 6)) return ColorTranslator.FromHtml(str);
-
-        var rgbNumsChars = (Constant.Chars_0_9_String + ",").ToHashSet();
-        var rgbNums = str
-            .Where(o => rgbNumsChars.Contains(o))
-            .ToStringJoined()
-            .Split(',')
-            .TrimOrNull()
-            .Select(o => o.ToByteOrNull())
-            .WhereNotNull()
-            .Select(o => (int)o)
-            .ToArray();
-        if (rgbNums.Length == 3) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2]);
-        if (rgbNums.Length == 4) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2], rgbNums[3]);
+        var commaCount = str.CountOccurrences(",");
+        if (commaCount.In(2, 3))
+        {
+            var rgbNumsChars = (Constant.Chars_0_9_String + ",").ToHashSet();
+            var rgbNums = str
+                .Where(o => rgbNumsChars.Contains(o))
+                .ToStringJoined()
+                .Split(',')
+                .TrimOrNull()
+                .Select(o => o.ToByteOrNull())
+                .WhereNotNull()
+                .Select(o => (int)o)
+                .ToArray();
+            if (rgbNums.Length == 3) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2]);
+            if (rgbNums.Length == 4) return Color.FromArgb(rgbNums[0], rgbNums[1], rgbNums[2], rgbNums[3]);
+        }
 
         var colorNameChars = (Constant.Chars_A_Z_Upper_String + Constant.Chars_A_Z_Lower_String).ToHashSet();
         var colorName = str.Where(o => colorNameChars.Contains(o)).ToStringJoined();

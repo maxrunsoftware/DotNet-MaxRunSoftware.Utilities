@@ -337,7 +337,7 @@ public class FtpClientSFtp : FtpClientBase
             log.LogDebugMethod(new(remotePath), pathNotFoundException, LOG_FAILED + " path does not exist: {RemotePath}", remotePath);
         }
 
-        var canonicalPathWrapper = canonicalPathCache.GetValue(Client.GetType(), t => new(t));
+        var canonicalPathWrapper = canonicalPathCache.GetOrAdd(Client.GetType(), t => new(t));
         if (canonicalPathWrapper.IsValid)
         {
             log.LogTraceMethod(new(remotePath), "Attempting reflection to retrieve canonical path");

@@ -12,43 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Drawing;
 using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Xunit.Sdk;
 
 namespace MaxRunSoftware.Utilities.Common.Tests;
-
-[PublicAPI]
-public class SkippedTest
-{
-    public Type Clazz { get; }
-    public string? Method { get; }
-    public string Message { get; }
-
-    public SkippedTest(Type clazz, string? method, string message)
-    {
-        Clazz = clazz;
-        Method = method;
-        Message = message;
-    }
-
-    public SkippedTest(Type clazz, string message) : this(clazz, null, message) { }
-
-    public bool IsMatch(Type? testClazz, string? testMethod)
-    {
-        if (testClazz == null) return false;
-        if (Clazz != testClazz) return false;
-        if (Method == null) return true;
-        if (string.Equals(Method, testMethod, StringComparison.OrdinalIgnoreCase)) return true;
-        return false;
-    }
-
-    public void CheckSkip(Type? testClazz, string? testMethod) => Skip.If(IsMatch(testClazz, testMethod), Message);
-
-    public static SkippedTest Create<T>(string methodName, string message) => new(typeof(T), methodName, message);
-    public static SkippedTest Create<T>(string message) => new(typeof(T), null, message);
-}
 
 [PublicAPI]
 public abstract class TestBase : IDisposable
@@ -58,20 +26,11 @@ public abstract class TestBase : IDisposable
     protected TestBase(ITestOutputHelper testOutputHelper, IEnumerable<SkippedTest>? skippedTests)
     {
         testOutputHelperWrapper = new(testOutputHelper);
+        LogLevel = LogLevel.Information;
         IsColorEnabled = true;
-        LogConverter = LogConverterDefault;
+        logMessageFormatCategoryTrimmer = new(GetType());
 
-        LogEventDelegate d = (categoryName, logLevel, eventId, state, exception, formattedStateException) =>
-        {
-            var msg = LogConverter(categoryName, logLevel, eventId, state, exception, formattedStateException);
-            if (logEnableForce > 0 || logDisableCounter.IsLogEnabled)
-            {
-                WriteLine(msg);
-            }
-        };
-        var logEventHandlerWrapperFunc = new LogEventHandlerWrapperFunc(() => d);
-        Func<ILogEventHandler> funcLogEventHandler = () => logEventHandlerWrapperFunc;
-        LoggerProvider = new LoggerProviderFunc(funcLogEventHandler, () => LogLevel);
+        LoggerProvider = Common.LoggerProvider.Create(IsLogEnabledFor, LogMessage);
         log = LoggerProvider.CreateLogger(GetType());
 
         var tc = TestClassName ?? "UNKNOWN";
@@ -121,8 +80,8 @@ public abstract class TestBase : IDisposable
             lockObject = GetField<object>(nameof(lockObject));
 
             guardInitialized = GetMethod(nameof(GuardInitialized));
-
         }
+
 
         private FieldSlim GetField<T>(string name)
         {
@@ -160,6 +119,21 @@ public abstract class TestBase : IDisposable
             MessageBus.QueueMessage(new TestOutput(Test, output));
         }
 
+        private void WriteInternal(string message) => QueueTestOutput(message);
+
+        public void WriteLineEscaped(string message) => TestOutputHelper.WriteLine(message);
+
+        public void WriteLineEscaped(string format, params object[] args) => TestOutputHelper.WriteLine(format, args);
+
+        public void WriteLine(string message) => WriteInternal(message.CheckNotNull() + Environment.NewLine);
+
+        public void WriteLine(string format, params object[] args) => WriteInternal(string.Format(format.CheckNotNull(), args.CheckNotNull()) + Environment.NewLine);
+
+        public void Write(string message) => WriteInternal(message.CheckNotNull());
+
+        public void Write(string format, params object[] args) => WriteInternal(string.Format(format.CheckNotNull(), args.CheckNotNull()));
+
+
 
 
 
@@ -171,73 +145,50 @@ public abstract class TestBase : IDisposable
 
     #region Logging
 
-    private readonly Dictionary<string, string> logConverterDefaultCategoryCache = new();
+    protected virtual bool IsLogEnabledFor(string categoryName, LogLevel logLevel) =>
+        logLevel.IsActiveFor(LogLevels.TryGetValue(categoryName, out var logLevelCustom) ? logLevelCustom : LogLevel);
+
+    private readonly LogCategoryTrimmer logMessageFormatCategoryTrimmer;
 
     protected bool IsColorEnabled { get; set; }
 
-    private string LogConverterDefaultCategory(string category)
-    {
-        if (category.Length == 0) return category;
+    protected LogLevel LogLevel { get; set; }
+    protected Dictionary<string, LogLevel> LogLevels { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-        if (logConverterDefaultCategoryCache.TryGetValue(category, out var categoryClean)) return categoryClean;
-
-            var classNameParts = new Stack<string>(GetType().FullNameFormatted().Split('.').Reverse());
-            var categoryParts = new Stack<string>(category.Split('.').Reverse());
-            while (categoryParts.Count > 1 && classNameParts.Count > 0)
-            {
-                var classNamePart = classNameParts.Pop();
-                if (categoryParts.Peek() != classNamePart) break;
-                categoryParts.Pop();
-            }
-
-            categoryClean = categoryParts.ToStringDelimited(".");
-            logConverterDefaultCategoryCache[category] = categoryClean;
-            return categoryClean;
-    }
-
-    // ReSharper disable ConvertClosureToMethodGroup
-    protected IDictionary<LogLevel, Func<IConsoleFormat>> LogColors { get; } = new Dictionary<LogLevel, Func<IConsoleFormat>>()
-    {
-        [LogLevel.None] = () => ConsoleFormat.F(TerminalColor.Magenta),
-        [LogLevel.Trace] = () => ConsoleFormat.F(TerminalColor.Blue),
-        [LogLevel.Debug] = () => ConsoleFormat.F(TerminalColor.Blue_Bright),
-        [LogLevel.Information] = () => ConsoleFormat.D(TerminalSGR.Reset),
-        [LogLevel.Warning] = () => ConsoleFormat.F(TerminalColor.Yellow_Bright),
-        [LogLevel.Error] = () => ConsoleFormat.F(TerminalColor.Red_Bright),
-        [LogLevel.Critical] = () => ConsoleFormat.F(TerminalColor.White_Bright).B(TerminalColor.Red),
-    };
-    // ReSharper restore ConvertClosureToMethodGroup
-
-    protected virtual string LogConverterDefaultColor(string text, LogLevel logLevel)
+    protected virtual string LogMessageFormatColor(string text, LogLevel logLevel)
     {
         switch (logLevel)
         {
-            case LogLevel.Trace: return TerminalFormat.FormatTerminal4(TerminalFormat.Color_TerminalColor4[Color.])
-            case LogLevel.Debug: break;
-            case LogLevel.Information: break;
-            case LogLevel.Warning: break;
-            case LogLevel.Error: break;
-            case LogLevel.Critical: break;
-            case LogLevel.None: break;
+            case LogLevel.Trace: return text.FormatTerminal4(TerminalColor.Blue, null);
+            case LogLevel.Debug: return text.FormatTerminal4(TerminalColor.BrightBlue, null);
+            case LogLevel.Information: return text; //.FormatTerminal4(TerminalColor.BrightWhite, null);
+            case LogLevel.Warning: return text.FormatTerminal4(TerminalColor.BrightYellow, null);
+            case LogLevel.Error: return text.FormatTerminal4(TerminalColor.BrightRed, null);
+            case LogLevel.Critical: return text.FormatTerminal4(null, TerminalColor.Red); //.FormatTerminal4(white, TerminalColor.BrightRed);
+            case LogLevel.None: return text.FormatTerminal4(TerminalColor.Magenta, null);
             default: throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
         }
     }
 
-    protected virtual string LogConverterDefault(
-        string categoryName,
-        LogLevel logLevel,
-        EventId eventId,
-        object? state,
-        Exception? exception,
-        string formattedStateException)
+    protected virtual void LogMessage(LogEvent logEvent)
     {
-        if (IsColorEnabled) ConsoleColorCrayon.Enable();
-        else ConsoleColorCrayon.Disable();
+        if (logEnableForce > 0 || logDisableCounter.IsLogEnabled)
+        {
+            testOutputHelperWrapper.WriteLine(LogMessageFormat(logEvent));
+            //testOutputHelperWrapper.WriteLineEscaped(LogMessageFormat(logEvent));
+        }
+    }
+
+    protected virtual string LogMessageFormat(LogEvent logEvent)
+    {
+        var isColorEnabled = IsColorEnabled;
+
+        if (isColorEnabled) TerminalFormat.EnableOnWindows();
 
         var sb = new StringBuilder();
         sb.Append(DateTime.Now.ToString(DateTimeToStringFormat.HH_MM_SS_FFF));
 
-        var logLevelString = logLevel switch
+        var logLevelString = logEvent.LogLevel switch
         {
             LogLevel.None => "[None] ",
             LogLevel.Trace => "[Trace]",
@@ -246,35 +197,25 @@ public abstract class TestBase : IDisposable
             LogLevel.Warning => "[Warn] ",
             LogLevel.Error => "[Error]",
             LogLevel.Critical => "[CRITICAL]",
-            _ => throw new NotImplementedException($"{logLevel}"),
+            _ => throw new NotImplementedException($"{logEvent.LogLevel}"),
         };
         sb.Append($" {logLevelString}");
 
-        sb.Append($" {LogConverterDefaultCategory(categoryName)}");
+        sb.Append($" {logMessageFormatCategoryTrimmer.Trim(logEvent.CategoryName)}");
 
-        if (!string.IsNullOrWhiteSpace(eventId.Name) || eventId.Id > 0) sb.Append($" ({eventId.Name}:{eventId.Id})");
+        if (!string.IsNullOrWhiteSpace(logEvent.EventId.Name) || logEvent.EventId.Id > 0) sb.Append($" ({logEvent.EventId.Name}:{logEvent.EventId.Id})");
 
-        sb.Append($"  {formattedStateException}");
+        sb.Append($"  {logEvent.Text}");
 
-        if (exception != null) sb.AppendLine().AppendLine(exception.ToString()).AppendLine();
+        if (logEvent.Exception != null) sb.AppendLine().AppendLine(logEvent.Exception.ToString()).AppendLine();
 
         var msg = sb.ToString();
-        if (IsColorEnabled)
+        if (isColorEnabled)
         {
-
-            msg = LogColors[logLevel]().Text(msg);
+            msg = LogMessageFormatColor(msg, logEvent.LogLevel);
         }
         return msg;
     }
-
-    public delegate string LogConverterDelegate(
-        string categoryName,
-        LogLevel logLevel,
-        EventId eventId,
-        object? state,
-        Exception? exception,
-        string formattedStateException);
-
 
     private class LogDisableCounter
     {
@@ -285,23 +226,16 @@ public abstract class TestBase : IDisposable
     }
 
     private readonly LogDisableCounter logDisableCounter = new();
-    private class LogDisableDisposable : IDisposable
+
+    protected virtual IDisposable LogDisable()
     {
-        private readonly LogDisableCounter counter;
-        public LogDisableDisposable(LogDisableCounter counter)
-        {
-            this.counter = counter;
-            this.counter.Increment();
-        }
-        public void Dispose() => counter.Decrement();
+        var d = DisposableFunc.Create(() => logDisableCounter.Decrement());
+        logDisableCounter.Increment();
+        return d;
     }
-    protected virtual IDisposable LogDisable() => new LogDisableDisposable(logDisableCounter);
 
     private volatile int logEnableForce;
     protected virtual void LogEnableForce() => Interlocked.Increment(ref logEnableForce);
-
-    protected LogConverterDelegate LogConverter { get; set; }
-    protected LogLevel LogLevel { get; set; }
 
     protected ILoggerProvider LoggerProvider { get; }
     protected readonly ILogger log;
@@ -368,15 +302,9 @@ public abstract class TestBase : IDisposable
 
     #region Write
 
-    private void WriteInternal(string message) => testOutputHelperWrapper.QueueTestOutput(message);
+    public void WriteLine(string message) => testOutputHelperWrapper.WriteLineEscaped(message.CheckNotNull());
 
-    public void WriteLine(string message) => WriteInternal(message.CheckNotNull() + Environment.NewLine);
-
-    public void WriteLine(string format, params object[] args) => WriteInternal(string.Format(format.CheckNotNull(), args.CheckNotNull()) + Environment.NewLine);
-
-    public void Write(string message) => WriteInternal(message.CheckNotNull());
-
-    public void Write(string format, params object[] args) => WriteInternal(string.Format(format.CheckNotNull(), args.CheckNotNull()));
+    public void WriteLine(string format, params object[] args) => testOutputHelperWrapper.WriteLineEscaped(string.Format(format.CheckNotNull(), args.CheckNotNull()));
 
     #endregion Write
 

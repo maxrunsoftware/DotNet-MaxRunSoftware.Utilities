@@ -26,10 +26,15 @@ public abstract class Sql : IDisposable
     {
         get
         {
-            var c = connection;
-            if (isDisposed.IsUsed || c == null) throw new ObjectDisposedException(nameof(Connection));
-            if (c.State == ConnectionState.Closed) c.Open();
-            return c;
+            // ReSharper disable once LocalVariableHidesMember
+            var connection = this.connection;
+            if (isDisposed.IsUsed || connection == null) throw new ObjectDisposedException(nameof(Connection));
+            if (connection.State == ConnectionState.Closed)
+            {
+                log.LogTraceMethod(new(connection), "Opening database connection {ConnectionType}", connection.GetType().FullNameFormatted());
+                connection.Open();
+            }
+            return connection;
         }
     }
 

@@ -12,22 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using Microsoft.Extensions.Logging;
+namespace MaxRunSoftware.Utilities.Common;
 
-namespace MaxRunSoftware.Utilities.Common.Tests;
+public delegate string LoggerDelegateFormatter(Type stateType, object state, Exception? exception);
 
-public class TestBaseTests : TestBase
-{
-    public TestBaseTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+public delegate bool LoggerDelegateIsEnabled(string categoryName, LogLevel logLevel);
 
-    [SkippableFact]
-    public void Log_Colors()
-    {
-        IsColorEnabled = true;
-        var logLevels = Util.GetEnumValues<LogLevel>().OrderBy(o => (int)o).ToArray();
-        foreach (var logLevel in logLevels)
-        {
-            log.Log(logLevel, "My [{LogLevel}] Message", logLevel.ToString());
-        }
-    }
-}
+public delegate void LoggerDelegateEvent(LogEvent logEvent);
+
+public delegate ILogger LoggerProviderDelegate(string categoryName);
