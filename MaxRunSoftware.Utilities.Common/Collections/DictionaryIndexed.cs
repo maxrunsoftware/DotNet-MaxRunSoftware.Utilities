@@ -1,20 +1,20 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Collections.Specialized;
-
 #nullable disable
+
+using System.Collections.Specialized;
 
 // ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable PossibleNullReferenceException
@@ -38,9 +38,15 @@ public sealed class DictionaryIndexed<TKey, TValue> : IDictionary<TKey, TValue>
 
     private IEnumerable<KeyValuePair<TKey, TValue>> KeyValuePairs => d.OfType<DictionaryEntry>().Select(e => new KeyValuePair<TKey, TValue>((TKey)e.Key, (TValue)e.Value));
 
-    public DictionaryIndexed() { d = new OrderedDictionary(); }
+    public DictionaryIndexed()
+    {
+        d = new();
+    }
 
-    public DictionaryIndexed(IEqualityComparer comparer) { d = new OrderedDictionary(comparer); }
+    public DictionaryIndexed(IEqualityComparer comparer)
+    {
+        d = new(comparer);
+    }
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => KeyValuePairs.GetEnumerator();
 
@@ -92,14 +98,9 @@ public sealed class DictionaryIndexed<TKey, TValue> : IDictionary<TKey, TValue>
         return false;
     }
 
-    public TValue this[TKey key]
-    {
-        get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();
-        set => d[key] = value;
-    }
+    public TValue this[TKey key] { get => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException(); set => d[key] = value; }
 
     public ICollection<TKey> Keys => d.Keys.OfType<TKey>().ToList();
 
     public ICollection<TValue> Values => d.Values.OfType<TValue>().ToList();
-
 }
