@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,8 +15,9 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using MaxRunSoftware.Utilities.Common;
 
-[assembly: Guid(MaxRunSoftware.Utilities.Common.Constant.Id)]
+[assembly: Guid(Constant.Id)]
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -107,22 +108,24 @@ public static partial class Constant
         return str.Length == 0 ? null : str;
     }
 
-    private static List<string> PermuteCase( string s )
+    private static List<string> PermuteCase(string s)
     {
         // https://stackoverflow.com/a/905377
         var listPermutations = new List<string>();
         var array = s.ToLower().ToCharArray();
         var iterations = (1 << array.Length) - 1;
-        for( var i = 0; i <= iterations; i++ )
+        for (var i = 0; i <= iterations; i++)
         {
-            for( var j = 0; j < array.Length; j++ )
+            for (var j = 0; j < array.Length; j++)
             {
-                array[j] = (i & (1<<j)) != 0
-                    ? char.ToUpper( array[j] )
-                    : char.ToLower( array[j] );
+                array[j] = (i & (1 << j)) != 0
+                    ? char.ToUpper(array[j])
+                    : char.ToLower(array[j]);
             }
-            listPermutations.Add( new string( array ) );
+
+            listPermutations.Add(new(array));
         }
+
         return listPermutations;
     }
 

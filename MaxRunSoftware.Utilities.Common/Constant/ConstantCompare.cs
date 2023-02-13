@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -102,7 +102,10 @@ public static partial class Constant
         private readonly StringComparer ordinal = Ordinal;
         private readonly StringComparer ordinalIgnoreCase = OrdinalIgnoreCase;
         private readonly bool reversed;
-        public StringComparerOrdinalIgnoreCaseOrdinal(bool reversed) => this.reversed = reversed;
+        public StringComparerOrdinalIgnoreCaseOrdinal(bool reversed)
+        {
+            this.reversed = reversed;
+        }
 
         public override int Compare(string? x, string? y)
         {
@@ -130,12 +133,14 @@ public static partial class Constant
     public sealed class CharComparer : IEqualityComparer<char>, IComparer<char>
     {
         private readonly Func<char, char> converter;
-        public CharComparer(Func<char, char> converter) => this.converter = converter;
+        public CharComparer(Func<char, char> converter)
+        {
+            this.converter = converter;
+        }
         public bool Equals(char x, char y) => converter(x) == converter(y);
         public int GetHashCode(char obj) => converter(obj).GetHashCode();
         public int Compare(char x, char y) => converter(x).CompareTo(converter(y));
     }
 
     #endregion CharComparer
-
 }

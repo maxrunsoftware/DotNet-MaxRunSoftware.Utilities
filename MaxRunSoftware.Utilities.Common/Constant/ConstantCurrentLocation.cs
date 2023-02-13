@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,7 +69,8 @@ public static partial class Constant
                             if (!File.Exists(path + "." + extension)) continue;
                             path += "." + extension;
                             break;
-                        } catch { }
+                        }
+                        catch { }
                     }
                 }
             }
@@ -124,6 +125,7 @@ public static partial class Constant
     #endregion Path_Current_Directories
 
     #region Path_Current_Files
+
     public static readonly ImmutableArray<string> Path_Current_Files = ImmutableArray.Create(Path_Current_Files_Create().ToArray());
 
     private static List<string> Path_Current_Files_Create()
