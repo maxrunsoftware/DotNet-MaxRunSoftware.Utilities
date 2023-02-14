@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,7 @@ public enum DeclarationFlags
     Sealed = 1 << 13,
     Readonly = 1 << 16,
     Inherited = 1 << 17,
-    GenericParameter = 1 << 18
+    GenericParameter = 1 << 18,
 }
 
 public static class DeclarationFlagsExtensions
@@ -287,16 +287,16 @@ public static class DeclarationFlagsExtensions
         return flags;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this MemberInfo info) =>    info switch {
-            ConstructorInfo c => c.GetDeclarationFlags(),
-            EventInfo e => e.GetDeclarationFlags(),
-            FieldInfo f => f.GetDeclarationFlags(),
-            MethodInfo m => m.GetDeclarationFlags(),
-            PropertyInfo p => p.GetDeclarationFlags(),
-            TypeInfo t => t.GetDeclarationFlags(),
-            _ => throw new NotImplementedException()
-        };
-
+    public static DeclarationFlags GetDeclarationFlags(this MemberInfo info) => info switch
+    {
+        ConstructorInfo c => c.GetDeclarationFlags(),
+        EventInfo e => e.GetDeclarationFlags(),
+        FieldInfo f => f.GetDeclarationFlags(),
+        MethodInfo m => m.GetDeclarationFlags(),
+        PropertyInfo p => p.GetDeclarationFlags(),
+        TypeInfo t => t.GetDeclarationFlags(),
+        _ => throw new NotImplementedException(),
+    };
 
     #endregion GetDeclarationFlags
 }
