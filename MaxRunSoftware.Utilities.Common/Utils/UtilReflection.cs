@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ public static partial class Util
                     var n = asm.FullName;
                     if (n == null) continue;
 
-                    if (!d.TryGetValue(n, out var set)) d.Add(n, set = new HashSet<Type>());
+                    if (!d.TryGetValue(n, out var set)) d.Add(n, set = new());
 
                     foreach (var t in asm.GetTypes()) set.Add(t);
                 }
@@ -143,7 +143,7 @@ public static partial class Util
         // ReSharper disable once UnusedTypeParameter
         private class SkipAssembliesList<T> : List<string>
         {
-            public SkipAssembliesList(IEnumerable<string> objs) : base(objs) {}
+            public SkipAssembliesList(IEnumerable<string> objs) : base(objs) { }
         }
 
         /// <summary>
@@ -231,10 +231,10 @@ public static partial class Util
         /// </summary>
         static AttributeTargetHelper()
         {
-            TARGET_MAP = new Dictionary<TAttribute, object>();
+            TARGET_MAP = new();
 
             // Do not load any assemblies reference by the assembly which declares the attribute, since they cannot possibly use the attribute
-            SKIP_ASSEMBLIES = new SkipAssembliesList<TAttribute>(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
+            SKIP_ASSEMBLIES = new(typeof(TAttribute).Assembly.GetReferencedAssemblies().Select(c => c.FullName));
 
             // Skip common system assemblies
             SKIP_ASSEMBLIES.Add("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
@@ -290,10 +290,7 @@ public static partial class Util
     }
 
 
-    private static string GetMethodName(MethodInfo? method)
-    {
-        return (method == null ? "?" : (method.DeclaringType == null ? "?" : method.DeclaringType.FullNameFormatted())) + "." + (method == null ? "?" : method.Name);
-    }
+    private static string GetMethodName(MethodInfo? method) => (method == null ? "?" : method.DeclaringType == null ? "?" : method.DeclaringType.FullNameFormatted()) + "." + (method == null ? "?" : method.Name);
 
     /// <summary>
     /// Creates an Action from a MethodInfo. The method provided must have 0 parameters.
@@ -305,7 +302,7 @@ public static partial class Util
         method.CheckNotNull(nameof(method));
 
         // https://stackoverflow.com/a/2933227
-        if (method.GetParameters().Length > 0) throw new Exception($"Expecting method {GetMethodName(method)} containing 0 parameters");
+        if (method.GetParameters().Length > 0) throw new($"Expecting method {GetMethodName(method)} containing 0 parameters");
 
         var input = Expression.Parameter(typeof(object), "input");
         var compiledExp = Expression.Lambda<Action<object>>(
@@ -326,9 +323,9 @@ public static partial class Util
         method.CheckNotNull(nameof(method));
 
         // https://stackoverflow.com/a/2933227
-        if (method.ReturnType != typeof(T)) throw new Exception($"Wrong return type specified for method {GetMethodName(method)} expecting " + method.ReturnType.FullNameFormatted() + " but instead called with " + typeof(T).FullNameFormatted());
+        if (method.ReturnType != typeof(T)) throw new($"Wrong return type specified for method {GetMethodName(method)} expecting " + method.ReturnType.FullNameFormatted() + " but instead called with " + typeof(T).FullNameFormatted());
 
-        if (method.GetParameters().Length > 0) throw new Exception($"Expecting method {GetMethodName(method)} containing 0 parameters");
+        if (method.GetParameters().Length > 0) throw new($"Expecting method {GetMethodName(method)} containing 0 parameters");
 
         var input = Expression.Parameter(typeof(object), "input");
         var compiledExp = Expression.Lambda<Func<object, T>>(

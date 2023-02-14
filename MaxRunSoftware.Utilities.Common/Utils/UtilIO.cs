@@ -1,17 +1,16 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -48,7 +47,7 @@ public sealed class TempFile : IDisposable
     private readonly ILogger log;
     public string Path { get; }
 
-    internal TempFile(string path, bool createEmptyFile,  ILoggerProvider? loggerProvider)
+    internal TempFile(string path, bool createEmptyFile, ILoggerProvider? loggerProvider)
     {
         log = loggerProvider.CreateLoggerNullable(GetType());
         log.LogDebug("Creating temporary file {Path}", path);
@@ -386,12 +385,12 @@ public static partial class Util
                 p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
             } while (Directory.Exists(p));
 
-            return new(p, loggerProvider: loggerProvider);
+            return new(p, loggerProvider);
         }
     }
 
     public static TempDirectory CreateTempDirectory(ILoggerProvider? loggerProvider = null) =>
-        CreateTempDirectory(Path.GetTempPath(), loggerProvider: loggerProvider);
+        CreateTempDirectory(Path.GetTempPath(), loggerProvider);
 
 
     public static TempFile CreateTempFile(string basePath, bool createEmptyFile = false, ILoggerProvider? loggerProvider = null)
@@ -404,13 +403,12 @@ public static partial class Util
                 p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
             } while (File.Exists(p));
 
-            return new(p, createEmptyFile: createEmptyFile, loggerProvider: loggerProvider);
+            return new(p, createEmptyFile, loggerProvider);
         }
     }
 
     public static TempFile CreateTempFile(bool createEmptyFile = false, ILoggerProvider? loggerProvider = null) =>
-        CreateTempFile(Path.GetTempPath(), createEmptyFile: createEmptyFile, loggerProvider: loggerProvider);
-
+        CreateTempFile(Path.GetTempPath(), createEmptyFile, loggerProvider);
 
     #endregion Temp
 

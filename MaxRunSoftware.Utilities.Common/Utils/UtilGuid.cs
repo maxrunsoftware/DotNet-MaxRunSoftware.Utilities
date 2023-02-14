@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ public static partial class Util
         var guidData = new byte[16];
         Array.Copy(BitConverter.GetBytes(a), guidData, 8);
         Array.Copy(BitConverter.GetBytes(b), 0, guidData, 8, 8);
-        return new Guid(guidData);
+        return new(guidData);
     }
 
     public static (long, long) ToLongs(this Guid guid)
@@ -39,7 +39,7 @@ public static partial class Util
         var guidData = new byte[16];
         Array.Copy(BitConverter.GetBytes(a), guidData, 8);
         Array.Copy(BitConverter.GetBytes(b), 0, guidData, 8, 8);
-        return new Guid(guidData);
+        return new(guidData);
     }
 
     public static (ulong, ulong) ToULongs(this Guid guid)
@@ -57,7 +57,7 @@ public static partial class Util
         Array.Copy(BitConverter.GetBytes(b), 0, guidData, 4, 4);
         Array.Copy(BitConverter.GetBytes(c), 0, guidData, 8, 4);
         Array.Copy(BitConverter.GetBytes(d), 0, guidData, 12, 4);
-        return new Guid(guidData);
+        return new(guidData);
     }
 
     public static (int, int, int, int) ToInts(this Guid guid)
@@ -77,7 +77,7 @@ public static partial class Util
         Array.Copy(BitConverter.GetBytes(b), 0, guidData, 4, 4);
         Array.Copy(BitConverter.GetBytes(c), 0, guidData, 8, 4);
         Array.Copy(BitConverter.GetBytes(d), 0, guidData, 12, 4);
-        return new Guid(guidData);
+        return new(guidData);
     }
 
     public static (uint, uint, uint, uint) ToUInts(this Guid guid)
