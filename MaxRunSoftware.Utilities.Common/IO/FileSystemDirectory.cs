@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,9 +56,9 @@ public sealed class FileSystemDirectory : FileSystemObject
 
     internal FileSystemDirectory(string path) : base(path)
     {
-        files = new Lazy<IReadOnlyCollection<FileSystemFile>>(() => Directory.GetFiles(Path).Select(o => new FileSystemFile(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
-        directories = new Lazy<IReadOnlyCollection<FileSystemDirectory>>(() => Directory.GetDirectories(Path).Select(o => new FileSystemDirectory(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
-        objects = new Lazy<IReadOnlyCollection<FileSystemObject>>(() =>
+        files = new(() => Directory.GetFiles(Path).Select(o => new FileSystemFile(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
+        directories = new(() => Directory.GetDirectories(Path).Select(o => new FileSystemDirectory(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
+        objects = new(() =>
         {
             var objs = new List<FileSystemObject>(Files.Count + Directories.Count);
             objs.AddRange(Files);
@@ -66,9 +66,9 @@ public sealed class FileSystemDirectory : FileSystemObject
             return objs;
         }, LazyThreadSafetyMode.PublicationOnly);
 
-        size = new Lazy<long>(() => GetSizes(Files), LazyThreadSafetyMode.PublicationOnly);
-        sizeRecursive = new Lazy<long>(() => Size + GetSizes(DirectoriesRecursive), LazyThreadSafetyMode.PublicationOnly);
-        recursiveObjects = new Lazy<RecursiveObjects>(GetObjectsRecursive, LazyThreadSafetyMode.PublicationOnly);
+        size = new(() => GetSizes(Files), LazyThreadSafetyMode.PublicationOnly);
+        sizeRecursive = new(() => Size + GetSizes(DirectoriesRecursive), LazyThreadSafetyMode.PublicationOnly);
+        recursiveObjects = new(GetObjectsRecursive, LazyThreadSafetyMode.PublicationOnly);
     }
 
     private long GetSizes(IEnumerable<FileSystemObject> enumerable)
