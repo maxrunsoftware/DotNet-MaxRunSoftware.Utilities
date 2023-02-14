@@ -20,7 +20,10 @@ namespace MaxRunSoftware.Utilities.Common;
 public sealed class LogStateParserValueGetter
 {
     private readonly Func<object, Tuple<string?, object?>?> getter;
-    public LogStateParserValueGetter(Type stateType) => getter = Create(stateType);
+    public LogStateParserValueGetter(Type stateType)
+    {
+        getter = Create(stateType);
+    }
 
     public Tuple<string?, object?>? GetValue(object instance) => getter.Invoke(instance);
 
@@ -29,46 +32,56 @@ public sealed class LogStateParserValueGetter
         if (stateType == typeof(string)) return o => new((string)o, null);
 
         if (stateType.IsAssignableTo(typeof(KeyValuePair<string?, object?>)))
+        {
             return o =>
             {
                 var kvp = (KeyValuePair<string?, object?>)o;
                 return new(kvp.Key, kvp.Value);
             };
+        }
 
         if (stateType.IsAssignableTo(typeof(Tuple<string?, object?>)))
+        {
             return o =>
             {
                 var kvp = (Tuple<string?, object?>)o;
                 return new(kvp.Item1, kvp.Item2);
             };
+        }
 
         var stateTypeSlim = stateType.ToTypeSlim();
         var gettersKey = GetValueGetters(stateTypeSlim, "Name", "Key", "Item1");
         var gettersVal = GetValueGetters(stateTypeSlim, "Value", "Item2");
 
         if (gettersKey.Count > 0 && gettersVal.Count > 0)
+        {
             return o =>
             {
                 var k = gettersKey.Select(g => g(o)).Select(oo => oo.ToStringGuessFormat()).WhereNotNull().FirstOrDefault();
                 var v = gettersVal.Select(g => g(o)).WhereNotNull().FirstOrDefault();
                 return new(k, v);
             };
+        }
 
         if (gettersKey.Count > 0)
+        {
             return o =>
             {
                 var k = gettersKey.Select(g => g(o)).Select(oo => oo.ToStringGuessFormat()).WhereNotNull().FirstOrDefault();
                 var v = Serialize(o).TrimOrNull() ?? o.ToStringGuessFormat();
                 return new(k, v);
             };
+        }
 
         if (gettersVal.Count > 0)
+        {
             return o =>
             {
                 var k = o.GetType().NameFormatted();
                 var v = gettersVal.Select(g => g(o)).WhereNotNull().FirstOrDefault();
                 return new(k, v);
             };
+        }
 
         return o =>
         {

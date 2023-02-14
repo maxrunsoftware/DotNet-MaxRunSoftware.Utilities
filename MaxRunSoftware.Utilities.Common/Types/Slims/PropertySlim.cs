@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,8 +50,8 @@ public sealed class PropertySlim :
         TypeDeclaring = info.DeclaringType.CheckNotNull(nameof(info) + "." + nameof(info.DeclaringType));
         Type = info.PropertyType;
         Name = info.Name;
-        NameClassFull = string.IsNullOrWhiteSpace(TypeDeclaring.NameFull) ? Name : (TypeDeclaring.NameFull + "." + Name);
-        NameClass = string.IsNullOrWhiteSpace(TypeDeclaring.Name) ? Name : (TypeDeclaring.Name + "." + Name);
+        NameClassFull = string.IsNullOrWhiteSpace(TypeDeclaring.NameFull) ? Name : TypeDeclaring.NameFull + "." + Name;
+        NameClass = string.IsNullOrWhiteSpace(TypeDeclaring.Name) ? Name : TypeDeclaring.Name + "." + Name;
         getHashCode = Util.Hash(TypeDeclaring.GetHashCode(), StringComparer.Ordinal.GetHashCode(info.Name));
 
         isStatic = Lzy.Create(() => Info.IsStatic());
@@ -99,7 +99,7 @@ public sealed class PropertySlim :
         null => false,
         PropertySlim slim => Equals(slim),
         PropertyInfo other => Equals(other),
-        _ => false
+        _ => false,
     };
 
     public bool Equals(PropertyInfo? other)
@@ -131,7 +131,7 @@ public sealed class PropertySlim :
         null => 1,
         PropertySlim slim => CompareTo(slim),
         PropertyInfo other => CompareTo(other),
-        _ => 1
+        _ => 1,
     };
 
     public int CompareTo(PropertyInfo? other)
@@ -154,8 +154,6 @@ public sealed class PropertySlim :
         return c;
     }
 
-
-
     #endregion CompareTo
 
     #endregion Override
@@ -166,8 +164,8 @@ public sealed class PropertySlim :
 
     // ReSharper disable ArrangeStaticMemberQualifier
 
-    public static bool operator ==(PropertySlim? left, PropertySlim? right) => PropertySlim.Equals(left, right);
-    public static bool operator !=(PropertySlim? left, PropertySlim? right) => !PropertySlim.Equals(left, right);
+    public static bool operator ==(PropertySlim? left, PropertySlim? right) => Equals(left, right);
+    public static bool operator !=(PropertySlim? left, PropertySlim? right) => !Equals(left, right);
 
     // ReSharper restore ArrangeStaticMemberQualifier
 

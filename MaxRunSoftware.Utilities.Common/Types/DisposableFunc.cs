@@ -17,7 +17,10 @@ namespace MaxRunSoftware.Utilities.Common;
 public class DisposableFunc : IDisposable
 {
     private readonly Action onDispose;
-    public DisposableFunc(Action onDispose) => this.onDispose = onDispose;
+    public DisposableFunc(Action onDispose)
+    {
+        this.onDispose = onDispose;
+    }
     public void Dispose() => onDispose();
     public static IDisposable Create(Action onDispose) => new DisposableFunc(onDispose);
 }

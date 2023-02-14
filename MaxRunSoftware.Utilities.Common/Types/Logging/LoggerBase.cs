@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,14 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public abstract class LoggerBase : ILogger
 {
-    protected LoggerBase(string categoryName) => CategoryName = categoryName;
+    protected LoggerBase(string categoryName)
+    {
+        CategoryName = categoryName;
+    }
 
     // ReSharper disable once InconsistentNaming
     private static readonly AsyncLocal<ConcurrentStack<LogScopeDisposable>> scopes = new();
+
     protected static ConcurrentStack<LogScopeDisposable> Scopes
     {
         get
@@ -32,6 +36,7 @@ public abstract class LoggerBase : ILogger
                 stack = new();
                 scopes.Value = stack;
             }
+
             return stack;
         }
     }
@@ -102,5 +107,9 @@ public abstract class LoggerBase : ILogger
 
     // ReSharper disable once InconsistentNaming
     protected static readonly DisposableNoop DisposableNoopInstance = new();
-    protected sealed class DisposableNoop : IDisposable { public void Dispose() { } }
+
+    protected sealed class DisposableNoop : IDisposable
+    {
+        public void Dispose() { }
+    }
 }

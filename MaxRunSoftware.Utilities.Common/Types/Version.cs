@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,6 @@ public sealed class VersionPart : IEquatable<VersionPart>, IComparable<VersionPa
                       ?? ValueLong?.GetHashCode()
                       ?? ValueBigInteger?.GetHashCode()
                       ?? StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
-
     }
 
     public override string ToString() => Value;
@@ -69,11 +68,13 @@ public sealed class VersionPart : IEquatable<VersionPart>, IComparable<VersionPa
             if (ReferenceEquals(right, null)) return true;
             return right.ValueBigInteger.HasValue && right.ValueBigInteger.Value == BigInteger.Zero;
         }
+
         if (ReferenceEquals(right, null))
         {
             if (ReferenceEquals(left, null)) return true;
             return left.ValueBigInteger.HasValue && left.ValueBigInteger.Value == BigInteger.Zero;
         }
+
         if (left.GetHashCode() != right.GetHashCode()) return false;
         if (!left.ValueInt.IsEqual(right.ValueInt)) return false;
         if (!left.ValueLong.IsEqual(right.ValueLong)) return false;
@@ -121,8 +122,8 @@ public sealed class VersionPart : IEquatable<VersionPart>, IComparable<VersionPa
         return c;
     }
 
-    public static bool operator <(VersionPart? left, VersionPart? right) =>  CompareTo(left, right) < 0;
-    public static bool operator >(VersionPart? left, VersionPart? right) =>  CompareTo(left, right) > 0;
+    public static bool operator <(VersionPart? left, VersionPart? right) => CompareTo(left, right) < 0;
+    public static bool operator >(VersionPart? left, VersionPart? right) => CompareTo(left, right) > 0;
     public static bool operator <=(VersionPart? left, VersionPart? right) => CompareTo(left, right) <= 0;
     public static bool operator >=(VersionPart? left, VersionPart? right) => CompareTo(left, right) >= 0;
 
@@ -153,9 +154,11 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
                 list.Add(new(sb.ToString()));
                 sb.Clear();
             }
+
             if (charType != isOther) sb.Append(c);
             lastCharType = charType;
         }
+
         list.Add(new(sb.ToString()));
         parts = list.Where(o => !string.IsNullOrWhiteSpace(o.Value)).ToImmutableList();
         if (parts.Count == 0) throw new ArgumentException($"'{value}' is not a valid version", nameof(value));
@@ -259,8 +262,8 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
         return left.Count.CompareTo(right.Count);
     }
 
-    public static bool operator <(Version? left, Version? right) =>  CompareTo(left, right) < 0;
-    public static bool operator >(Version? left, Version? right) =>  CompareTo(left, right) > 0;
+    public static bool operator <(Version? left, Version? right) => CompareTo(left, right) < 0;
+    public static bool operator >(Version? left, Version? right) => CompareTo(left, right) > 0;
     public static bool operator <=(Version? left, Version? right) => CompareTo(left, right) <= 0;
     public static bool operator >=(Version? left, Version? right) => CompareTo(left, right) >= 0;
 

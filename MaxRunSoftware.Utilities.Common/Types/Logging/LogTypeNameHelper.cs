@@ -1,23 +1,20 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Common;
-
-using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+
+namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
 /// Licensed to the .NET Foundation under one or more agreements.
@@ -47,14 +44,11 @@ public static class LogTypeNameHelper
         { typeof(string), "string" },
         { typeof(uint), "uint" },
         { typeof(ulong), "ulong" },
-        { typeof(ushort), "ushort" }
+        { typeof(ushort), "ushort" },
     };
 
     [return: NotNullIfNotNull("item")]
-    public static string? GetTypeDisplayName(object? item, bool fullName = true)
-    {
-        return item == null ? null : GetTypeDisplayName(item.GetType(), fullName);
-    }
+    public static string? GetTypeDisplayName(object? item, bool fullName = true) => item == null ? null : GetTypeDisplayName(item.GetType(), fullName);
 
     /// <summary>
     /// Pretty print a type name.

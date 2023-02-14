@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -80,7 +80,7 @@ public sealed class ParameterSlim :
         null => false,
         ParameterSlim slim => Equals(slim),
         ParameterInfo other => Equals(other),
-        _ => false
+        _ => false,
     };
 
     public bool Equals(ParameterInfo? other)
@@ -92,7 +92,6 @@ public sealed class ParameterSlim :
 
     public bool Equals(ParameterSlim? other) => Equals(this, other);
 
-
     #endregion Equals
 
     #region CompareTo
@@ -102,7 +101,7 @@ public sealed class ParameterSlim :
         null => 1,
         ParameterSlim slim => CompareTo(slim),
         ParameterInfo other => CompareTo(other),
-        _ => 1
+        _ => 1,
     };
 
     public int CompareTo(ParameterInfo? other)
@@ -135,8 +134,8 @@ public sealed class ParameterSlim :
 
     // ReSharper disable ArrangeStaticMemberQualifier
 
-    public static bool operator ==(ParameterSlim? left, ParameterSlim? right) => ParameterSlim.Equals(left, right);
-    public static bool operator !=(ParameterSlim? left, ParameterSlim? right) => !ParameterSlim.Equals(left, right);
+    public static bool operator ==(ParameterSlim? left, ParameterSlim? right) => Equals(left, right);
+    public static bool operator !=(ParameterSlim? left, ParameterSlim? right) => !Equals(left, right);
 
     // ReSharper restore ArrangeStaticMemberQualifier
 

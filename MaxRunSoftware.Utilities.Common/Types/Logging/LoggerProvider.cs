@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,13 +34,16 @@ public class LoggerProvider
             this.isEnabled = isEnabled;
             this.eventHandler = eventHandler;
         }
-        public void Dispose() {}
+        public void Dispose() { }
         public ILogger CreateLogger(string categoryName) => new LoggerDelegating(categoryName, this);
 
         private sealed class LoggerDelegating : LoggerBase
         {
             private readonly LoggerProviderDelegating provider;
-            public LoggerDelegating(string categoryName, LoggerProviderDelegating provider) : base(categoryName) => this.provider = provider;
+            public LoggerDelegating(string categoryName, LoggerProviderDelegating provider) : base(categoryName)
+            {
+                this.provider = provider;
+            }
             public override bool IsEnabled(LogLevel logLevel) => provider.isEnabled(CategoryName, logLevel);
             protected override void Log(LogEvent logEvent) => provider.eventHandler(logEvent);
         }
@@ -49,7 +52,10 @@ public class LoggerProvider
     private sealed class LoggerProviderFunc : ILoggerProvider
     {
         private readonly LoggerProviderDelegate loggerFactory;
-        public LoggerProviderFunc(LoggerProviderDelegate loggerFactory) => this.loggerFactory = loggerFactory;
+        public LoggerProviderFunc(LoggerProviderDelegate loggerFactory)
+        {
+            this.loggerFactory = loggerFactory;
+        }
         public void Dispose() { }
         public ILogger CreateLogger(string categoryName) => loggerFactory(categoryName);
     }

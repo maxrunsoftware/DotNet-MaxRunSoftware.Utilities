@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 namespace MaxRunSoftware.Utilities.Common;
-
 
 [PublicAPI]
 public sealed class MethodSlimParameter
@@ -26,8 +25,6 @@ public sealed class MethodSlimParameter
         Parameter = parameter;
     }
 }
-
-
 
 [PublicAPI]
 public sealed class MethodSlim :
@@ -51,6 +48,7 @@ public sealed class MethodSlim :
             sb.Append(GenericArguments.Select(o => o.Name).ToStringDelimited(", "));
             sb.Append('>');
         }
+
         sb.Append('(');
         if (Parameters.Length > 0)
         {
@@ -64,8 +62,10 @@ public sealed class MethodSlim :
                 sb2.Append(p.Parameter.Type.Name);
                 if (p.Parameter.Name != null) sb2.Append(" " + p.Parameter.Name);
             }
+
             sb.Append(sb2.ToString());
         }
+
         sb.Append(')');
         return sb.ToString();
     }
@@ -134,7 +134,7 @@ public sealed class MethodSlim :
         null => false,
         MethodSlim slim => Equals(slim),
         MethodInfo other => Equals(other),
-        _ => false
+        _ => false,
     };
 
     public bool Equals(MethodInfo? other)
@@ -180,7 +180,7 @@ public sealed class MethodSlim :
         null => 1,
         MethodSlim slim => CompareTo(slim),
         MethodInfo other => CompareTo(other),
-        _ => 1
+        _ => 1,
     };
 
     public int CompareTo(MethodInfo? other)
@@ -228,19 +228,16 @@ public sealed class MethodSlim :
         return c;
     }
 
-
-
     #endregion CompareTo
 
     #endregion Override
 
     #region Implicit / Explicit
 
-
     // ReSharper disable ArrangeStaticMemberQualifier
 
-    public static bool operator ==(MethodSlim? left, MethodSlim? right) => MethodSlim.Equals(left, right);
-    public static bool operator !=(MethodSlim? left, MethodSlim? right) => !MethodSlim.Equals(left, right);
+    public static bool operator ==(MethodSlim? left, MethodSlim? right) => Equals(left, right);
+    public static bool operator !=(MethodSlim? left, MethodSlim? right) => !Equals(left, right);
 
     // ReSharper restore ArrangeStaticMemberQualifier
 
@@ -251,10 +248,7 @@ public sealed class MethodSlim :
 
     #region Extras
 
-    public object? Invoke(object? instance, params object?[] args)
-    {
-        return invoker.Value.Invoke(instance, args);
-    }
+    public object? Invoke(object? instance, params object?[] args) => invoker.Value.Invoke(instance, args);
 
     public object? GetValue(object? instance) => GetValue(instance, Array.Empty<object?>());
     public object? GetValue(object? instance, object?[] args) => Invoke(instance, args);

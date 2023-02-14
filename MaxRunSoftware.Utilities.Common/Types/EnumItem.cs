@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -88,11 +88,11 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
                 .Where(fieldInfo => names.Contains(fieldInfo.Name))
                 .Select((fieldInfo, i) => new EnumItem(
-                    typeSlim: typeSlim,
-                    name: fieldInfo.Name,
-                    item: Enum.Parse(enumType, fieldInfo.Name),
-                    index: i,
-                    info: fieldInfo
+                    typeSlim,
+                    fieldInfo.Name,
+                    Enum.Parse(enumType, fieldInfo.Name),
+                    i,
+                    fieldInfo
                 ))
                 .ToImmutableArray()
             ;
@@ -124,7 +124,6 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
         var item = list.FirstOrDefault(listItem => string.Equals(listItem.Name, enumItemName, StringComparison.Ordinal));
         if (item != null) return item;
         throw new ArgumentException($"{enumType.FullNameFormatted()} contains multiple possible '{enumItemName}' values but none matching exact case: " + list.Select(o => o.Name).ToStringDelimited(", "), nameof(enumItemName));
-
     }
 
     #endregion Static
@@ -143,5 +142,4 @@ public static class EnumItemExtensions
     public static EnumItem ToEnumItem<T>(this T enumItem) where T : struct, Enum => EnumItem.Get(enumItem);
 
     public static EnumItem ToEnumItem<T>(this string enumItemName) where T : struct, Enum => GetEnumItem(typeof(T), enumItemName);
-
 }
