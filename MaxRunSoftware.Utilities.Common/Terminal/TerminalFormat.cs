@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,9 +54,8 @@ public static class TerminalFormat
 
     public static ImmutableDictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)> Color_TerminalColor4 => mapColor4.Value;
     private static readonly Lzy<ImmutableDictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)>> mapColor4;
-    private static ImmutableDictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)> MapColor4Create()
-    {
-        return new Dictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)>
+    private static ImmutableDictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)> MapColor4Create() =>
+        new Dictionary<Color, (TerminalColor4 Color, TerminalColor4 ColorBright)>
         {
             { Color.Black, (TerminalColor.Black, TerminalColor.BrightBlack) },
             { Color.Red, (TerminalColor.Red, TerminalColor.BrightRed) },
@@ -67,7 +66,6 @@ public static class TerminalFormat
             { Color.Cyan, (TerminalColor.Cyan, TerminalColor.BrightCyan) },
             { Color.White, (TerminalColor.White, TerminalColor.BrightWhite) },
         }.ToImmutableDictionary();
-    }
 
     /// <summary>
     /// https://www.jerriepelser.com/blog/using-ansi-color-codes-in-net-console-apps/
@@ -149,5 +147,4 @@ public static class TerminalFormat
         sb.Append(TerminalSGR.Reset.ToAnsi());
         return sb.ToString();
     }
-
 }

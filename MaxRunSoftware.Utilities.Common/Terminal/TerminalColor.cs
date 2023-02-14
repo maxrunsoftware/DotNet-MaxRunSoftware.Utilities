@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Drawing;
+
 // ReSharper disable InconsistentNaming
 
 namespace MaxRunSoftware.Utilities.Common;
@@ -40,9 +41,8 @@ public partial class TerminalColor
     }
     private static readonly Lzy<ImmutableArray<TerminalColor>> colors;
     public static ImmutableArray<TerminalColor> Colors => colors.Value;
-    private static ImmutableArray<TerminalColor> Colors_Build()
-    {
-        return typeof(TerminalColor)
+    private static ImmutableArray<TerminalColor> Colors_Build() =>
+        typeof(TerminalColor)
             .GetProperties(BindingFlags.Public | BindingFlags.Static)
             .Where(o => o.CanRead && !o.CanWrite)
             .Where(o => o.PropertyType == typeof(TerminalColor))
@@ -50,7 +50,6 @@ public partial class TerminalColor
             .WhereNotNull()
             .OrderBy(o => o.Color8.CheckNotNull())
             .ToImmutableArray();
-    }
 
     private static readonly Lzy<ImmutableDictionary<uint, TerminalColor>> colorsRGB;
     private static ImmutableDictionary<uint, TerminalColor> ColorsRGB_Build()
@@ -61,6 +60,7 @@ public partial class TerminalColor
             var key = ToUInt(c);
             if (!d.ContainsKey(key)) d.Add(key, c);
         }
+
         return d.ToImmutableDictionary();
     }
 
@@ -88,13 +88,16 @@ public partial class TerminalColor
 
         foreach (var item in new[] { ("( ", "("), (" )", ")"), (", ", ","), (" ,", ",") })
         {
-            while (s.Contains(item.Item1)) s = s.Replace(item.Item1, item.Item2);
+            while (s.Contains(item.Item1))
+            {
+                s = s.Replace(item.Item1, item.Item2);
+            }
         }
 
         var rawColorParts = s.Split(' ').Select(o => o.TrimOrNull()).WhereNotNull().ToImmutableArray();
         var parts = new Queue<string>(rawColorParts);
 
-        if (parts.Count.NotIn(4, 5, 6)) throw new ArgumentException($"Invalid {nameof(colorString)} with {rawColorParts.Length} parts " + (rawColorParts.Length == 0 ? "[]" : ("[ \"" + rawColorParts.ToStringDelimited("\", \"") + "\" ]")) + $" -> {colorString}", nameof(colorString));
+        if (parts.Count.NotIn(4, 5, 6)) throw new ArgumentException($"Invalid {nameof(colorString)} with {rawColorParts.Length} parts " + (rawColorParts.Length == 0 ? "[]" : "[ \"" + rawColorParts.ToStringDelimited("\", \"") + "\" ]") + $" -> {colorString}", nameof(colorString));
 
         if (parts.Count == 6)
         {
@@ -120,6 +123,5 @@ public partial class TerminalColor
             .WhereNotNull()
             .Select(o => o.Capitalize())
             .ToStringDelimited("");
-
     }
 }
