@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+// ReSharper disable RedundantCast
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -28,21 +29,28 @@ public readonly struct Percent :
     IComparable, IComparable<Percent>, IComparable<Percent?>,
     IEquatable<Percent>, IEquatable<Percent?>
 {
+    static Percent()
+    {
+        valuesInt = Lzy.Create(() => Enumerable.Range(0, 101).Select(o => new Percent(o)).ToImmutableArray());
+    }
+
     /// <summary>
     /// https://stackoverflow.com/a/33697376
     /// </summary>
     private const string DOUBLE_FIXED_POINT = "0.###################################################################################################################################################################################################################################################################################################################################################";
 
+    private const double MIN_VALUE_DOUBLE = 0;
+    private const double ONE_VALUE_DOUBLE = 1;
+    private const double MAX_VALUE_DOUBLE = 100;
+
+    public static readonly Percent MinValue = (Percent)MIN_VALUE_DOUBLE;
+    public static readonly Percent OneValue = (Percent)ONE_VALUE_DOUBLE;
+    public static readonly Percent MaxValue = (Percent)MAX_VALUE_DOUBLE;
+
     private readonly double m_value; // Do not rename (binary serialization)
 
-    private const double MIN_VALUE_DOUBLE = 0;
-    public static readonly Percent MinValue = (Percent)MIN_VALUE_DOUBLE;
-
-    private const double ONE_VALUE_DOUBLE = 0;
-    public static readonly Percent OneValue = (Percent)ONE_VALUE_DOUBLE;
-
-    private const double MAX_VALUE_DOUBLE = 100;
-    public static readonly Percent MaxValue = (Percent)MAX_VALUE_DOUBLE;
+    private static readonly Lzy<ImmutableArray<Percent>> valuesInt;
+    public static ImmutableArray<Percent> ValuesInt => valuesInt.Value;
 
     public Percent() : this(MIN_VALUE_DOUBLE) { }
 
@@ -72,32 +80,33 @@ public readonly struct Percent :
     public static Percent operator -(Percent left, Percent right) => new(left.m_value - right.m_value);
     public static Percent operator *(Percent left, Percent right) => new(left.m_value * right.m_value);
     public static Percent operator /(Percent left, Percent right) => new(left.m_value / right.m_value);
+
     public static Percent operator ++(Percent left) => new(left.m_value + OneValue.m_value);
     public static Percent operator --(Percent left) => new(left.m_value - OneValue.m_value);
 
-    public static explicit operator byte(Percent percent) => Convert.ToByte(percent.m_value);
-    public static explicit operator sbyte(Percent percent) => Convert.ToSByte(percent.m_value);
-    public static explicit operator short(Percent percent) => (byte)percent;
-    public static explicit operator ushort(Percent percent) => (byte)percent;
-    public static explicit operator int(Percent percent) => (byte)percent;
-    public static explicit operator uint(Percent percent) => (byte)percent;
-    public static explicit operator ulong(Percent percent) => (byte)percent;
-    public static explicit operator long(Percent percent) => (byte)percent;
-    public static explicit operator float(Percent percent) => Convert.ToSingle(percent.m_value);
-    public static explicit operator double(Percent percent) => percent.m_value;
-    public static explicit operator decimal(Percent percent) => Convert.ToDecimal(percent.m_value);
+    public static implicit operator byte(Percent percent) => Convert.ToByte(percent.m_value);
+    public static implicit operator sbyte(Percent percent) => Convert.ToSByte(percent.m_value);
+    public static implicit operator short(Percent percent) => (byte)percent;
+    public static implicit operator ushort(Percent percent) => (byte)percent;
+    public static implicit operator int(Percent percent) => (byte)percent;
+    public static implicit operator uint(Percent percent) => (byte)percent;
+    public static implicit operator ulong(Percent percent) => (byte)percent;
+    public static implicit operator long(Percent percent) => (byte)percent;
+    public static implicit operator float(Percent percent) => Convert.ToSingle(percent.m_value);
+    public static implicit operator double(Percent percent) => percent.m_value;
+    public static implicit operator decimal(Percent percent) => Convert.ToDecimal(percent.m_value);
 
-    public static explicit operator Percent(byte value) => new(value);
-    public static explicit operator Percent(sbyte value) => new(value);
-    public static explicit operator Percent(short value) => new(value);
-    public static explicit operator Percent(ushort value) => new(value);
-    public static explicit operator Percent(int value) => new(value);
-    public static explicit operator Percent(uint value) => new(value);
-    public static explicit operator Percent(long value) => new(value);
-    public static explicit operator Percent(ulong value) => new(value);
-    public static explicit operator Percent(float value) => new(value);
-    public static explicit operator Percent(double value) => new(value);
-    public static explicit operator Percent(decimal value) => new(Convert.ToDouble(value));
+    public static implicit operator Percent(byte value) => new(value);
+    public static implicit operator Percent(sbyte value) => new(value);
+    public static implicit operator Percent(short value) => new(value);
+    public static implicit operator Percent(ushort value) => new(value);
+    public static implicit operator Percent(int value) => new(value);
+    public static implicit operator Percent(uint value) => new(value);
+    public static implicit operator Percent(long value) => new(value);
+    public static implicit operator Percent(ulong value) => new(value);
+    public static implicit operator Percent(float value) => new(value);
+    public static implicit operator Percent(double value) => new(value);
+    public static implicit operator Percent(decimal value) => new(Convert.ToDouble(value));
 
     #endregion operator
 
@@ -187,7 +196,7 @@ public readonly struct Percent :
     // ReSharper disable once SpecifyACultureInStringConversionExplicitly
     public override string ToString() => m_value.ToString(DOUBLE_FIXED_POINT);
 
-    public string ToString(IFormatProvider? provider) => m_value.ToString(provider);
+    string IConvertible.ToString(IFormatProvider? provider) => m_value.ToString(provider);
 
     public string ToString(string? format) => m_value.ToString(format);
 
@@ -208,7 +217,7 @@ public readonly struct Percent :
 
     #region TryFormat
 
-    public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => m_value.TryFormat(destination, out charsWritten, format, provider);
+    bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => m_value.TryFormat(destination, out charsWritten, format, provider);
 
     #endregion TryFormat
 

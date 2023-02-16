@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable CommentTypo
+
+using System.Drawing;
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -550,6 +552,8 @@ public static class TerminalSGRExtensions
     public static string ToAnsi(this TerminalSGR sgr, byte red, byte green, byte blue) => sgr.RequiresColorParameters()
         ? ToAnsiInternal(sgr, 2, red, green, blue)
         : throw new ArgumentException($"{nameof(TerminalSGR)}.{Enum.GetName(sgr)}={(int)sgr} does not support color parameters");
+
+    public static string ToAnsi(this TerminalSGR sgr, Color color) => sgr.ToAnsi(color.R, color.G, color.B);
 
     private static string ToAnsiInternal(this TerminalSGR sgr, params byte[] values) =>
         "\u001b[" + (byte)sgr + (values.Length == 0 ? string.Empty : ";" + string.Join(";", values)) + "m";

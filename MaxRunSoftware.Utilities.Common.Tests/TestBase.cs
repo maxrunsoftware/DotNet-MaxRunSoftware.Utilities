@@ -159,13 +159,13 @@ public abstract class TestBase : IDisposable
     {
         switch (logLevel)
         {
-            case LogLevel.Trace: return text.FormatTerminal4(TerminalColor.Blue, null);
-            case LogLevel.Debug: return text.FormatTerminal4(TerminalColor.BrightBlue, null);
+            case LogLevel.Trace: return text.FormatTerminal(TerminalColors.Blue, null);
+            case LogLevel.Debug: return text.FormatTerminal(TerminalColors.BrightBlue, null);
             case LogLevel.Information: return text; //.FormatTerminal4(TerminalColor.BrightWhite, null);
-            case LogLevel.Warning: return text.FormatTerminal4(TerminalColor.BrightYellow, null);
-            case LogLevel.Error: return text.FormatTerminal4(TerminalColor.BrightRed, null);
-            case LogLevel.Critical: return text.FormatTerminal4(null, TerminalColor.Red); //.FormatTerminal4(white, TerminalColor.BrightRed);
-            case LogLevel.None: return text.FormatTerminal4(TerminalColor.Magenta, null);
+            case LogLevel.Warning: return text.FormatTerminal(TerminalColors.BrightYellow, null);
+            case LogLevel.Error: return text.FormatTerminal(TerminalColors.BrightRed, null);
+            case LogLevel.Critical: return text.FormatTerminal(null, TerminalColors.Red); //.FormatTerminal4(white, TerminalColor.BrightRed);
+            case LogLevel.None: return text.FormatTerminal(TerminalColors.Magenta, null);
             default: throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
         }
     }
@@ -179,11 +179,11 @@ public abstract class TestBase : IDisposable
         }
     }
 
+
     protected virtual string LogMessageFormat(LogEvent logEvent)
     {
         var isColorEnabled = IsColorEnabled;
-
-        if (isColorEnabled) TerminalFormat.EnableOnWindows();
+        //if (isColorEnabled) TerminalColor.EnableOnWindows();
 
         var sb = new StringBuilder();
         sb.Append(DateTime.Now.ToString(DateTimeToStringFormat.HH_MM_SS_FFF));

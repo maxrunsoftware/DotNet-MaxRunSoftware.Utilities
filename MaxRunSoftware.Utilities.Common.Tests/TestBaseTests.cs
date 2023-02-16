@@ -24,6 +24,7 @@ public class TestBaseTests : TestBase
     public void Log_Colors()
     {
         IsColorEnabled = true;
+        LogLevel = LogLevel.Trace;
         var logLevels = Util.GetEnumValues<LogLevel>().OrderBy(o => (int)o).ToArray();
         foreach (var logLevel in logLevels)
         {
