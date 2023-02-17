@@ -12,17 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ReSharper disable RedundantUsingDirective.Global
-global using System;
-global using System.Data;
-global using System.Diagnostics;
-global using System.Collections;
-global using System.Collections.Generic;
-global using System.Collections.Immutable;
-global using System.IO;
-global using System.Linq;
-global using System.Reflection;
-global using System.Text;
-global using System.Threading;
-global using Xunit;
-global using Xunit.Abstractions;
+namespace MaxRunSoftware.Utilities.Windows.Tests;
+
+public class TestBase : Common.Tests.TestBase
+{
+    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+}

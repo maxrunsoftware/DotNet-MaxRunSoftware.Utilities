@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ReSharper disable RedundantUsingDirective.Global
-global using System;
-global using System.Data;
-global using System.Diagnostics;
-global using System.Collections;
-global using System.Collections.Generic;
-global using System.Collections.Immutable;
-global using System.IO;
-global using System.Linq;
-global using System.Reflection;
-global using System.Text;
-global using System.Threading;
-global using Xunit;
-global using Xunit.Abstractions;
+// ReSharper disable InconsistentNaming
+namespace MaxRunSoftware.Utilities.Common;
+
+public static partial class Constant
+{
+    public static readonly string Windows_User_System = "NT AUTHORITY\\SYSTEM";
+    public static readonly string Windows_User_LocalService = "NT AUTHORITY\\LOCALSERVICE";
+    public static readonly string Windows_User_NetworkService = "NT AUTHORITY\\NETWORKSERVICE";
+
+}

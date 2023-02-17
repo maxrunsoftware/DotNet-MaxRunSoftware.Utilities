@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,6 +26,8 @@ public abstract class ComparerBase
     protected static int H(params object?[] objs) => objs.Length == 0 ? 0 : Util.HashEnumerable(objs);
     protected static int HOrdinal(string? s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
     protected static int HOrdinalIgnoreCase(string? s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
+    protected static int HOrdinal(IEnumerable<string?>? s) => s == null ? 0 : Util.HashEnumerable(s.Select(HOrdinal));
+    protected static int HOrdinalIgnoreCase(IEnumerable<string?>? s) => s == null ? 0 : Util.HashEnumerable(s.Select(HOrdinalIgnoreCase));
 
     protected static bool EC<TT>(TT? x, TT? y) where TT : class, IEquatable<TT>
     {
@@ -59,7 +61,7 @@ public abstract class ComparerBase
 
     protected static int? CC<TT>(TT? x, TT? y) where TT : class, IComparable<TT>
     {
-        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, y)) return null;
         if (ReferenceEquals(x, null)) return -1;
         if (ReferenceEquals(y, null)) return 1;
         return CNullable(x.CompareTo(y));
@@ -87,16 +89,43 @@ public abstract class ComparerBase
 
     protected static int? CO(object? x, object? y)
     {
-        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, y)) return null;
         if (ReferenceEquals(x, null)) return -1;
         if (ReferenceEquals(y, null)) return 1;
         if (x is IComparable xComparable) return CNullable(xComparable.CompareTo(y));
         throw new ArgumentException($"Object {x.GetType().FullNameFormatted()} does not implement {nameof(IComparable)}", nameof(x));
     }
 
-    protected static int? COrdinal(string x, string y) => CNullable(StringComparer.Ordinal.Compare(x, y));
-    protected static int? COrdinalIgnoreCase(string x, string y) => CNullable(StringComparer.OrdinalIgnoreCase.Compare(x, y));
-    protected static int? COrdinalIgnoreCaseThenOrdinal(string x, string y) => CNullable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x, y));
+    protected static int? COrdinal(string? x, string? y) => CNullable(StringComparer.Ordinal.Compare(x, y));
+    protected static int? COrdinalIgnoreCase(string? x, string? y) => CNullable(StringComparer.OrdinalIgnoreCase.Compare(x, y));
+    protected static int? COrdinalIgnoreCaseThenOrdinal(string? x, string? y) => CNullable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x, y));
+
+    protected static int? COrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CString(StringComparer.Ordinal, x, y);
+    protected static int? COrdinalIgnoreCase(IEnumerable<string?>? x, IEnumerable<string?>? y) => CString(StringComparer.OrdinalIgnoreCase, x, y);
+    protected static int? COrdinalIgnoreCaseThenOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CString(Constant.StringComparer_OrdinalIgnoreCase_Ordinal, x, y);
+    private static int? CString(IComparer<string> comparer, IEnumerable<string?>? x, IEnumerable<string?>? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        using var xEnumerator = x.GetEnumerator();
+        using var yEnumerator = y.GetEnumerator();
+
+        bool xContinue, yContinue;
+        do
+        {
+            xContinue = xEnumerator.MoveNext();
+            yContinue = yEnumerator.MoveNext();
+            if (xContinue && !yContinue) return 1;
+            if (!xContinue && yContinue) return -1;
+            if (!xContinue && !yContinue) return null;
+            var c = comparer.Compare(xEnumerator.Current, yEnumerator.Current);
+            if (c != 0) return c;
+        } while (xContinue && yContinue);
+
+        return null;
+    }
 
     #endregion Helpers
 }

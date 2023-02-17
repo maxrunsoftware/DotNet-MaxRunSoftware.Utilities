@@ -13,16 +13,17 @@
 // limitations under the License.
 
 // ReSharper disable RedundantUsingDirective.Global
+
 global using System;
-global using System.Data;
-global using System.Diagnostics;
 global using System.Collections;
 global using System.Collections.Generic;
-global using System.Collections.Immutable;
+global using System.Data;
 global using System.IO;
+global using System.Collections.Immutable;
 global using System.Linq;
 global using System.Reflection;
 global using System.Text;
 global using System.Threading;
-global using Xunit;
-global using Xunit.Abstractions;
+global using Microsoft.Extensions.Logging;
+global using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
+global using MaxRunSoftware.Utilities.Common;
