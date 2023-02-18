@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using MaxRunSoftware.Utilities.Common;
+// ReSharper disable LocalVariableHidesMember
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
@@ -20,12 +21,15 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
 {
     public FtpClientFtpSTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
-        Skip.If(
-            (typeof(FluentFTP.FtpClient).Assembly.GetVersion().TrimOrNull() ?? "0.0.0.0").StartsWith("44.0.1.")
-            || (typeof(FluentFTP.FtpClient).Assembly.GetFileVersion().TrimOrNull() ?? "0.0.0.0").StartsWith("44.0.1.")
-            , "FluentFtp 44.0.1 is broken, waiting for next version in NuGet  https://github.com/robinrodricks/FluentFTP/issues/1156"
-        );
-
+        var fluentFtpVersionBroken = "45.0.4";
+        var fluentFtpVersions = new[] { Util.GetAssemblyVersion<FluentFTP.FtpClient>(), Util.GetAssemblyFileVersion<FluentFTP.FtpClient>() };
+        foreach (var version in fluentFtpVersions.TrimOrNull().WhereNotNull())
+        {
+            Skip.If(
+                version.StartsWith(fluentFtpVersionBroken + "."),
+                $"FluentFtp {fluentFtpVersionBroken} is broken, waiting for next version in NuGet  https://github.com/robinrodricks/FluentFTP/issues/1156"
+            );
+        }
     }
 
     protected override FtpClientFtp CreateClient() => new(new()
@@ -35,13 +39,13 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
         Username = Constants.FTPS_USERNAME,
         Password = Constants.FTPS_PASSWORD,
         WorkingDirectory = Constants.FTPS_DIRECTORY,
-        // ReSharper disable once UnusedParameter.Local
-        ValidateCertificate = info => true,
+        ValidateCertificate = _ => true,
         FtpConfig =
         {
             ValidateAnyCertificate = false,
-            ConnectTimeout = 1000 * 5,
-            ReadTimeout = 1000 * 5,
+            ConnectTimeout = 1000 * 10,
+            ReadTimeout = 1000 * 10,
         },
     }, LoggerProvider);
+
 }

@@ -140,8 +140,35 @@ public class FtpClientFtp : FtpClientBase
         }
     }
 
-    protected override void CreateDirectoryInternal(string remotePath) => throw new NotImplementedException();
-    protected override void DeleteDirectoryInternal(string remotePath) => throw new NotImplementedException();
+    protected override void CreateDirectoryInternal(string remotePath)
+    {
+        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
+        if (Client.DirectoryExists(remotePath))
+        {
+            log.LogTraceMethod(new(remotePath), LOG_IGNORED + " because directory already exists");
+            return;
+        }
+
+        Client.CreateDirectory(remotePath);
+
+        log.LogTraceMethod(new(remotePath), LOG_SUCCESS);
+        log.LogInformation("Created remote directory {RemotePath}", remotePath);
+    }
+
+    protected override void DeleteDirectoryInternal(string remotePath)
+    {
+        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
+        if (!Client.DirectoryExists(remotePath))
+        {
+            log.LogTraceMethod(new(remotePath), LOG_IGNORED + " because directory does not exist");
+            return;
+        }
+
+        Client.DeleteDirectory(remotePath);
+
+        log.LogTraceMethod(new(remotePath), LOG_SUCCESS);
+        log.LogInformation("Deleted remote directory {RemotePath}", remotePath);
+    }
 
     protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(FtpListItem? item)
     {
@@ -162,7 +189,10 @@ public class FtpClientFtp : FtpClientBase
     protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath) =>
         CreateFileSystemObject(Client.GetObjectInfo(remotePath));
 
-    protected override string? GetAbsolutePathInternal(string remotePath) => throw new NotImplementedException();
+    protected override string? GetAbsolutePathInternal(string remotePath)
+    {
+        throw new NotImplementedException();
+    }
 
 
     protected override void DeleteFileInternal(string remoteFile)

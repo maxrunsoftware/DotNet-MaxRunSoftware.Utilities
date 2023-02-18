@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -115,7 +115,11 @@ public static partial class Util
 
     #region Attributes
 
-    public static TAttribute? GetAssemblyAttribute<TClassInAssembly, TAttribute>() where TClassInAssembly : class where TAttribute : class => typeof(TClassInAssembly).GetTypeInfo().Assembly.GetCustomAttributes(typeof(TAttribute)).SingleOrDefault() as TAttribute;
+    public static TAttribute? GetAssemblyAttribute<TClassInAssembly, TAttribute>() where TAttribute : class => typeof(TClassInAssembly).GetTypeInfo().Assembly.GetCustomAttributes(typeof(TAttribute)).SingleOrDefault() as TAttribute;
+
+    public static string? GetAssemblyVersion<TClassInAssembly>() => GetAssemblyAttribute<TClassInAssembly, AssemblyVersionAttribute>()?.Version;
+
+    public static string? GetAssemblyFileVersion<TClassInAssembly>() => GetAssemblyAttribute<TClassInAssembly, AssemblyFileVersionAttribute>()?.Version;
 
     /// <summary>
     /// Helps in discovery of the target of an Attribute

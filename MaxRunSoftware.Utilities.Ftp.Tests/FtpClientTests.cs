@@ -52,7 +52,15 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
     public void WorkingDirectory_Starts_With_DirectorySeparator() => Assert.StartsWith(Client.DirectorySeparator, Client.WorkingDirectory);
 
     [SkippableFact]
-    public void WorkingDirectory_Does_Not_End_With_DirectorySeparator() => Assert.False(Client.WorkingDirectory.EndsWith(Client.DirectorySeparator));
+    public void WorkingDirectory_Does_Not_End_With_DirectorySeparator()
+    {
+        var wd = Client.WorkingDirectory;
+        Assert.NotNull(wd);
+        if (wd != Client.DirectorySeparator)
+        {
+            Assert.False(wd.EndsWith(Client.DirectorySeparator));
+        }
+    }
 
     [SkippableFact]
     public void ServerInfo() => log.LogInformationMethod(new(), "{ServerInfo}", Client.ServerInfo);

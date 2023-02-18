@@ -81,8 +81,18 @@ public readonly struct Percent :
     public static Percent operator *(Percent left, Percent right) => new(left.m_value * right.m_value);
     public static Percent operator /(Percent left, Percent right) => new(left.m_value / right.m_value);
 
-    public static Percent operator ++(Percent left) => new(left.m_value + OneValue.m_value);
-    public static Percent operator --(Percent left) => new(left.m_value - OneValue.m_value);
+    public static Percent operator ++(Percent left)
+    {
+        // Behave like uint.MaxValue++
+        var d = left.m_value + OneValue.m_value;
+        return d > MAX_VALUE_DOUBLE ? MinValue : new(d);
+    }
+    public static Percent operator --(Percent left)
+    {
+        // Behave like uint.MinValue--
+        var d = left.m_value - OneValue.m_value;
+        return d < MIN_VALUE_DOUBLE ? MaxValue : new(d);
+    }
 
     public static implicit operator byte(Percent percent) => Convert.ToByte(percent.m_value);
     public static implicit operator sbyte(Percent percent) => Convert.ToSByte(percent.m_value);

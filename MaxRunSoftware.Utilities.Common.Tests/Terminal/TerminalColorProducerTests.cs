@@ -21,7 +21,7 @@ public class TerminalColorProducerTests : TestBase
     [SkippableFact]
     public void Rainbow_Works()
     {
-        for (var percent = Percent.MinValue; percent <= Percent.MaxValue; percent++)
+        foreach(var percent in Percent.ValuesInt)
         {
             testOutputHelperWrapper.WriteLine(string.Empty);
             var p = new TerminalColorProducerRainbow(percent);

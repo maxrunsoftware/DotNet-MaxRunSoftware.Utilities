@@ -94,6 +94,33 @@ public class PercentTests : TestBase
     }
 
     [SkippableFact]
+    public void PlusPlus_Max()
+    {
+        var p = Percent.MaxValue;
+        Assert.Equal(100, (int)p);
+        p++;
+        Assert.Equal(0, (int)p);
+    }
+
+    [SkippableFact]
+    public void MinusMinus()
+    {
+        var p = (Percent)4;
+        Assert.Equal(4, (int)p);
+        p--;
+        Assert.Equal(3, (int)p);
+    }
+
+    [SkippableFact]
+    public void MinusMinus_Min()
+    {
+        var p = Percent.MinValue;
+        Assert.Equal(0, (int)p);
+        p--;
+        Assert.Equal(100, (int)p);
+    }
+
+    [SkippableFact]
     public void For_Loop()
     {
         var broken = 0;
@@ -114,6 +141,5 @@ public class PercentTests : TestBase
             Assert.Equal(i, (int)Percent.ValuesInt[i]);
         }
     }
-
 
 }
