@@ -90,8 +90,8 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
     public sealed class Comparer : ComparerBaseClass<TaskSchedulerPath>
     {
         public static Comparer Instance { get; } = new();
-        protected override bool EqualsInternal(TaskSchedulerPath x, TaskSchedulerPath y) => ES(x.GetHashCode(), y.GetHashCode()) && EOrdinalIgnoreCase(x.Path, y.Path);
-        protected override int GetHashCodeInternal(TaskSchedulerPath obj) => HOrdinalIgnoreCase(obj.Path);
-        protected override int CompareInternal(TaskSchedulerPath x, TaskSchedulerPath y) => COrdinalIgnoreCaseThenOrdinal(x.PathParts, y.PathParts) ?? 0;
+        protected override bool EqualsInternal(TaskSchedulerPath x, TaskSchedulerPath y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsOrdinalIgnoreCase(x.Path, y.Path);
+        protected override int GetHashCodeInternal(TaskSchedulerPath obj) => HashOrdinalIgnoreCase(obj.Path);
+        protected override int CompareInternal(TaskSchedulerPath x, TaskSchedulerPath y) => CompareOrdinalIgnoreCaseThenOrdinal(x.PathParts, y.PathParts) ?? 0;
     }
 }

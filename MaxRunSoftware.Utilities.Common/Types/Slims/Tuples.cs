@@ -30,9 +30,9 @@ public sealed class TupleTypeSlimTypeSlim : ComparableClass<TupleTypeSlimTypeSli
     public sealed class Comparer : ComparerBaseClass<TupleTypeSlimTypeSlim>
     {
         public static Comparer Instance { get; } = new();
-        protected override bool EqualsInternal(TupleTypeSlimTypeSlim x, TupleTypeSlimTypeSlim y) => ES(x.GetHashCode(), y.GetHashCode()) && EC(x.Item1, y.Item1) && EC(x.Item2, y.Item2);
-        protected override int GetHashCodeInternal(TupleTypeSlimTypeSlim obj) => H(obj.Item1, obj.Item2);
-        protected override int CompareInternal(TupleTypeSlimTypeSlim x, TupleTypeSlimTypeSlim y) => CC(x.Item1, y.Item1) ?? CC(x.Item2, y.Item2) ?? 0;
+        protected override bool EqualsInternal(TupleTypeSlimTypeSlim x, TupleTypeSlimTypeSlim y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsClass(x.Item1, y.Item1) && EqualsClass(x.Item2, y.Item2);
+        protected override int GetHashCodeInternal(TupleTypeSlimTypeSlim obj) => Hash(obj.Item1, obj.Item2);
+        protected override int CompareInternal(TupleTypeSlimTypeSlim x, TupleTypeSlimTypeSlim y) => CompareClass(x.Item1, y.Item1) ?? CompareClass(x.Item2, y.Item2) ?? 0;
     }
 }
 
@@ -52,8 +52,8 @@ public sealed class TupleTypeSlimBindingFlags : ComparableClass<TupleTypeSlimBin
     public sealed class Comparer : ComparerBaseClass<TupleTypeSlimBindingFlags>
     {
         public static Comparer Instance { get; } = new();
-        protected override bool EqualsInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => ES(x.GetHashCode(), y.GetHashCode()) && EC(x.Item1, y.Item1) && ES(x.Item2, y.Item2);
-        protected override int GetHashCodeInternal(TupleTypeSlimBindingFlags obj) => H(obj.Item1, obj.Item2);
-        protected override int CompareInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => CC(x.Item1, y.Item1) ?? CE(x.Item2, y.Item2) ?? 0;
+        protected override bool EqualsInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsClass(x.Item1, y.Item1) && EqualsStruct(x.Item2, y.Item2);
+        protected override int GetHashCodeInternal(TupleTypeSlimBindingFlags obj) => Hash(obj.Item1, obj.Item2);
+        protected override int CompareInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => CompareClass(x.Item1, y.Item1) ?? CompareEnumerable(x.Item2, y.Item2) ?? 0;
     }
 }
