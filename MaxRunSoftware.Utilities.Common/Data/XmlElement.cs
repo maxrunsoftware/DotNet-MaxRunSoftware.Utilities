@@ -186,47 +186,40 @@ public static class XmlElementExtensions
 
     #region ApplyXslt
 
-    public static string ApplyXslt(string xml, string xslt, XmlWriterSettings? writerSettings = null)
+    public static string ApplyXslt(string xml, string xslt, XmlReaderSettings? readerSettings = null, XmlWriterSettings? writerSettings = null)
     {
-        var xmlReaderBuffer = new StringReader(xml);
-        var xmlReader = XmlReader.Create(xmlReaderBuffer);
+        using var xmlReaderBuffer = new StringReader(xml);
+        using var xmlReader = readerSettings == null
+            ? XmlReader.Create(xmlReaderBuffer)
+            : XmlReader.Create(xmlReaderBuffer, readerSettings);
 
-        var xmlWriterBuffer = new StringBuilder();
-        var xmlWriter = writerSettings == null
-            ? System.Xml.XmlWriter.Create(xmlWriterBuffer)
-            : System.Xml.XmlWriter.Create(xmlWriterBuffer, writerSettings);
+        using var xsltReaderBuffer = new StringReader(xslt);
+        using var xsltReader = readerSettings == null
+            ? XmlReader.Create(xsltReaderBuffer)
+            : XmlReader.Create(xsltReaderBuffer, readerSettings);
 
-        var xsltReaderBuffer = new StringReader(xslt);
-        var xsltReader = XmlReader.Create(xsltReaderBuffer);
-        var transform = new XslCompiledTransform();
+        var s = ApplyXslt(xmlReader, xsltReader, writerSettings);
 
-        transform.Load(xsltReader);
-        transform.Transform(xmlReader, xmlWriter);
-        xmlWriter.Flush();
-
-        return xmlWriterBuffer.ToString();
+        return s;
     }
 
     public static string ApplyXslt(XmlReader xml, XmlReader xslt, XmlWriterSettings? writerSettings = null)
     {
-        var xmlWriterBuffer = new StringBuilder();
-        var xmlWriter = writerSettings == null
-            ? System.Xml.XmlWriter.Create(xmlWriterBuffer)
-            : System.Xml.XmlWriter.Create(xmlWriterBuffer, writerSettings);
+        var writerBuffer = new StringBuilder();
+        using var writer = writerSettings == null
+            ? System.Xml.XmlWriter.Create(writerBuffer)
+            : System.Xml.XmlWriter.Create(writerBuffer, writerSettings);
 
-        var transform = new XslCompiledTransform();
+        ApplyXslt(xml, xslt, writer);
 
-        transform.Load(xml);
-        transform.Transform(xslt, xmlWriter);
-        xmlWriter.Flush();
+        writer.Flush();
 
-        return xmlWriterBuffer.ToString();
+        return writerBuffer.ToString();
     }
 
     public static void ApplyXslt(XmlReader xml, XmlReader xslt, System.Xml.XmlWriter writer)
     {
         var transform = new XslCompiledTransform();
-
         transform.Load(xml);
         transform.Transform(xslt, writer);
         writer.Flush();
