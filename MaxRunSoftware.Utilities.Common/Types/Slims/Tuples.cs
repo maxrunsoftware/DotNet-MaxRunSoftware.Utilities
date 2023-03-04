@@ -54,6 +54,6 @@ public sealed class TupleTypeSlimBindingFlags : ComparableClass<TupleTypeSlimBin
         public static Comparer Instance { get; } = new();
         protected override bool EqualsInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsClass(x.Item1, y.Item1) && EqualsStruct(x.Item2, y.Item2);
         protected override int GetHashCodeInternal(TupleTypeSlimBindingFlags obj) => Hash(obj.Item1, obj.Item2);
-        protected override int CompareInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => CompareClass(x.Item1, y.Item1) ?? CompareEnumerable(x.Item2, y.Item2) ?? 0;
+        protected override int CompareInternal(TupleTypeSlimBindingFlags x, TupleTypeSlimBindingFlags y) => CompareClass(x.Item1, y.Item1) ?? CompareEnumEnumerable(x.Item2, y.Item2) ?? 0;
     }
 }

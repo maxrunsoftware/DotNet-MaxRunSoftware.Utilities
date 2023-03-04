@@ -78,7 +78,6 @@ public abstract class ComparerBase
     }
 
 
-
     protected static bool EqualsStruct<TT>(TT x, TT y) where TT : struct => x.Equals(y);
     protected static bool EqualsStruct<TT>(TT x, TT? y) where TT : struct => y.HasValue && EqualsStruct(x, y.Value);
     protected static bool EqualsStruct<TT>(TT? x, TT y) where TT : struct => x.HasValue && EqualsStruct(x.Value, y);
@@ -120,13 +119,13 @@ public abstract class ComparerBase
         return null;
     }
 
-    protected static int? CompareEnumerable<TT>(TT x, TT y) where TT : struct, Enum => CompareNullable(x.CompareTo(y));
-    protected static int? CompareEnumerable<TT>(TT x, TT? y) where TT : struct, Enum => y.HasValue ? CompareEnumerable(x, y.Value) : 1;
-    protected static int? CompareEnumerable<TT>(TT? x, TT y) where TT : struct, Enum => x.HasValue ? CompareEnumerable(x.Value, y) : -1;
-    protected static int? CompareEnumerable<TT>(TT? x, TT? y) where TT : struct, Enum
+    protected static int? CompareEnumEnumerable<TT>(TT x, TT y) where TT : struct, Enum => CompareNullable(x.CompareTo(y));
+    protected static int? CompareEnumEnumerable<TT>(TT x, TT? y) where TT : struct, Enum => y.HasValue ? CompareEnumEnumerable(x, y.Value) : 1;
+    protected static int? CompareEnumEnumerable<TT>(TT? x, TT y) where TT : struct, Enum => x.HasValue ? CompareEnumEnumerable(x.Value, y) : -1;
+    protected static int? CompareEnumEnumerable<TT>(TT? x, TT? y) where TT : struct, Enum
     {
-        if (x.HasValue) return CompareEnumerable(x.Value, y);
-        if (y.HasValue) return CompareEnumerable(x, y.Value);
+        if (x.HasValue) return CompareEnumEnumerable(x.Value, y);
+        if (y.HasValue) return CompareEnumEnumerable(x, y.Value);
         return null;
     }
 
@@ -143,10 +142,10 @@ public abstract class ComparerBase
     protected static int? CompareOrdinalIgnoreCase(string? x, string? y) => CompareNullable(StringComparer.OrdinalIgnoreCase.Compare(x, y));
     protected static int? CompareOrdinalIgnoreCaseThenOrdinal(string? x, string? y) => CompareNullable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x, y));
 
-    protected static int? CompareOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareStringEnumerable(StringComparer.Ordinal, x, y);
-    protected static int? CompareOrdinalIgnoreCase(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareStringEnumerable(StringComparer.OrdinalIgnoreCase, x, y);
-    protected static int? CompareOrdinalIgnoreCaseThenOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareStringEnumerable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal, x, y);
-    private static int? CompareStringEnumerable(IComparer<string> comparer, IEnumerable<string?>? x, IEnumerable<string?>? y)
+    protected static int? CompareOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(StringComparer.Ordinal, x, y);
+    protected static int? CompareOrdinalIgnoreCase(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(StringComparer.OrdinalIgnoreCase, x, y);
+    protected static int? CompareOrdinalIgnoreCaseThenOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal, x, y);
+    protected static int? CompareClassEnumerable<T>(IComparer<T> comparer, IEnumerable<T?>? x, IEnumerable<T?>? y) where T : class
     {
         if (ReferenceEquals(x, y)) return 0;
         if (ReferenceEquals(x, null)) return -1;
@@ -165,6 +164,29 @@ public abstract class ComparerBase
             if (!xContinue && !yContinue) return null;
             var c = comparer.Compare(xEnumerator.Current, yEnumerator.Current);
             if (c != 0) return c;
+        } while (xContinue && yContinue);
+
+        return null;
+    }
+    protected static int? CompareClassEnumerable<T>(IEnumerable<T?>? x, IEnumerable<T?>? y) where T : class, IComparable<T>
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        using var xEnumerator = x.GetEnumerator();
+        using var yEnumerator = y.GetEnumerator();
+
+        bool xContinue, yContinue;
+        do
+        {
+            xContinue = xEnumerator.MoveNext();
+            yContinue = yEnumerator.MoveNext();
+            if (xContinue && !yContinue) return 1;
+            if (!xContinue && yContinue) return -1;
+            if (!xContinue && !yContinue) return null;
+            var c = CompareClass(xEnumerator.Current, yEnumerator.Current);
+            if (c.HasValue && c.Value != 0) return c;
         } while (xContinue && yContinue);
 
         return null;

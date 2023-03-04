@@ -119,46 +119,4 @@ public sealed class PropertySlim : ComparableClass<PropertySlim, PropertySlim.Co
     public object? GetValue(object? instance) => getMethodCompiled.Value(instance);
 
     public void SetValue(object? instance, object? value) => setMethodCompiled.Value(instance, value);
-
-}
-
-public static class PropertySlimExtensions
-{
-    public static PropertyInfo ToPropertyInfo(this PropertySlim obj) => obj;
-    public static PropertySlim ToPropertySlim(this PropertyInfo obj) => obj;
-
-    public static ImmutableArray<PropertySlim> GetPropertySlims(this TypeSlim type, BindingFlags flags) =>
-        type.Type.GetPropertySlims(flags);
-
-    public static ImmutableArray<PropertySlim> GetPropertySlims(this Type type, BindingFlags flags) =>
-        type.GetProperties(flags).Select(o => new PropertySlim(o)).ToImmutableArray();
-
-    public static PropertySlim? GetPropertySlim(this TypeSlim type, string name, BindingFlags? flags = null) =>
-        type.Type.GetPropertySlim(name, flags);
-
-    public static PropertySlim? GetPropertySlim(this Type type, string name, BindingFlags? flags = null)
-    {
-        var flagsList = flags != null
-            ? new[] { flags.Value }
-            : new[]
-            {
-                BindingFlags.Public | BindingFlags.Instance,
-                BindingFlags.Public | BindingFlags.Static,
-                BindingFlags.NonPublic | BindingFlags.Instance,
-                BindingFlags.NonPublic | BindingFlags.Static,
-            };
-
-        foreach (var f in flagsList)
-        {
-            var items = GetPropertySlims(type, f);
-            foreach (var sc in Constant.StringComparers)
-            {
-                var matches = items.Where(prop => sc.Equals(prop.Name, name)).ToList();
-                if (matches.Count == 1) return matches[0];
-                if (matches.Count > 1) throw new AmbiguousMatchException($"Found {matches.Count} properties on {type.FullNameFormatted()} with name {name}: " + matches.Select(o => o.Name).ToStringDelimited(", "));
-            }
-        }
-
-        return null;
-    }
 }

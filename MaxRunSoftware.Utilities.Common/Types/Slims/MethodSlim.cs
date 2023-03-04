@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,22 +15,7 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class MethodSlimParameter
-{
-    public MethodSlim Method { get; }
-    public ParameterSlim Parameter { get; }
-    public MethodSlimParameter(MethodSlim method, ParameterSlim parameter)
-    {
-        Method = method;
-        Parameter = parameter;
-    }
-}
-
-[PublicAPI]
-public sealed class MethodSlim :
-    IEquatable<MethodSlim>, IEquatable<MethodInfo>,
-    IComparable<MethodSlim>, IComparable<MethodInfo>, IComparable,
-    ISlimValueGetterArgs
+public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer>, ISlimValueGetterArgs
 {
     public string Name { get; }
 
@@ -87,23 +72,13 @@ public sealed class MethodSlim :
 
     private readonly Lzy<MethodCaller> invoker;
 
-    public override int GetHashCode() => getHashCode.Value;
-    private readonly Lzy<int> getHashCode;
-    private int GetHashCodeCreate() => Util.Hash(
-        TypeDeclaring,
-        IsStatic,
-        Name,
-        Util.HashEnumerable(GenericArguments),
-        Util.HashEnumerable(Parameters.Select(o => o.Parameter))
-    );
-
     public bool IsStatic { get; }
     public bool IsOperatorImplicit { get; }
     public bool IsOperatorExplicit { get; }
 
     public IEnumerable<Attribute> Attributes => Info.GetCustomAttributes();
 
-    public MethodSlim(MethodInfo info)
+    public MethodSlim(MethodInfo info) : base(Comparer.Instance)
     {
         Info = info.CheckNotNull(nameof(info));
         TypeDeclaring = info.DeclaringType == null ? null : (TypeSlim?)info.DeclaringType;
@@ -113,138 +88,53 @@ public sealed class MethodSlim :
         IsStatic = info.IsStatic;
         GenericArguments = info.GetGenericArguments().Select(o => (TypeSlim)o).ToImmutableArray();
         parameters = Lzy.Create(ParametersCreate);
-        getHashCode = Lzy.Create(GetHashCodeCreate);
         invoker = Lzy.Create(() => new MethodCaller(Info));
         parametersRaw = Info.GetParameters().ToImmutableArray();
         IsOperatorImplicit = IsStatic && parametersRaw.Length == 1 && StringComparer.Ordinal.Equals(Name, "op_Implicit");
         IsOperatorExplicit = IsStatic && parametersRaw.Length == 1 && StringComparer.Ordinal.Equals(Name, "op_Explicit");
     }
 
-    #region Override
 
     public override string ToString() => NameFull;
+    // ReSharper disable RedundantOverriddenMember
+    public override bool Equals(object? obj) => base.Equals(obj);
+    public override int GetHashCode() => base.GetHashCode();
+    // ReSharper restore RedundantOverriddenMember
 
-
-    #region Equals
-
-    public static bool Equals(MethodSlim? left, MethodSlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
-
-    public override bool Equals(object? obj) => obj switch
-    {
-        null => false,
-        MethodSlim slim => Equals(slim),
-        MethodInfo other => Equals(other),
-        _ => false,
-    };
-
-    public bool Equals(MethodInfo? other)
-    {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(Info, other)) return true;
-        return Equals(new MethodSlim(other));
-    }
-
-    public bool Equals(MethodSlim? other)
-    {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(this, other)) return true;
-
-        if (GetHashCode() != other.GetHashCode()) return false;
-
-        if (!Util.IsEqual(TypeDeclaring, other.TypeDeclaring)) return false;
-        if (IsStatic != other.IsStatic) return false;
-        if (!StringComparer.Ordinal.Equals(Name, other.Name)) return false;
-
-        if (GenericArguments.Length != other.GenericArguments.Length) return false;
-        for (var i = 0; i < GenericArguments.Length; i++)
-        {
-            if (!GenericArguments[i].Equals(other.GenericArguments[i])) return false;
-        }
-
-        if (Parameters.Length != other.Parameters.Length) return false;
-        for (var i = 0; i < Parameters.Length; i++)
-        {
-            if (!Parameters[i].Parameter.Equals(other.Parameters[i].Parameter)) return false;
-            if (!Parameters[i].Method.GetHashCode().Equals(other.Parameters[i].Method.GetHashCode())) return false; // Probably should do more checks
-        }
-
-        return true;
-    }
-
-    #endregion Equals
-
-    #region CompareTo
-
-    public int CompareTo(object? obj) => obj switch
-    {
-        null => 1,
-        MethodSlim slim => CompareTo(slim),
-        MethodInfo other => CompareTo(other),
-        _ => 1,
-    };
-
-    public int CompareTo(MethodInfo? other)
-    {
-        if (ReferenceEquals(other, null)) return 1;
-        if (ReferenceEquals(Info, other)) return 0;
-        return CompareTo(new MethodSlim(other));
-    }
-
-    public int CompareTo(MethodSlim? other)
-    {
-        if (ReferenceEquals(other, null)) return 1;
-        if (ReferenceEquals(this, other)) return 0;
-
-        int c;
-
-        if (TypeDeclaring == null)
-        {
-            if (other.TypeDeclaring != null) return 1;
-        }
-        else
-        {
-            if (0 != (c = TypeDeclaring.CompareTo(other.TypeDeclaring))) return c;
-        }
-
-        if (0 != (c = IsStatic.CompareTo(other.IsStatic))) return c;
-
-        if (0 != (c = Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(Name, other.Name))) return c;
-
-        if (0 != (c = GenericArguments.Length.CompareTo(other.GenericArguments.Length))) return c;
-        for (var i = 0; i < GenericArguments.Length; i++)
-        {
-            if (0 != (c = GenericArguments[i].CompareTo(other.GenericArguments[i]))) return c;
-        }
-
-        if (0 != (c = Parameters.Length.CompareTo(other.Parameters.Length))) return c;
-        for (var i = 0; i < Parameters.Length; i++)
-        {
-            if (0 != (c = Parameters[i].Parameter.CompareTo(other.Parameters[i].Parameter))) return c;
-            if (0 != (c = Parameters[i].Method.GetHashCode().CompareTo(other.Parameters[i].Method.GetHashCode()))) return c; // Probably should do more checks
-        }
-
-        if (0 != (c = GetHashCode().CompareTo(other.GetHashCode()))) return c;
-
-        return c;
-    }
-
-    #endregion CompareTo
-
-    #endregion Override
-
-    #region Implicit / Explicit
-
-    // ReSharper disable ArrangeStaticMemberQualifier
-
-    public static bool operator ==(MethodSlim? left, MethodSlim? right) => Equals(left, right);
-    public static bool operator !=(MethodSlim? left, MethodSlim? right) => !Equals(left, right);
-
-    // ReSharper restore ArrangeStaticMemberQualifier
+    public static bool operator ==(MethodSlim? left, MethodSlim? right) => Comparer.Instance.Equals(left, right);
+    public static bool operator !=(MethodSlim? left, MethodSlim? right) => !Comparer.Instance.Equals(left, right);
 
     public static implicit operator MethodInfo(MethodSlim obj) => obj.Info;
     public static implicit operator MethodSlim(MethodInfo obj) => new(obj);
 
-    #endregion Implicit / Explicit
+    public sealed class Comparer : ComparerBaseClass<MethodSlim>
+    {
+        public static Comparer Instance { get; } = new();
+        protected override bool EqualsInternal(MethodSlim x, MethodSlim y) =>
+            EqualsStruct(x.GetHashCode(), y.GetHashCode())
+            && EqualsClass(x.TypeDeclaring, y.TypeDeclaring)
+            && EqualsOrdinal(x.Name, y.Name)
+            && EqualsClass(x.ReturnType, y.ReturnType)
+            && EqualsClassEnumerable(x.GenericArguments, y.GenericArguments)
+            && EqualsClassEnumerable(x.Parameters.Select(o => o.Parameter), y.Parameters.Select(o => o.Parameter));
+
+        protected override int GetHashCodeInternal(MethodSlim obj) => Hash(
+            obj.TypeDeclaring,
+            obj.IsStatic,
+            HashOrdinal(obj.Name),
+            obj.ReturnType,
+            Util.HashEnumerable(obj.GenericArguments),
+            Util.HashEnumerable(obj.Parameters.Select(o => o.Parameter))
+        );
+
+        protected override int CompareInternal(MethodSlim x, MethodSlim y) =>
+            CompareClass(x.TypeDeclaring, y.TypeDeclaring)
+            ?? CompareOrdinalIgnoreCaseThenOrdinal(x.Name, y.Name)
+            ?? CompareClass(x.ReturnType, y.ReturnType)
+            ?? CompareClassEnumerable(x.GenericArguments, y.GenericArguments)
+            ?? CompareClassEnumerable(x.Parameters.Select(o => o.Parameter), y.Parameters.Select(o => o.Parameter))
+            ?? 0;
+    }
 
     #region Extras
 
@@ -254,13 +144,4 @@ public sealed class MethodSlim :
     public object? GetValue(object? instance, object?[] args) => Invoke(instance, args);
 
     #endregion Extras
-}
-
-public static class MethodSlimExtensions
-{
-    public static ImmutableArray<MethodSlim> GetMethodSlims(this TypeSlim type, BindingFlags flags) =>
-        type.Type.GetMethodSlims(flags);
-
-    public static ImmutableArray<MethodSlim> GetMethodSlims(this Type type, BindingFlags flags) =>
-        type.GetMethods(flags).Select(o => new MethodSlim(o)).ToImmutableArray();
 }

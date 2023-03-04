@@ -31,39 +31,30 @@ public class XmlWriter : IDisposable
         public void Dispose() => writer.EndElement();
     }
 
-    private readonly StringBuilder stream;
+    private readonly TextWriter stream;
     private readonly System.Xml.XmlWriter writer;
-    private string? toString;
     private readonly SingleUse isDisposed = new();
 
-    public XmlWriter(bool formatted = false)
+    public XmlWriter(TextWriter textWriter, bool formatted = false) : this(textWriter, new XmlWriterSettings
     {
-        stream = new();
-        var settings = new XmlWriterSettings();
-        settings.Encoding = Constant.Encoding_UTF8_Without_BOM;
-        settings.Indent = formatted;
-        settings.NewLineOnAttributes = false;
-        settings.OmitXmlDeclaration = true;
+        Encoding = Constant.Encoding_UTF8_Without_BOM,
+        Indent = formatted,
+        NewLineOnAttributes = false,
+        OmitXmlDeclaration = true,
+    }) { }
+
+    public XmlWriter(TextWriter textWriter, XmlWriterSettings settings)
+    {
+        stream = textWriter;
         writer = System.Xml.XmlWriter.Create(stream, settings);
     }
 
     public void Dispose()
     {
         if (!isDisposed.TryUse()) return;
-
-        var _ = ToString();
+        writer.Flush();
+        stream.Flush();
         writer.Dispose();
-    }
-
-    public override string? ToString()
-    {
-        if (!isDisposed.IsUsed)
-        {
-            writer.Flush();
-            toString = stream.ToString();
-        }
-
-        return toString;
     }
 
     public IDisposable Element(string elementName, params (string attributeName, object attributeValue)[] attributes) => Element(elementName, null, attributes);
@@ -84,16 +75,16 @@ public class XmlWriter : IDisposable
 
     public void Value(string value) => writer.WriteString(value);
 
-    public static string ApplyXslt(string xslt, string xml)
+    public static string ApplyXslt(string xml, string xslt)
     {
         var xmlReader = new StringReader(xml);
-        var xmlXmlReader = System.Xml.XmlReader.Create(xmlReader);
+        var xmlXmlReader = XmlReader.Create(xmlReader);
 
         var transformedContent = new StringBuilder();
         var xmlWriter = System.Xml.XmlWriter.Create(transformedContent);
 
         var xsltReader = new StringReader(xslt);
-        var xsltXmlReader = System.Xml.XmlReader.Create(xsltReader);
+        var xsltXmlReader = XmlReader.Create(xsltReader);
         var myXslTrans = new XslCompiledTransform();
 
         myXslTrans.Load(xsltXmlReader);

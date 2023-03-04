@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 public abstract class ComparableClass<T, TComparer> : IEquatable<T>, IComparable<T>, IComparable
@@ -27,8 +29,8 @@ public abstract class ComparableClass<T, TComparer> : IEquatable<T>, IComparable
 
     private readonly Lzy<int> getHashCode;
     public override int GetHashCode() => getHashCode.Value;
-    public override bool Equals(object? obj) => comparer.Equals(this, obj);
-    public bool Equals(T? other) => comparer.Equals(this, other);
+    public override bool Equals([NotNullWhen(true)] object? obj) => comparer.Equals(this, obj);
+    public bool Equals([NotNullWhen(true)] T? other) => comparer.Equals(this, other);
     public int CompareTo(object? obj) => comparer.Compare(this, obj);
     public int CompareTo(T? other) => comparer.Compare(this, other);
 }

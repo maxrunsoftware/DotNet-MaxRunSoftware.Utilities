@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,12 @@ using System.Diagnostics;
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class AssemblySlim :
-    IEquatable<AssemblySlim>, IEquatable<Assembly>,
-    IComparable, IComparable<AssemblySlim>, IComparable<Assembly>
+public sealed class AssemblySlim : ComparableClass<AssemblySlim, AssemblySlim.Comparer>
 {
     public Assembly Assembly { get; }
     public string NameFull { get; }
-    private readonly int getHashCode;
 
-    public AssemblySlim(Assembly assembly)
+    public AssemblySlim(Assembly assembly) : base(Comparer.Instance)
     {
         static string NameFullBuild(Assembly assembly)
         {
@@ -44,85 +41,44 @@ public sealed class AssemblySlim :
 
         Assembly = assembly.CheckNotNull(nameof(assembly));
         NameFull = NameFullBuild(assembly);
-        getHashCode = StringComparer.Ordinal.GetHashCode(NameFull);
     }
-
-    #region Override
-
-    public override int GetHashCode() => getHashCode;
 
     public override string ToString() => NameFull;
+    // ReSharper disable RedundantOverriddenMember
+    public override bool Equals(object? obj) => base.Equals(obj);
+    public override int GetHashCode() => base.GetHashCode();
+    // ReSharper restore RedundantOverriddenMember
 
-    #region Equals
+    public static bool operator ==(AssemblySlim? left, AssemblySlim? right) => Comparer.Instance.Equals(left, right);
+    public static bool operator !=(AssemblySlim? left, AssemblySlim? right) => !Comparer.Instance.Equals(left, right);
 
-    public static bool Equals(AssemblySlim? left, AssemblySlim? right) => left?.Equals(right) ?? ReferenceEquals(right, null);
+    public static implicit operator Assembly(AssemblySlim assemblySlim) => assemblySlim.Assembly;
+    public static implicit operator AssemblySlim(Assembly assembly) => new(assembly);
 
-    public override bool Equals(object? obj) => obj switch
+    public sealed class Comparer : ComparerBaseClass<AssemblySlim>
     {
-        null => false,
-        AssemblySlim slim => Equals(slim),
-        Assembly other => Equals(other),
-        _ => false,
-    };
+        public static Comparer Instance { get; } = new();
+        protected override bool EqualsInternal(AssemblySlim x, AssemblySlim y) =>
+            EqualsStruct(x.GetHashCode(), y.GetHashCode())
+            && EqualsOrdinal(x.NameFull, y.NameFull);
 
-    public bool Equals(Assembly? other)
-    {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(Assembly, other)) return true;
-        return Equals(new AssemblySlim(other));
+        protected override int GetHashCodeInternal(AssemblySlim obj) => Hash(
+            HashOrdinal(obj.NameFull)
+        );
+
+        protected override int CompareInternal(AssemblySlim x, AssemblySlim y) =>
+            CompareOrdinalIgnoreCaseThenOrdinal(x.NameFull, y.NameFull)
+            ?? 0;
     }
-
-
-    public bool Equals(AssemblySlim? other)
-    {
-        if (ReferenceEquals(other, null)) return false;
-        if (ReferenceEquals(this, other)) return true;
-
-        if (getHashCode != other.getHashCode) return false;
-        if (!StringComparer.Ordinal.Equals(NameFull, other.NameFull)) return false;
-
-        return true;
-    }
-
-    #endregion Equals
-
-    #region CompareTo
-
-    public int CompareTo(object? obj) => obj switch
-    {
-        null => 1,
-        AssemblySlim slim => CompareTo(slim),
-        Assembly other => CompareTo(other),
-        _ => 1,
-    };
-
-    public int CompareTo(Assembly? other)
-    {
-        if (ReferenceEquals(other, null)) return 1;
-        if (ReferenceEquals(Assembly, other)) return 0;
-        return CompareTo(new AssemblySlim(other));
-    }
-
-    public int CompareTo(AssemblySlim? other)
-    {
-        if (ReferenceEquals(other, null)) return 1;
-        if (ReferenceEquals(this, other)) return 0;
-
-        return Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(NameFull, other.NameFull);
-    }
-
-    #endregion CompareTo
-
-    #endregion Override
 
     #region Static
 
-    public HashSet<AssemblySlim> GetReferencedAssemblies(ILoggerProvider? loggerProvider = null) => GetReferencedAssemblies(out _, loggerProvider);
-    public HashSet<AssemblySlim> GetReferencedAssemblies(out (AssemblyName ReferencedAssemblyName, Exception Exception)[] exceptions, ILoggerProvider? loggerProvider = null)
+    public HashSet<AssemblySlim> GetReferencedAssemblies() => GetReferencedAssemblies(out _);
+
+    public HashSet<AssemblySlim> GetReferencedAssemblies(out (AssemblyName ReferencedAssemblyName, Exception Exception)[] exceptions)
     {
         var hs = new HashSet<AssemblySlim>();
         var eList = new List<(AssemblyName ReferencedAssemblyName, Exception Exception)>();
-        var log = loggerProvider.CreateLoggerNullable(GetType());
         var referencedAssemblyNames = Assembly.GetReferencedAssemblies();
         foreach (var referencedAssemblyName in referencedAssemblyNames.WhereNotNull())
         {
@@ -136,7 +92,7 @@ public sealed class AssemblySlim :
             catch (Exception e)
             {
                 eList.Add((referencedAssemblyName, e));
-                log.LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
+                //log.LogDebug(e, "Unable to load assembly: {ReferencedAssemblyName}", referencedAssemblyName);
             }
         }
 
@@ -190,8 +146,9 @@ public sealed class AssemblySlim :
             {
                 var asm = queue.Dequeue();
                 if (!assembliesScanned.Add(asm)) continue;
-                foreach (var item in asm.GetReferencedAssemblies().Where(item => !assembliesScanned.Contains(item)))
+                foreach (var item in asm.GetReferencedAssemblies())
                 {
+                    if (assembliesScanned.Contains(item)) continue;
                     queue.Enqueue(item);
                 }
             }
@@ -203,18 +160,4 @@ public sealed class AssemblySlim :
     }
 
     #endregion Static
-
-    #region Implicit / Explicit
-
-    // ReSharper disable ArrangeStaticMemberQualifier
-
-    public static bool operator ==(AssemblySlim? left, AssemblySlim? right) => Equals(left, right);
-    public static bool operator !=(AssemblySlim? left, AssemblySlim? right) => !Equals(left, right);
-
-    // ReSharper restore ArrangeStaticMemberQualifier
-
-    public static implicit operator Assembly(AssemblySlim assemblySlim) => assemblySlim.Assembly;
-    public static implicit operator AssemblySlim(Assembly assembly) => new(assembly);
-
-    #endregion Implicit / Explicit
 }
