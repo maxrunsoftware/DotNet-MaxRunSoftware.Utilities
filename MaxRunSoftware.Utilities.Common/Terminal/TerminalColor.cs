@@ -26,22 +26,31 @@ public class TerminalColor
         if (Environment.GetEnvironmentVariable("MAXRUNSOFTWARE_NOCOLOR") == null) EnableOnWindows();
     }
 
-    protected TerminalColorTextParser? Text { get; }
     public Color Color { get; }
     public string ColorName { get; }
 
-    protected TerminalColor(Color color, string? colorName)
+    protected TerminalColor(Color color, string? colorName, string? colorHex = null)
     {
         Color = color;
         ColorName = colorName ?? color.Name;
+
+        // Sanity check for provided hex value if one is provided
+        var h2 = colorHex.TrimOrNull();
+        if (h2 != null)
+        {
+            var h1 = color.ToHex().ToUpperInvariant();
+            if (h1.StartsWith('#')) h1 = h1.RemoveLeft();
+
+            h2 = h2.ToUpperInvariant();
+            if (h2.StartsWith('#')) h2 = h2.RemoveLeft();
+
+            if (!h1.Equals(h2)) throw new ArgumentException($"{nameof(colorHex)} value '{colorHex}' does not match argument {nameof(color)} '{color}' with value {color.ToHex()}", nameof(colorHex));
+        }
     }
 
-    protected TerminalColor(string colorString)
-    {
-        Text = TerminalColorTextParser.Parse(colorString);
-        Color = Text.Color24;
-        ColorName = Text.ColorName;
-    }
+    public virtual string ToStringAnsiForeground() => TerminalSGR.Color_Foreground.ToAnsi(Color);
+
+    public virtual string ToStringAnsiBackground() => TerminalSGR.Color_Background.ToAnsi(Color);
 
     #region Static
 

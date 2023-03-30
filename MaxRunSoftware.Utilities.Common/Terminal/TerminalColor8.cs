@@ -35,15 +35,17 @@ public class TerminalColor8 : TerminalColor
 
     public byte Color8 { get; }
 
-    public TerminalColor8(string colorString) : base(colorString)
-    {
-        Color8 = Text.CheckNotNull(nameof(Text)).Color8.CheckNotNull(nameof(Text) + "." + nameof(Text.Color8));
-    }
-
-    public TerminalColor8(Color color, string? colorName, byte color8) : base(color, colorName)
+    public TerminalColor8(Color color, string? colorName, byte color8, string? colorHex = null) : base(color, colorName, colorHex)
     {
         Color8 = color8;
     }
+
+    public TerminalColor8(byte color8, byte red, byte green, byte blue, string? colorHex, string colorName) : this(Color.FromArgb(red, green, blue), colorName, color8, colorHex) { }
+
+    public override string ToStringAnsiForeground() => TerminalSGR.Color_Foreground.ToAnsi(Color8);
+
+    public override string ToStringAnsiBackground() => TerminalSGR.Color_Background.ToAnsi(Color8);
+
 
     public static ImmutableArray<TerminalColor8> Colors8 => colors8.Value;
     // ReSharper disable once InconsistentNaming

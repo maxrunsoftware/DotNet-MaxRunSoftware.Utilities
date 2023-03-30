@@ -40,38 +40,23 @@ public static class TerminalFormat
     private static string FormatTerminalInternal(string str, TerminalColor? foreground, TerminalColor? background, TerminalSGR[] sgrs)
     {
         var sb = new StringBuilder();
+
+        // clear existing formatting
         sb.Append(TerminalSGR.Reset.ToAnsi());
-        foreach (var sgr in sgrs)
-        {
-            sb.Append(sgr.ToAnsi());
-        }
 
-        if (foreground != null)
-        {
-            static string GetForeground(TerminalColor foreground) => foreground switch
-            {
-                TerminalColor4 color4 => color4.Color4_Foreground.ToAnsi(),
-                TerminalColor8 color8 => TerminalSGR.Color_Foreground.ToAnsi(color8.Color8),
-                _ => TerminalSGR.Color_Foreground.ToAnsi(foreground.Color),
-            };
+        // modifiers like bold, blinking, etc
+        foreach (var sgr in sgrs) sb.Append(sgr.ToAnsi());
 
-            sb.Append(GetForeground(foreground));
-        }
+        // colors
+        if (foreground != null) sb.Append(foreground.ToStringAnsiForeground());
+        if (background != null) sb.Append(background.ToStringAnsiBackground());
 
-        if (background != null)
-        {
-            static string GetBackground(TerminalColor background) => background switch
-            {
-                TerminalColor4 color4 => color4.Color4_Background.ToAnsi(),
-                TerminalColor8 color8 => TerminalSGR.Color_Background.ToAnsi(color8.Color8),
-                _ => TerminalSGR.Color_Background.ToAnsi(background.Color),
-            };
-
-            sb.Append(GetBackground(background));
-        }
-
+        // actual text
         sb.Append(str);
+
+        // clear future formatting
         sb.Append(TerminalSGR.Reset.ToAnsi());
+
         return sb.ToString();
     }
 }

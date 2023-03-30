@@ -27,18 +27,22 @@ public class TerminalColor4 : TerminalColor8
 
     public TerminalSGR Color4_Foreground { get; }
     public TerminalSGR Color4_Background { get; }
+    public ConsoleColor ConsoleColor { get; }
 
-    public TerminalColor4(string colorString) : base(colorString)
-    {
-        Color4_Foreground = Text.CheckNotNull(nameof(Text)).Color4_Foreground.CheckNotNull(nameof(Text) + "." + nameof(Text.Color4_Foreground));
-        Color4_Background = Text.CheckNotNull(nameof(Text)).Color4_Background.CheckNotNull(nameof(Text) + "." + nameof(Text.Color4_Background));
-    }
+    public TerminalColor4(byte color8, byte red, byte green, byte blue, string? colorHex, string colorName, byte color4foreground, byte color4background, ConsoleColor consoleColor) :
+        this(color8, red, green, blue, colorHex, colorName, (TerminalSGR)color4foreground, (TerminalSGR)color4background, consoleColor) { }
 
-    public TerminalColor4(Color color, string? colorName, byte color8, TerminalSGR color4foreground, TerminalSGR color4background) : base(color, colorName, color8)
+    public TerminalColor4(byte color8, byte red, byte green, byte blue, string? colorHex, string colorName, TerminalSGR color4foreground, TerminalSGR color4background, ConsoleColor consoleColor) : base(color8, red, green, blue, colorHex, colorName)
     {
         Color4_Foreground = color4foreground;
         Color4_Background = color4background;
+        ConsoleColor = consoleColor;
     }
+
+
+    public override string ToStringAnsiForeground() => Color4_Foreground.ToAnsi();
+
+    public override string ToStringAnsiBackground() => Color4_Background.ToAnsi();
 
     public static ImmutableArray<TerminalColor4> Colors4 => colors4.Value;
     private static readonly Lzy<ImmutableArray<TerminalColor4>> colors4;
