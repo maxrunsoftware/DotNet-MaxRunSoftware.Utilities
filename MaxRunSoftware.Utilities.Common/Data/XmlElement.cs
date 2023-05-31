@@ -207,8 +207,8 @@ public static class XmlElementExtensions
     {
         var writerBuffer = new StringBuilder();
         using var writer = writerSettings == null
-            ? System.Xml.XmlWriter.Create(writerBuffer)
-            : System.Xml.XmlWriter.Create(writerBuffer, writerSettings);
+            ? XmlWriter.Create(writerBuffer)
+            : XmlWriter.Create(writerBuffer, writerSettings);
 
         ApplyXslt(xml, xslt, writer);
 
@@ -217,7 +217,7 @@ public static class XmlElementExtensions
         return writerBuffer.ToString();
     }
 
-    public static void ApplyXslt(XmlReader xml, XmlReader xslt, System.Xml.XmlWriter writer)
+    public static void ApplyXslt(XmlReader xml, XmlReader xslt, XmlWriter writer)
     {
         var transform = new XslCompiledTransform();
         transform.Load(xml);
@@ -229,47 +229,48 @@ public static class XmlElementExtensions
 
     #region ToXml
 
-    private static void ToXml(XmlElement element, System.Xml.XmlWriter writer, HashSet<XmlElement> itemsSeen)
+    private static void ToXml(XmlElement element, XmlWriter xmlWriter, HashSet<XmlElement> itemsSeen)
     {
         if (!itemsSeen.Add(element)) throw new ArgumentException($"Found multiple references to the same element {element}", nameof(element));
-        writer.WriteStartElement(element.Name);
-        foreach (var kvp in element.Attributes) writer.WriteAttributeString(kvp.Key, kvp.Value);
-        if (element.Value != null) writer.WriteString(element.Value);
+
+        xmlWriter.WriteStartElement(element.Name);
+
+        foreach (var kvp in element.Attributes) xmlWriter.WriteAttributeString(kvp.Key, kvp.Value);
+
+        if (element.Value != null) xmlWriter.WriteString(element.Value);
+
         foreach (var child in element.Children)
         {
-            ToXml(child, writer, itemsSeen);
+            ToXml(child, xmlWriter, itemsSeen);
         }
 
-        writer.WriteEndElement();
+        xmlWriter.WriteEndElement();
     }
 
     public static string ToXml(this XmlElement element, XmlWriterSettings? settings = null)
     {
-        settings ??= XmlElement.DefaultWriterSettings;
-        using var textWriter = new StringWriter();
-        ToXml(element, textWriter, settings: settings);
+        using var stringWriter = new StringWriter();
+        ToXml(element, stringWriter, settings: settings);
+        stringWriter.Flush();
+        return stringWriter.ToString();
+    }
+
+    public static void ToXml(this XmlElement element, TextWriter textWriter, XmlWriterSettings? settings = null)
+    {
+        using var xmlWriter = XmlWriter.Create(textWriter, settings ?? XmlElement.DefaultWriterSettings);
+        var itemsSeen = new HashSet<XmlElement>();
+        ToXml(element, xmlWriter, itemsSeen);
+        xmlWriter.Flush();
         textWriter.Flush();
-        return textWriter.ToString();
     }
 
     public static void ToXml(this XmlElement element, Stream stream, XmlWriterSettings? settings = null, Encoding? encoding = null, int bufferSize = -1)
     {
-        settings ??= XmlElement.DefaultWriterSettings;
-        encoding ??= settings.Encoding;
-        using var textWriter = new StreamWriter(stream, encoding, bufferSize, true);
-        ToXml(element, textWriter, settings: settings);
-        textWriter.Flush();
+        encoding ??= settings?.Encoding ?? XmlElement.DefaultWriterSettings.Encoding;
+        using var streamWriter = new StreamWriter(stream, encoding, bufferSize, true);
+        ToXml(element, streamWriter, settings: settings);
+        streamWriter.Flush();
         stream.Flush();
-    }
-
-
-    public static void ToXml(this XmlElement element, TextWriter textWriter, XmlWriterSettings? settings = null)
-    {
-        using var writer = System.Xml.XmlWriter.Create(textWriter, settings);
-        var itemsSeen = new HashSet<XmlElement>();
-        ToXml(element, writer, itemsSeen);
-        writer.Flush();
-        textWriter.Flush();
     }
 
     #endregion ToXml
