@@ -43,8 +43,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
         <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
-        <PackageReference Include="FluentFTP" Version="45.0.4" />
+        <PackageReference Include="FluentFTP" Version="48.0.0" />
     </ItemGroup>
 </Project>
