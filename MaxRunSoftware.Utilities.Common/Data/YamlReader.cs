@@ -79,99 +79,92 @@ public enum YamlReaderItemType { Dictionary, List, Value }
 [PublicAPI]
 public class YamlReaderItem
 {
+    public object? Value { get; }
+
     public YamlReaderItemType Type { get; }
-    public object? ValueRaw { get; }
-
-    private Dictionary<string, YamlReaderItem>? dictionary;
-    public Dictionary<string, YamlReaderItem> GetDictionary()
-    {
-        if (Type != YamlReaderItemType.Dictionary || ValueRaw == null) throw new("Not dictionary");
-        if (dictionary != null) return dictionary;
-
-        var dictionaryNew = new Dictionary<string, YamlReaderItem>();
-        if (ValueRaw is IDictionary<object?, object?> dictionaryGeneric)
-        {
-            foreach (var kvp in dictionaryGeneric)
-            {
-                var k = kvp.Key?.ToString();
-                if (k == null) continue;
-                var v = kvp.Value;
-                var vyi = new YamlReaderItem(v);
-                dictionaryNew[k] = vyi;
-            }
-        }
-        else if (ValueRaw is IDictionary dictionaryNotGeneric)
-        {
-            foreach (var key in dictionaryNotGeneric.Keys)
-            {
-                if (key == null) continue;
-                var v = dictionaryNotGeneric[key];
-                var k = key.ToString();
-                if (k == null) continue;
-                var vyi = new YamlReaderItem(v);
-                dictionaryNew[k] = vyi;
-            }
-        }
-        else
-        {
-            throw new NotImplementedException($"Type {ValueRaw.GetType().FullNameFormatted()} is not a dictionary");
-        }
-
-        dictionary = dictionaryNew;
-        return dictionary;
-    }
-
-    private List<YamlReaderItem>? list;
-    public List<YamlReaderItem> GetList()
-    {
-        if (Type != YamlReaderItemType.List || ValueRaw == null) throw new("Not list");
-        if (list != null) return list;
-
-        var listNew = new List<YamlReaderItem>();
-        foreach (var item in (IEnumerable)ValueRaw)
-        {
-            var vyi = new YamlReaderItem(item);
-            listNew.Add(vyi);
-        }
-
-        list = listNew;
-        return list;
-    }
-
-    private string? valueString;
-    public string? GetString()
-    {
-        if (Type != YamlReaderItemType.Value) throw new("Not value");
-        return valueString ??= ValueRaw?.ToString();
-    }
+    public IReadOnlyDictionary<string, YamlReaderItem>? Dictionary { get; }
+    public IReadOnlyList<YamlReaderItem>? List { get; }
+    public string? String { get; }
 
     public YamlReaderItem(object? obj)
     {
-        ValueRaw = obj;
-        Type = ParseItemType(obj);
+        Value = obj;
+
+        static bool IsList(object obj)
+        {
+            // https://stackoverflow.com/a/17190236
+            var isList = obj is IList && obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
+            return isList;
+        }
+
+        static bool IsDictionary(object obj)
+        {
+            // https://stackoverflow.com/a/17190236
+            var isDictionary = obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
+            return isDictionary;
+        }
+
+        if (obj == null)
+        {
+            Type = YamlReaderItemType.Value;
+        }
+        else if (IsDictionary(obj))
+        {
+            Type = YamlReaderItemType.Dictionary;
+            var dic = new Dictionary<string, YamlReaderItem>();
+            if (obj is IDictionary<object?, object?> dictionaryGeneric)
+            {
+                foreach (var kvp in dictionaryGeneric)
+                {
+                    var k = kvp.Key?.ToString();
+                    if (k == null) continue;
+                    var v = kvp.Value;
+                    var vyi = new YamlReaderItem(v);
+                    dic[k] = vyi;
+                }
+            }
+            else if (obj is IDictionary dictionaryNotGeneric)
+            {
+                foreach (var key in dictionaryNotGeneric.Keys)
+                {
+                    if (key == null) continue;
+                    var v = dictionaryNotGeneric[key];
+                    var k = key.ToString();
+                    if (k == null) continue;
+                    var vyi = new YamlReaderItem(v);
+                    dic[k] = vyi;
+                }
+            }
+            else
+            {
+                throw new NotImplementedException($"Type {obj.GetType().FullNameFormatted()} is not a dictionary");
+            }
+
+            Dictionary = dic.AsReadOnly();
+        }
+        else if (IsList(obj))
+        {
+            Type = YamlReaderItemType.List;
+            var list = new List<YamlReaderItem>();
+            foreach (var item in (IEnumerable)obj)
+            {
+                var vyi = new YamlReaderItem(item);
+                list.Add(vyi);
+            }
+
+            List = list;
+        }
+        else
+        {
+            Type = YamlReaderItemType.Value;
+            String = obj.ToString();
+        }
     }
 
-    private static YamlReaderItemType ParseItemType(object? obj)
-    {
-        if (obj == null) return YamlReaderItemType.Value;
-        if (IsDictionary(obj)) return YamlReaderItemType.Dictionary;
-        if (IsList(obj)) return YamlReaderItemType.List;
-        return YamlReaderItemType.Value;
-    }
 
-    private static bool IsList(object obj)
-    {
-        // https://stackoverflow.com/a/17190236
-        var isList = obj is IList && obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
-        return isList;
-    }
 
-    private static bool IsDictionary(object obj)
-    {
-        // https://stackoverflow.com/a/17190236
-        var isDictionary = obj is IDictionary && obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
-        return isDictionary;
-    }
+
+
 
     private static readonly ImmutableHashSet<char> DICTIONARY_KEY_NOT_ESCAPE_CHARSET = ("-_" + Constant.Chars_Alphanumeric_String).ToCharArray().ToImmutableHashSet();
     public override string? ToString()
@@ -190,9 +183,9 @@ public class YamlReaderItem
 
         string FormatKvp(KeyValuePair<string, YamlReaderItem> kvp) => $"{FormatValue(kvp.Key, true)}: {kvp.Value}";
 
-        if (Type == YamlReaderItemType.Value) return FormatValue(GetString(), false);
-        if (Type == YamlReaderItemType.List) return "[" + GetList().Select(o => o.ToString()).ToStringDelimited(", ") + "]";
-        if (Type == YamlReaderItemType.Dictionary) return "{" + GetDictionary().OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase).Select(FormatKvp).ToStringDelimited(", ") + "}";
+        if (Type == YamlReaderItemType.Value) return FormatValue(String, false);
+        if (Type == YamlReaderItemType.List) return "[" + List!.Select(o => o.ToString()).ToStringDelimited(", ") + "]";
+        if (Type == YamlReaderItemType.Dictionary) return "{" + Dictionary!.OrderBy(kvp => kvp.Key, StringComparer.OrdinalIgnoreCase).Select(FormatKvp).ToStringDelimited(", ") + "}";
         return base.ToString();
     }
 }
