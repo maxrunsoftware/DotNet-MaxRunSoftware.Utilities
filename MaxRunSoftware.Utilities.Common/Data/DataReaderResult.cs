@@ -22,7 +22,7 @@ public class DataReaderResult : ITable
     public DataReaderResultColumnCollection Columns { get; }
     public DataReaderResultRowCollection Rows { get; }
 
-    public DataReaderResult(int index, IDataReader reader)
+    public DataReaderResult(IDataReader reader, int index = 0)
     {
         //Constant.GetLogger<DataReaderResult>().LogTrace("Reading " + nameof(DataReaderResult) + "[{Index}]", index);
         Index = index;
@@ -45,7 +45,7 @@ public static class DataReaderResultExtensions
         var i = 0;
         do
         {
-            var result = new DataReaderResult(i, reader);
+            var result = new DataReaderResult(reader, index: i);
             yield return result;
             i++;
         } while (reader.NextResult());
