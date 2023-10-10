@@ -22,29 +22,10 @@ public static class TaskSchedulerExtensions
 
     public static TaskSchedulerPath GetPath(this TaskFolder folder) => new(folder);
 
-    public static DaysOfTheWeek ToDaysOfTheWeek(this DayOfWeek dayOfWeek) =>
-        dayOfWeek switch
-        {
-            DayOfWeek.Sunday => DaysOfTheWeek.Sunday,
-            DayOfWeek.Monday => DaysOfTheWeek.Monday,
-            DayOfWeek.Tuesday => DaysOfTheWeek.Tuesday,
-            DayOfWeek.Wednesday => DaysOfTheWeek.Wednesday,
-            DayOfWeek.Thursday => DaysOfTheWeek.Thursday,
-            DayOfWeek.Friday => DaysOfTheWeek.Friday,
-            DayOfWeek.Saturday => DaysOfTheWeek.Saturday,
-            _ => throw new ArgumentOutOfRangeException(nameof(dayOfWeek), dayOfWeek, null)
-        };
-
-    public static bool TaskDelete(this TaskScheduler taskScheduler, TaskSchedulerPath path)
-    {
-        var t = taskScheduler.GetTask(path);
-        if (t == null) return false;
-        return taskScheduler.TaskDelete(t);
-    }
-
     public static Dictionary<TaskSchedulerPath, List<Task>> GetTasksByFolder(this TaskScheduler taskScheduler)
     {
         var d = new Dictionary<TaskSchedulerPath, List<Task>>();
+
         foreach (var taskFolder in taskScheduler.GetTaskFolders())
         {
             d.AddToList(taskFolder.GetPath(), taskFolder.Tasks.ToArray());
@@ -54,5 +35,6 @@ public static class TaskSchedulerExtensions
     }
 
     public static Task? GetTask(this TaskScheduler taskScheduler, string path) => taskScheduler.GetTask(new(path));
+
     public static TaskFolder? GetTaskFolder(this TaskScheduler taskScheduler, string path) => taskScheduler.GetTaskFolder(new(path));
 }

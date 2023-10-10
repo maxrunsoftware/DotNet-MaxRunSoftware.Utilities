@@ -61,29 +61,7 @@ public abstract class TaskSchedulerTriggerMinute : TaskSchedulerTrigger
     }
 }
 
-[PublicAPI]
-public abstract class TaskSchedulerTriggerHourMinute : TaskSchedulerTriggerMinute
-{
-    private int hour;
-    public int Hour
-    {
-        get => hour.CheckMin(0).CheckMax(59);
-        set => hour = value.CheckMin(0).CheckMax(59);
-    }
 
-    protected virtual DateTime StartBoundary
-    {
-        get
-        {
-            var startBoundary = DateTime.Today + TimeSpan.FromHours(Hour) + TimeSpan.FromMinutes(Minute);
-
-            // Fix DST issue
-            startBoundary = DateTime.SpecifyKind(startBoundary, DateTimeKind.Unspecified);
-
-            return startBoundary;
-        }
-    }
-}
 
 [PublicAPI]
 public class TaskSchedulerTriggerHourly : TaskSchedulerTriggerMinute
@@ -107,6 +85,30 @@ public class TaskSchedulerTriggerHourly : TaskSchedulerTriggerMinute
         trigger.StartBoundary = nowHour;
         trigger.Repetition!.Interval = interval;
         return trigger.Yield();
+    }
+}
+
+[PublicAPI]
+public abstract class TaskSchedulerTriggerHourMinute : TaskSchedulerTriggerMinute
+{
+    private int hour;
+    public int Hour
+    {
+        get => hour.CheckMin(0).CheckMax(59);
+        set => hour = value.CheckMin(0).CheckMax(59);
+    }
+
+    protected virtual DateTime StartBoundary
+    {
+        get
+        {
+            var startBoundary = DateTime.Today + TimeSpan.FromHours(Hour) + TimeSpan.FromMinutes(Minute);
+
+            // Fix DST issue
+            startBoundary = DateTime.SpecifyKind(startBoundary, DateTimeKind.Unspecified);
+
+            return startBoundary;
+        }
     }
 }
 

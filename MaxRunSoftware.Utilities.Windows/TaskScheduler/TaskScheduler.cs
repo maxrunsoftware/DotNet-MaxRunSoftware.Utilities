@@ -117,33 +117,82 @@ public class TaskScheduler : IDisposable
         return t!;
     }
 
-    public bool TaskDelete(Task task)
+    public RunningTask? TaskStart(Task task, bool force = false)
     {
-        var taskName = task.Name;
-        if (task.State.In(TaskState.Queued, TaskState.Running, TaskState.Unknown))
+        if (!force)
         {
-            try
+            if (task.State.NotIn(TaskState.Running))
             {
-                log.LogDebugMethod(new(task), "Stopping task {TaskName} in state {TaskState}", taskName, task.State);
-                task.Stop();
+                log.LogDebugMethod(new(task), "Skipped start for task {TaskName} in state {TaskState} because it is currently running", task.Name, task.State);
+                return null;
             }
-            catch (Exception e)
+
+            if (task.State.NotIn(TaskState.Queued))
             {
-                log.LogWarningMethod(new(task), e, "Error stopping task {TaskName}", taskName);
+                log.LogDebugMethod(new(task), "Skipped start for task {TaskName} in state {TaskState} because it is currently queued", task.Name, task.State);
+                return null;
             }
         }
 
-        if (task.Enabled)
+        log.LogDebugMethod(new(task), "Starting task {TaskName} in state {TaskState}", task.Name, task.State);
+        return task.Run();
+    }
+
+    public void TaskStop(Task task, bool force = false)
+    {
+        if (!force && task.State.NotIn(TaskState.Queued, TaskState.Running, TaskState.Unknown))
         {
-            try
-            {
-                log.LogDebugMethod(new(task), "Disabling task {TaskName}", taskName);
-                task.Enabled = false;
-            }
-            catch (Exception e)
-            {
-                log.LogWarningMethod(new(task), e, "Error disabling task {TaskName}", taskName);
-            }
+            log.LogDebugMethod(new(task), "Skipped stop for task {TaskName} in state {TaskState}", task.Name, task.State);
+            return;
+        }
+
+        log.LogDebugMethod(new(task), "Stopping task {TaskName} in state {TaskState}", task.Name, task.State);
+        task.Stop();
+    }
+
+    public void TaskEnable(Task task, bool force = false)
+    {
+        if (!force && task.Enabled)
+        {
+            log.LogDebugMethod(new(task), "Skipped enable for task {TaskName} with Enabled={TaskEnabled}", task.Name, task.Enabled);
+            return;
+        }
+
+        log.LogDebugMethod(new(task), "Disabling task {TaskName} with Enabled={TaskEnabled}", task.Name, task.Enabled);
+        task.Enabled = true;
+    }
+
+    public void TaskDisable(Task task, bool force = false)
+    {
+        if (!force && !task.Enabled)
+        {
+            log.LogDebugMethod(new(task), "Skipped disable for task {TaskName} with Enabled={TaskEnabled}", task.Name, task.Enabled);
+            return;
+        }
+
+        log.LogDebugMethod(new(task), "Disabling task {TaskName} with Enabled={TaskEnabled}", task.Name, task.Enabled);
+        task.Enabled = false;
+    }
+
+    public bool TaskDelete(Task task)
+    {
+        var taskName = task.Name;
+        try
+        {
+            TaskStop(task);
+        }
+        catch (Exception e)
+        {
+            log.LogWarningMethod(new(task), e, "Error stopping task {TaskName}", taskName);
+        }
+
+        try
+        {
+            TaskDisable(task);
+        }
+        catch (Exception e)
+        {
+            log.LogWarningMethod(new(task), e, "Error disabling task {TaskName}", taskName);
         }
 
         var result = false;
@@ -228,17 +277,25 @@ public class TaskScheduler : IDisposable
         return null;
     }
 
-
-
     public TaskFolder CreateTaskFolder(TaskSchedulerPath path)
     {
-        log.LogTraceMethod(new(path), "Creating TaskFolder {Path}", path);
+        log.LogTraceMethod(new(path), "Attempting to create TaskFolder {Path}", path);
         var existingFolder = GetTaskFolder(path);
-        if (existingFolder != null) return existingFolder;
+        if (existingFolder != null)
+        {
+            log.LogDebugMethod(new(path), "Skipping TaskFolder creation because folder already exists {Path}", path);
+            return existingFolder;
+        }
 
         var parent = path.Parent.CheckNotNull();
-        var parentFolder = GetTaskFolder(parent) ?? CreateTaskFolder(parent);
-        log.LogDebugMethod(new(path), "Actually Creating TaskFolder: {Path}", path);
+        var parentFolder = GetTaskFolder(parent);
+        if (parentFolder == null)
+        {
+            log.LogTraceMethod(new(path), "Parent folder {ParentFolder} does not exist so creating it", parent);
+            parentFolder = CreateTaskFolder(parent);
+        }
+
+        log.LogDebugMethod(new(path), "Creating TaskFolder: {Path}", path);
         return parentFolder.CreateFolder(path.Name)!;
     }
 
