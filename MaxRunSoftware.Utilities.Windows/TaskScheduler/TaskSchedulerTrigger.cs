@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,58 +17,30 @@ using Microsoft.Win32.TaskScheduler;
 namespace MaxRunSoftware.Utilities.Windows;
 
 [PublicAPI]
-public interface ITaskSchedulerTrigger
+public static class TaskSchedulerTrigger
 {
-    IEnumerable<Trigger> CreateTriggers();
-}
-
-
-[PublicAPI]
-public abstract class TaskSchedulerTrigger : ITaskSchedulerTrigger
-{
-    public abstract IEnumerable<Trigger> CreateTriggers();
-
-    public static ITaskSchedulerTrigger CreateFromTriggers(params Trigger[] triggers) => new TaskSchedulerTriggerWrapper(triggers);
-
-    private sealed class TaskSchedulerTriggerWrapper : ITaskSchedulerTrigger
+    private static DateTime GetStartBoundary(int hour, int minute)
     {
-        private readonly ImmutableArray<Trigger> triggers;
-        public TaskSchedulerTriggerWrapper(params Trigger[] triggers) => this.triggers = triggers.OrEmpty().WhereNotNull().ToImmutableArray();
-        public IEnumerable<Trigger> CreateTriggers() => triggers;
+        var startBoundary = DateTime.Today + TimeSpan.FromHours(hour) + TimeSpan.FromMinutes(minute);
+
+        // Fix DST issue
+        startBoundary = DateTime.SpecifyKind(startBoundary, DateTimeKind.Unspecified);
+
+        return startBoundary;
     }
-}
 
-[PublicAPI]
-public class TaskSchedulerTriggerCron : TaskSchedulerTrigger
-{
-    public string? CronString { get; set; }
-    public override IEnumerable<Trigger> CreateTriggers()
+    public static IEnumerable<Trigger> CreateCron(string cron)
     {
-        var cronString = CronString.CheckNotNullTrimmed();
+        var cronString = cron.CheckNotNullTrimmed();
 
         return Trigger.FromCronFormat(cronString)!;
     }
-}
 
-[PublicAPI]
-public abstract class TaskSchedulerTriggerMinute : TaskSchedulerTrigger
-{
-    private int minute;
-    public int Minute
+    public static IEnumerable<Trigger> CreateHourly(int minute)
     {
-        get => minute.CheckMin(0).CheckMax(59);
-        set => minute = value.CheckMin(0).CheckMax(59);
-    }
-}
+        minute.CheckMin(0).CheckMax(59);
 
-
-
-[PublicAPI]
-public class TaskSchedulerTriggerHourly : TaskSchedulerTriggerMinute
-{
-    public override IEnumerable<Trigger> CreateTriggers()
-    {
-        var interval = TimeSpan.FromMinutes(Minute);
+        var interval = TimeSpan.FromMinutes(minute);
 
         var now = DateTime.Now;
 
@@ -86,93 +58,59 @@ public class TaskSchedulerTriggerHourly : TaskSchedulerTriggerMinute
         trigger.Repetition!.Interval = interval;
         return trigger.Yield();
     }
-}
 
-[PublicAPI]
-public abstract class TaskSchedulerTriggerHourMinute : TaskSchedulerTriggerMinute
-{
-    private int hour;
-    public int Hour
+    public static IEnumerable<Trigger> CreateDaily(int hour, int minute)
     {
-        get => hour.CheckMin(0).CheckMax(59);
-        set => hour = value.CheckMin(0).CheckMax(59);
-    }
+        hour.CheckMin(0).CheckMax(23);
+        minute.CheckMin(0).CheckMax(59);
 
-    protected virtual DateTime StartBoundary
-    {
-        get
-        {
-            var startBoundary = DateTime.Today + TimeSpan.FromHours(Hour) + TimeSpan.FromMinutes(Minute);
-
-            // Fix DST issue
-            startBoundary = DateTime.SpecifyKind(startBoundary, DateTimeKind.Unspecified);
-
-            return startBoundary;
-        }
-    }
-}
-
-[PublicAPI]
-public class TaskSchedulerTriggerDaily : TaskSchedulerTriggerHourMinute
-{
-    public override IEnumerable<Trigger> CreateTriggers()
-    {
         var trigger = new DailyTrigger();
-        trigger.StartBoundary = StartBoundary;
+        trigger.StartBoundary = GetStartBoundary(hour, minute);
         return trigger.Yield();
     }
-}
 
-[PublicAPI]
-public class TaskSchedulerTriggerMonthly : TaskSchedulerTriggerHourMinute
-{
-    public ISet<int> DaysOfMonth { get; } = new SortedSet<int>();
-
-    public override IEnumerable<Trigger> CreateTriggers()
+    public static IEnumerable<Trigger> CreateWeekly(IEnumerable<DayOfWeek> daysOfWeek, int hour, int minute)
     {
-        var trigger = new MonthlyTrigger(monthsOfYear: MonthsOfTheYear.AllMonths);
-        trigger.StartBoundary = StartBoundary;
-        trigger.DaysOfMonth = DaysOfMonth.ToArray();
-        return trigger.Yield();
-    }
-}
+        static DaysOfTheWeek ConvertDayOfWeek(DayOfWeek dayOfWeek) => dayOfWeek switch
+        {
+            DayOfWeek.Sunday => DaysOfTheWeek.Sunday,
+            DayOfWeek.Monday => DaysOfTheWeek.Monday,
+            DayOfWeek.Tuesday => DaysOfTheWeek.Tuesday,
+            DayOfWeek.Wednesday => DaysOfTheWeek.Wednesday,
+            DayOfWeek.Thursday => DaysOfTheWeek.Thursday,
+            DayOfWeek.Friday => DaysOfTheWeek.Friday,
+            DayOfWeek.Saturday => DaysOfTheWeek.Saturday,
+            _ => throw new ArgumentOutOfRangeException(nameof(dayOfWeek), dayOfWeek, $"Invalid day of the week {dayOfWeek}"),
+        };
 
-[PublicAPI]
-public class TaskSchedulerTriggerWeekly : TaskSchedulerTriggerHourMinute
-{
-    public ISet<DayOfWeek> DaysOfWeek { get; } = new SortedSet<DayOfWeek>();
+        hour.CheckMin(0).CheckMax(23);
+        minute.CheckMin(0).CheckMax(59);
 
-    public override IEnumerable<Trigger> CreateTriggers()
-    {
-        DaysOfWeek.Count.CheckMin(1);
+        var daysOfWeekSet = new SortedSet<DayOfWeek>(daysOfWeek);
+        if (daysOfWeekSet.Count < 1) return Enumerable.Empty<Trigger>();
+
         DaysOfTheWeek? daysOfTheWeek = null;
-        if (DaysOfWeek.Count == 7)
+        if (daysOfWeekSet.Count == 7)
         {
             daysOfTheWeek = DaysOfTheWeek.AllDays;
         }
         else
         {
-            static DaysOfTheWeek ConvertDayOfWeek(DayOfWeek dayOfWeek) => dayOfWeek switch
+            foreach (var dow in daysOfWeekSet.Select(ConvertDayOfWeek))
             {
-                DayOfWeek.Sunday => DaysOfTheWeek.Sunday,
-                DayOfWeek.Monday => DaysOfTheWeek.Monday,
-                DayOfWeek.Tuesday => DaysOfTheWeek.Tuesday,
-                DayOfWeek.Wednesday => DaysOfTheWeek.Wednesday,
-                DayOfWeek.Thursday => DaysOfTheWeek.Thursday,
-                DayOfWeek.Friday => DaysOfTheWeek.Friday,
-                DayOfWeek.Saturday => DaysOfTheWeek.Saturday,
-                _ => throw new ArgumentOutOfRangeException(nameof(dayOfWeek), dayOfWeek, $"Invalid day of the week {dayOfWeek}"),
-            };
-            foreach (var dayOfWeek in DaysOfWeek)
-            {
-                var dow = ConvertDayOfWeek(dayOfWeek);
-                if (daysOfTheWeek == null) daysOfTheWeek = dow;
-                else daysOfTheWeek = daysOfTheWeek.Value | dow;
+                if (daysOfTheWeek == null)
+                {
+                    daysOfTheWeek = dow;
+                }
+                else
+                {
+                    daysOfTheWeek = daysOfTheWeek.Value | dow;
+                }
             }
         }
 
         var trigger = new WeeklyTrigger();
-        trigger.StartBoundary = StartBoundary;
+        trigger.StartBoundary = GetStartBoundary(hour, minute);
         trigger.DaysOfWeek = daysOfTheWeek.CheckNotNull();
         return trigger.Yield();
     }

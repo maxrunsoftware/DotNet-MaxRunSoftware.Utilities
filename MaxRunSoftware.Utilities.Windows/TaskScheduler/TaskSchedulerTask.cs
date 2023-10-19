@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Microsoft.Win32.TaskScheduler;
+
 namespace MaxRunSoftware.Utilities.Windows;
 
 [PublicAPI]
@@ -19,7 +21,7 @@ public class TaskSchedulerTask
 {
     public TaskSchedulerPath? Path { get; set; }
     public IList<string> FilePaths { get; } = new List<string>();
-    public IList<ITaskSchedulerTrigger> Triggers { get; } = new List<ITaskSchedulerTrigger>();
+    public IList<Trigger> Triggers { get; } = new List<Trigger>();
     public string? Arguments { get; set; }
     public string? WorkingDirectory { get; set; }
     public string? Description { get; set; }

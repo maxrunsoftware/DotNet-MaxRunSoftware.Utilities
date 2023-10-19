@@ -19,7 +19,6 @@ namespace MaxRunSoftware.Utilities.Windows;
 [PublicAPI]
 public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedulerPath.Comparer>
 {
-
     // ReSharper disable once InconsistentNaming
     private static readonly string PATH_DELIMITER_TaskScheduler = PATH_DELIMITER_TaskScheduler_Build();
     private static string PATH_DELIMITER_TaskScheduler_Build()
@@ -35,7 +34,8 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
                 var ds = f.GetValue(null)?.ToString();
                 if (ds != null) delim = ds;
             }
-        } catch (Exception) {}
+        }
+        catch (Exception) { }
 
         return delim;
     }
@@ -61,7 +61,11 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
             foreach (var pathDelimiter in PATH_DELIMITERS.Select(o => o.ToString()))
             {
                 var doublePathDelimiter = pathDelimiter + pathDelimiter;
-                while (path.Contains(doublePathDelimiter)) path = path.Replace(doublePathDelimiter, pathDelimiter);
+                while (path.Contains(doublePathDelimiter))
+                {
+                    path = path.Replace(doublePathDelimiter, pathDelimiter);
+                }
+
                 if (pathDelimiter != pathDelimiterCorrect) path = path.Replace(pathDelimiter, pathDelimiterCorrect);
             }
 
@@ -93,5 +97,24 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
         protected override bool EqualsInternal(TaskSchedulerPath x, TaskSchedulerPath y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsOrdinalIgnoreCase(x.Path, y.Path);
         protected override int GetHashCodeInternal(TaskSchedulerPath obj) => HashOrdinalIgnoreCase(obj.Path);
         protected override int CompareInternal(TaskSchedulerPath x, TaskSchedulerPath y) => CompareOrdinalIgnoreCaseThenOrdinal(x.PathParts, y.PathParts) ?? 0;
+    }
+}
+
+public static class TaskSchedulerPathExtensions
+{
+    public static TaskSchedulerPath GetPath(this Task task) => new(task);
+
+    public static TaskSchedulerPath GetPath(this TaskFolder folder) => new(folder);
+
+    public static Dictionary<TaskSchedulerPath, List<Task>> GetTasksByFolder(this TaskScheduler taskScheduler)
+    {
+        var d = new Dictionary<TaskSchedulerPath, List<Task>>();
+
+        foreach (var taskFolder in taskScheduler.GetTaskFolders())
+        {
+            d.AddToList(taskFolder.GetPath(), taskFolder.Tasks.ToArray());
+        }
+
+        return d;
     }
 }

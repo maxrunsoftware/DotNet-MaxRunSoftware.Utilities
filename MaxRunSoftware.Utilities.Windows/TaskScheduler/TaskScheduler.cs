@@ -92,11 +92,8 @@ public class TaskScheduler : IDisposable
         taskServiceTask.Settings.Hidden = false;
         foreach (var trigger in task.Triggers)
         {
-            foreach (var trigger2 in trigger.CreateTriggers())
-            {
-                log.LogTraceMethod(new(task), "Created trigger: {Trigger}", trigger2);
-                taskServiceTask.Triggers.Add(trigger2);
-            }
+            log.LogTraceMethod(new(task), "Created trigger: {Trigger}", trigger);
+            taskServiceTask.Triggers.Add(trigger);
         }
 
         foreach (var filePath in task.FilePaths)
@@ -314,4 +311,24 @@ public class TaskScheduler : IDisposable
             ts.DisposeSafely(log);
         }
     }
+}
+
+public static class TaskSchedulerExtensions
+{
+    public static Task? GetTask(this TaskScheduler taskScheduler, string path) => taskScheduler.GetTask(new(path));
+
+    public static TaskFolder? GetTaskFolder(this TaskScheduler taskScheduler, string path) => taskScheduler.GetTaskFolder(new(path));
+
+    public static Dictionary<TaskSchedulerPath, List<Task>> GetTasksByFolder(this TaskScheduler taskScheduler)
+    {
+        var d = new Dictionary<TaskSchedulerPath, List<Task>>();
+
+        foreach (var taskFolder in taskScheduler.GetTaskFolders())
+        {
+            d.AddToList(taskFolder.GetPath(), taskFolder.Tasks.ToArray());
+        }
+
+        return d;
+    }
+
 }
