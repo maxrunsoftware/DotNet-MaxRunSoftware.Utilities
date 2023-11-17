@@ -18,34 +18,11 @@
         <DocumentationFile>bin\Release\net6.0\MaxRunSoftware.Utilities.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <None Remove="NuGet.Build.Packaging" />
-        <None Remove="Extensions\" />
-        <None Remove="Sql\" />
-        <None Remove="Data\" />
-        <None Remove="Utils\" />
-        <None Remove="Threading\" />
-        <None Remove="Logging\" />
-        <None Remove="Buckets\" />
-        <None Remove="Collections\" />
-        <None Remove="Reflection\" />
-        <None Remove="Sql\MsSql\" />
-        <None Remove="Sql\MySql\" />
-        <None Remove="Sql\Oracle\" />
-    </ItemGroup>
-    <ItemGroup>
         <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Extensions\" />
-        <Folder Include="Data\" />
-        <Folder Include="Utils\" />
-        <Folder Include="Threading\" />
-        <Folder Include="Collections\" />
-        <Folder Include="Reflection\" />
     </ItemGroup>
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
       <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />

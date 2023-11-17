@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ global using System;
 global using System.Collections;
 global using System.Collections.Generic;
 global using System.Data;
+global using System.Diagnostics.Contracts;
 global using System.IO;
 global using System.Collections.Immutable;
 global using System.Linq;
@@ -25,5 +26,6 @@ global using System.Reflection;
 global using System.Text;
 global using System.Threading;
 global using Microsoft.Extensions.Logging;
-global using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
+global using JetBrains.Annotations;
 global using MaxRunSoftware.Utilities.Common;
+global using PureAttribute = System.Diagnostics.Contracts.PureAttribute;

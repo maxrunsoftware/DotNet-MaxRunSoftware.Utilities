@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Common;
+namespace MaxRunSoftware.Utilities;
 
 public static class AssemblyInfo
 {

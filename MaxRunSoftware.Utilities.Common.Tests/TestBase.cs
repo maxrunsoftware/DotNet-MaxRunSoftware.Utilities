@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 using Xunit.Sdk;
 
 namespace MaxRunSoftware.Utilities.Common.Tests;

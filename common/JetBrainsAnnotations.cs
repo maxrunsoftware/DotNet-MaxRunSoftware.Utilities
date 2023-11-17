@@ -22,6 +22,7 @@ SOFTWARE. */
 
 #nullable disable
 
+using System;
 // ReSharper disable UnusedType.Global
 
 #pragma warning disable 1591
@@ -31,9 +32,8 @@ SOFTWARE. */
 // ReSharper disable IntroduceOptionalParameters.Global
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable InconsistentNaming
-// ReSharper disable once CheckNamespace
 
-namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
+namespace JetBrains.Annotations
 {
   /// <summary>
   /// Indicates that the value of the marked element could be <c>null</c> sometimes,
@@ -41,7 +41,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </summary>
   /// <example><code>
   /// [CanBeNull] object Test() => null;
-  ///
+  /// 
   /// void UseTest() {
   ///   var p = Test();
   ///   var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
@@ -51,7 +51,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-  public sealed class CanBeNullAttribute : Attribute { }
+internal sealed class CanBeNullAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the value of the marked element can never be <c>null</c>.
@@ -65,7 +65,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-  public sealed class NotNullAttribute : Attribute { }
+internal sealed class NotNullAttribute : Attribute { }
 
   /// <summary>
   /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -84,7 +84,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field)]
-  public sealed class ItemNotNullAttribute : Attribute { }
+internal sealed class ItemNotNullAttribute : Attribute { }
 
   /// <summary>
   /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -104,17 +104,17 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field)]
-  public sealed class ItemCanBeNullAttribute : Attribute { }
+internal sealed class ItemCanBeNullAttribute : Attribute { }
 
   /// <summary>
-  /// Indicates that the marked method builds string by the format pattern and (optional) arguments.
+  /// Indicates that the marked method builds a string by the format pattern and (optional) arguments.
   /// The parameter, which contains the format string, should be given in the constructor. The format string
   /// should be in <see cref="string.Format(IFormatProvider,string,object[])"/>-like form.
   /// </summary>
   /// <example><code>
   /// [StringFormatMethod("message")]
   /// void ShowError(string message, params object[] args) { /* do something */ }
-  ///
+  /// 
   /// void Foo() {
   ///   ShowError("Failed: {0}"); // Warning: Non-existing argument in format string
   /// }
@@ -122,10 +122,10 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Constructor | AttributeTargets.Method |
     AttributeTargets.Property | AttributeTargets.Delegate)]
-  public sealed class StringFormatMethodAttribute : Attribute
+internal sealed class StringFormatMethodAttribute : Attribute
   {
     /// <param name="formatParameterName">
-    /// Specifies which parameter of an annotated method should be treated as the format string
+    /// Specifies which parameter of an annotated method should be treated as the format string.
     /// </param>
     public StringFormatMethodAttribute([NotNull] string formatParameterName)
     {
@@ -137,17 +137,17 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
   /// <summary>
   /// Indicates that the marked parameter is a message template where placeholders are to be replaced by the following arguments
-  /// in the order in which they appear
+  /// in the order in which they appear.
   /// </summary>
   /// <example><code>
   /// void LogInfo([StructuredMessageTemplate]string message, params object[] args) { /* do something */ }
-  ///
+  /// 
   /// void Foo() {
   ///   LogInfo("User created: {username}"); // Warning: Non-existing argument in format string
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class StructuredMessageTemplateAttribute : Attribute {}
+internal sealed class StructuredMessageTemplateAttribute : Attribute {}
 
   /// <summary>
   /// Use this annotation to specify a type that contains static or const fields
@@ -179,7 +179,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field,
     AllowMultiple = true)]
-  public sealed class ValueProviderAttribute : Attribute
+internal sealed class ValueProviderAttribute : Attribute
   {
     public ValueProviderAttribute([NotNull] string name)
     {
@@ -205,7 +205,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property |
     AttributeTargets.Method | AttributeTargets.Delegate,
     AllowMultiple = true)]
-  public sealed class ValueRangeAttribute : Attribute
+internal sealed class ValueRangeAttribute : Attribute
   {
     public object From { get; }
     public object To { get; }
@@ -246,12 +246,12 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property |
     AttributeTargets.Method | AttributeTargets.Delegate)]
-  public sealed class NonNegativeValueAttribute : Attribute { }
+internal sealed class NonNegativeValueAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the function argument should be a string literal and match
-  /// one of the parameters of the caller function. This annotation is used for paramerers
-  /// like 'string paramName' parameter of the <see cref="System.ArgumentNullException"/> constuctor.
+  /// one of the parameters of the caller function. This annotation is used for parameters
+  /// like 'string paramName' parameter of the <see cref="System.ArgumentNullException"/> constructor.
   /// </summary>
   /// <example><code>
   /// void Foo(string param) {
@@ -260,7 +260,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class InvokerParameterNameAttribute : Attribute { }
+internal sealed class InvokerParameterNameAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the method is contained in a type that implements
@@ -280,12 +280,12 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// public class Foo : INotifyPropertyChanged {
   ///   public event PropertyChangedEventHandler PropertyChanged;
-  ///
+  /// 
   ///   [NotifyPropertyChangedInvocator]
   ///   protected virtual void NotifyChanged(string propertyName) { ... }
   ///
   ///   string _name;
-  ///
+  /// 
   ///   public string Name {
   ///     get { return _name; }
   ///     set { _name = value; NotifyChanged("LastName"); /* Warning */ }
@@ -301,7 +301,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </list>
   /// </example>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
+internal sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
   {
     public NotifyPropertyChangedInvocatorAttribute() { }
     public NotifyPropertyChangedInvocatorAttribute([NotNull] string parameterName)
@@ -313,7 +313,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Describes dependency between method input and output.
+  /// Describes dependence between method input and output.
   /// </summary>
   /// <syntax>
   /// <p>Function Definition Table syntax:</p>
@@ -357,7 +357,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </code></item>
   /// </list></examples>
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-  public sealed class ContractAnnotationAttribute : Attribute
+internal sealed class ContractAnnotationAttribute : Attribute
   {
     public ContractAnnotationAttribute([NotNull] string contract)
       : this(contract, false) { }
@@ -383,7 +383,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.All)]
-  public sealed class LocalizationRequiredAttribute : Attribute
+internal sealed class LocalizationRequiredAttribute : Attribute
   {
     public LocalizationRequiredAttribute() : this(true) { }
 
@@ -404,7 +404,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [CannotApplyEqualityOperator]
   /// class NoEquality { }
-  ///
+  /// 
   /// class UsesNoEquality {
   ///   void Test() {
   ///     var ca1 = new NoEquality();
@@ -416,22 +416,22 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct)]
-  public sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
+internal sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
 
   /// <summary>
   /// When applied to a target attribute, specifies a requirement for any type marked
-  /// with the target attribute to implement or inherit specific type or types.
+  /// with the target attribute to implement or inherit the specific type or types.
   /// </summary>
   /// <example><code>
   /// [BaseTypeRequired(typeof(IComponent)] // Specify requirement
   /// class ComponentAttribute : Attribute { }
-  ///
+  /// 
   /// [Component] // ComponentAttribute requires implementing IComponent interface
   /// class MyComponent : IComponent { }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
   [BaseTypeRequired(typeof(Attribute))]
-  public sealed class BaseTypeRequiredAttribute : Attribute
+internal sealed class BaseTypeRequiredAttribute : Attribute
   {
     public BaseTypeRequiredAttribute([NotNull] Type baseType)
     {
@@ -450,18 +450,18 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [UsedImplicitly]
   /// public class TypeConverter {}
-  ///
+  /// 
   /// public class SummaryData
   /// {
   ///   [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
   ///   public SummaryData() {}
   /// }
-  ///
+  /// 
   /// [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors | ImplicitUseTargetFlags.Default)]
   /// public interface IService {}
   /// </code></example>
   [AttributeUsage(AttributeTargets.All)]
-  public sealed class UsedImplicitlyAttribute : Attribute
+internal sealed class UsedImplicitlyAttribute : Attribute
   {
     public UsedImplicitlyAttribute()
       : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
@@ -490,7 +490,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// indicates that the corresponding type is used implicitly.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.GenericParameter | AttributeTargets.Parameter)]
-  public sealed class MeansImplicitUseAttribute : Attribute
+internal sealed class MeansImplicitUseAttribute : Attribute
   {
     public MeansImplicitUseAttribute()
       : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
@@ -513,11 +513,11 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Specifies the details of implicitly used symbol when it is marked
+  /// Specifies the details of an implicitly used symbol when it is marked
   /// with <see cref="MeansImplicitUseAttribute"/> or <see cref="UsedImplicitlyAttribute"/>.
   /// </summary>
   [Flags]
-  public enum ImplicitUseKindFlags
+internal enum ImplicitUseKindFlags
   {
     Default = Access | Assign | InstantiatedWithFixedConstructorSignature,
     /// <summary>Only entity marked with attribute considered used.</summary>
@@ -538,7 +538,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// with <see cref="MeansImplicitUseAttribute"/> or <see cref="UsedImplicitlyAttribute"/>.
   /// </summary>
   [Flags]
-  public enum ImplicitUseTargetFlags
+internal enum ImplicitUseTargetFlags
   {
     Default = Itself,
     Itself = 1,
@@ -551,12 +551,12 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// This attribute is intended to mark publicly available API,
+  /// This attribute is intended to mark publicly available APIs,
   /// which should not be removed and so is treated as used.
   /// </summary>
   [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
   [AttributeUsage(AttributeTargets.All, Inherited = false)]
-  public sealed class PublicAPIAttribute : Attribute
+internal sealed class PublicAPIAttribute : Attribute
   {
     public PublicAPIAttribute() { }
 
@@ -570,37 +570,35 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
   /// <summary>
   /// Tells the code analysis engine if the parameter is completely handled when the invoked method is on stack.
-  /// If the parameter is a delegate, indicates that delegate can only be invoked during method execution
+  /// If the parameter is a delegate, indicates that the delegate can only be invoked during method execution
   /// (the delegate can be invoked zero or multiple times, but not stored to some field and invoked later,
   /// when the containing method is no longer on the execution stack).
   /// If the parameter is an enumerable, indicates that it is enumerated while the method is executed.
-  /// If <see cref="RequireAwait"/> is true, the attribute will only takes effect if the method invocation is located under the 'await' expression.
+  /// If <see cref="RequireAwait"/> is true, the attribute will only take effect if the method invocation is located under the 'await' expression.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class InstantHandleAttribute : Attribute
+internal sealed class InstantHandleAttribute : Attribute
   {
     /// <summary>
-    /// Require the method invocation to be used under the 'await' expression for this attribute to take effect on code analysis engine.
+    /// Require the method invocation to be used under the 'await' expression for this attribute to take effect on the code analysis engine.
     /// Can be used for delegate/enumerable parameters of 'async' methods.
     /// </summary>
     public bool RequireAwait { get; set; }
   }
 
-  /*
   /// <summary>
   /// Indicates that a method does not make any observable state changes.
   /// The same as <c>System.Diagnostics.Contracts.PureAttribute</c>.
   /// </summary>
   /// <example><code>
   /// [Pure] int Multiply(int x, int y) => x * y;
-  ///
+  /// 
   /// void M() {
   ///   Multiply(123, 42); // Warning: Return value of pure method is not used
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class PureAttribute : Attribute { }
-  */
+internal sealed class PureAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the return value of the method invocation must be used.
@@ -614,7 +612,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <code>[MustUseReturnValue("Use the return value to...")]</code>.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class MustUseReturnValueAttribute : Attribute
+internal sealed class MustUseReturnValueAttribute : Attribute
   {
     public MustUseReturnValueAttribute() { }
 
@@ -628,32 +626,32 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
   /// <summary>
   /// This annotation allows to enforce allocation-less usage patterns of delegates for performance-critical APIs.
-  /// When this annotation is applied to the parameter of delegate type, IDE checks the input argument of this parameter:
-  /// * When lambda expression or anonymous method is passed as an argument, IDE verifies that the passed closure
+  /// When this annotation is applied to the parameter of delegate type, the IDE checks the input argument of this parameter:
+  /// * When a lambda expression or anonymous method is passed as an argument, the IDE verifies that the passed closure
   ///   has no captures of the containing local variables and the compiler is able to cache the delegate instance
-  ///   to avoid heap allocations. Otherwise the warning is produced.
-  /// * IDE warns when method name or local function name is passed as an argument as this always results
+  ///   to avoid heap allocations. Otherwise a warning is produced.
+  /// * The IDE warns when the method name or local function name is passed as an argument as this always results
   ///   in heap allocation of the delegate instance.
   /// </summary>
   /// <remarks>
-  /// In C# 9.0 code IDE would also suggest to annotate the anonymous function with 'static' modifier
+  /// In C# 9.0+ code, the IDE will also suggest to annotate the anonymous function with the 'static' modifier
   /// to make use of the similar analysis provided by the language/compiler.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class RequireStaticDelegateAttribute : Attribute
+internal sealed class RequireStaticDelegateAttribute : Attribute
   {
     public bool IsError { get; set; }
   }
 
   /// <summary>
-  /// Indicates the type member or parameter of some type, that should be used instead of all other ways
+  /// Indicates the type member or parameter of some type that should be used instead of all other ways
   /// to get the value of that type. This annotation is useful when you have some "context" value evaluated
-  /// and stored somewhere, meaning that all other ways to get this value must be consolidated with existing one.
+  /// and stored somewhere, meaning that all other ways to get this value must be consolidated with the existing one.
   /// </summary>
   /// <example><code>
   /// class Foo {
   ///   [ProvidesContext] IBarService _barService = ...;
-  ///
+  /// 
   ///   void ProcessNode(INode node) {
   ///     DoSomething(node, node.GetGlobalServices().Bar);
   ///     //              ^ Warning: use value of '_barService' field
@@ -663,14 +661,14 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   [AttributeUsage(
     AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.GenericParameter)]
-  public sealed class ProvidesContextAttribute : Attribute { }
+internal sealed class ProvidesContextAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that a parameter is a path to a file or a folder within a web project.
   /// Path can be relative or absolute, starting from web root (~).
   /// </summary>
-  [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class PathReferenceAttribute : Attribute
+  [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
+internal sealed class PathReferenceAttribute : Attribute
   {
     public PathReferenceAttribute() { }
 
@@ -685,17 +683,17 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <summary>
   /// An extension method marked with this attribute is processed by code completion
   /// as a 'Source Template'. When the extension method is completed over some expression, its source code
-  /// is automatically expanded like a template at call site.
+  /// is automatically expanded like a template at the call site.
   /// </summary>
   /// <remarks>
-  /// Template method body can contain valid source code and/or special comments starting with '$'.
+  /// Template method bodies can contain valid source code and/or special comments starting with '$'.
   /// Text inside these comments is added as source code when the template is applied. Template parameters
   /// can be used either as additional method parameters or as identifiers wrapped in two '$' signs.
   /// Use the <see cref="MacroAttribute"/> attribute to specify macros for parameters.
   /// </remarks>
   /// <example>
   /// In this example, the 'forEach' method is a source template available over all values
-  /// of enumerable types, producing ordinary C# 'foreach' statement and placing caret inside block:
+  /// of enumerable types, producing ordinary C# 'foreach' statement and placing the caret inside the block:
   /// <code>
   /// [SourceTemplate]
   /// public static void forEach&lt;T&gt;(this IEnumerable&lt;T&gt; xs) {
@@ -706,7 +704,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </code>
   /// </example>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class SourceTemplateAttribute : Attribute { }
+internal sealed class SourceTemplateAttribute : Attribute { }
 
   /// <summary>
   /// Allows specifying a macro for a parameter of a <see cref="SourceTemplateAttribute">source template</see>.
@@ -715,7 +713,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// You can apply the attribute on the whole method or on any of its additional parameters. The macro expression
   /// is defined in the <see cref="MacroAttribute.Expression"/> property. When applied on a method, the target
   /// template parameter is defined in the <see cref="MacroAttribute.Target"/> property. To apply the macro silently
-  /// for the parameter, set the <see cref="MacroAttribute.Editable"/> property value = -1.
+  /// for the parameter, set the <see cref="MacroAttribute.Editable"/> property value to -1.
   /// </remarks>
   /// <example>
   /// Applying the attribute on a source template method:
@@ -737,7 +735,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </code>
   /// </example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method, AllowMultiple = true)]
-  public sealed class MacroAttribute : Attribute
+internal sealed class MacroAttribute : Attribute
   {
     /// <summary>
     /// Allows specifying a macro that will be executed for a <see cref="SourceTemplateAttribute">source template</see>
@@ -763,9 +761,9 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Indicates how method, constructor invocation, or property access
-  /// over collection type affects the contents of the collection.
-  /// When applied to a return value of a method indicates if the returned collection
+  /// Indicates how a method, constructor invocation, or property access
+  /// over a collection type affects the contents of the collection.
+  /// When applied to a return value of a method, indicates if the returned collection
   /// is created exclusively for the caller (CollectionAccessType.UpdatedContent) or
   /// can be read/updated from outside (CollectionAccessType.Read | CollectionAccessType.UpdatedContent)
   /// Use <see cref="CollectionAccessType"/> to specify the access type.
@@ -793,7 +791,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property | AttributeTargets.ReturnValue)]
-  public sealed class CollectionAccessAttribute : Attribute
+internal sealed class CollectionAccessAttribute : Attribute
   {
     public CollectionAccessAttribute(CollectionAccessType collectionAccessType)
     {
@@ -808,7 +806,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// how the collection method invocation affects the contents of the collection.
   /// </summary>
   [Flags]
-  public enum CollectionAccessType
+internal enum CollectionAccessType
   {
     /// <summary>Method does not use or modify content of the collection.</summary>
     None = 0,
@@ -821,20 +819,20 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Indicates that the marked method is assertion method, i.e. it halts the control flow if
+  /// Indicates that the marked method is an assertion method, i.e. it halts the control flow if
   /// one of the conditions is satisfied. To set the condition, mark one of the parameters with
   /// <see cref="AssertionConditionAttribute"/> attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class AssertionMethodAttribute : Attribute { }
+internal sealed class AssertionMethodAttribute : Attribute { }
 
   /// <summary>
   /// Indicates the condition parameter of the assertion method. The method itself should be
-  /// marked by <see cref="AssertionMethodAttribute"/> attribute. The mandatory argument of
+  /// marked by the <see cref="AssertionMethodAttribute"/> attribute. The mandatory argument of
   /// the attribute is the assertion type.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class AssertionConditionAttribute : Attribute
+internal sealed class AssertionConditionAttribute : Attribute
   {
     public AssertionConditionAttribute(AssertionConditionType conditionType)
     {
@@ -845,10 +843,10 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Specifies assertion type. If the assertion method argument satisfies the condition,
+  /// Specifies the assertion type. If the assertion method argument satisfies the condition,
   /// then the execution continues. Otherwise, execution is assumed to be halted.
   /// </summary>
-  public enum AssertionConditionType
+internal enum AssertionConditionType
   {
     /// <summary>Marked parameter should be evaluated to true.</summary>
     IS_TRUE = 0,
@@ -862,11 +860,11 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
   /// <summary>
   /// Indicates that the marked method unconditionally terminates control flow execution.
-  /// For example, it could unconditionally throw exception.
+  /// For example, it could unconditionally throw an exception.
   /// </summary>
   [Obsolete("Use [ContractAnnotation('=> halt')] instead")]
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class TerminatesProgramAttribute : Attribute { }
+internal sealed class TerminatesProgramAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the method is a pure LINQ method, with postponed enumeration (like Enumerable.Select,
@@ -874,7 +872,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// of delegate type by analyzing LINQ method chains.
   /// </summary>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class LinqTunnelAttribute : Attribute { }
+internal sealed class LinqTunnelAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that IEnumerable passed as a parameter is not enumerated.
@@ -893,18 +891,18 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class NoEnumerationAttribute : Attribute { }
+internal sealed class NoEnumerationAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked parameter, field, or property is a regular expression pattern.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class RegexPatternAttribute : Attribute { }
+internal sealed class RegexPatternAttribute : Attribute { }
 
   /// <summary>
-  /// Language of injected code fragment inside marked by <see cref="LanguageInjectionAttribute"/> string literal.
+  /// Language of injected code fragment inside marked by the <see cref="LanguageInjectionAttribute"/> string literal.
   /// </summary>
-  public enum InjectedLanguage
+internal enum InjectedLanguage
   {
     CSS,
     HTML,
@@ -915,7 +913,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
   /// <summary>
   /// Indicates that the marked parameter, field, or property is accepting a string literal
-  /// containing code fragment in a language specified by the <see cref="InjectedLanguage"/>.
+  /// containing code fragments in a specified language.
   /// </summary>
   /// <example><code>
   /// void Foo([LanguageInjection(InjectedLanguage.CSS, Prefix = "body{", Suffix = "}")] string cssProps)
@@ -923,21 +921,34 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   ///   // cssProps should only contains a list of CSS properties
   /// }
   /// </code></example>
+  /// <example><code>
+  /// void Bar([LanguageInjection("json")] string json)
+  /// {
+  /// }
+  /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class LanguageInjectionAttribute : Attribute
+internal sealed class LanguageInjectionAttribute : Attribute
   {
     public LanguageInjectionAttribute(InjectedLanguage injectedLanguage)
     {
       InjectedLanguage = injectedLanguage;
     }
 
-    /// <summary>Specify a language of injected code fragment.</summary>
+    public LanguageInjectionAttribute([NotNull] string injectedLanguage)
+    {
+      InjectedLanguageName = injectedLanguage;
+    }
+
+    /// <summary>Specifies a language of the injected code fragment.</summary>
     public InjectedLanguage InjectedLanguage { get; }
 
-    /// <summary>Specify a string that "precedes" injected string literal.</summary>
+    /// <summary>Specifies a language name of the injected code fragment.</summary>
+    [CanBeNull] public string InjectedLanguageName { get; }
+
+    /// <summary>Specifies a string that "precedes" the injected string literal.</summary>
     [CanBeNull] public string Prefix { get; set; }
 
-    /// <summary>Specify a string that "follows" injected string literal.</summary>
+    /// <summary>Specifies a string that "follows" the injected string literal.</summary>
     [CanBeNull] public string Suffix { get; set; }
   }
 
@@ -949,7 +960,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </remarks>
   [AttributeUsage(
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Enum)]
-  public sealed class NoReorderAttribute : Attribute { }
+internal sealed class NoReorderAttribute : Attribute { }
 
   /// <summary>
   /// <para>
@@ -966,7 +977,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <item>$this$ - expression of containing type</item>
   /// <item>$thisType$ - containing type</item>
   /// <item>$member$ - current member placeholder</item>
-  /// <item>$qualifier$ - this placeholder is available in the replace pattern and can be used to insert qualifier expression matched by the $member$ placeholder.
+  /// <item>$qualifier$ - this placeholder is available in the replace pattern and can be used to insert a qualifier expression matched by the $member$ placeholder.
   /// (Note that if $qualifier$ placeholder is used, then $member$ placeholder will match only qualified references)</item>
   /// <item>$expression$ - expression of any type</item>
   /// <item>$identifier$ - identifier placeholder</item>
@@ -987,8 +998,8 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// Note that you can also define your own placeholders of the supported types and specify arguments for each placeholder type.
   /// This can be done using the following format: $name{type, arguments}$. Where 'name' - is the name of your placeholder,
   /// 'type' - is the type of your placeholder (one of the following: Expression, Type, Identifier, Statement, Argument, Member),
-  /// 'arguments' - arguments list for your placeholder. Each placeholder type supports it's own arguments, check examples below for mode details.
-  /// Placeholder type may be omitted and determined from the placeholder name, if name has one of the following prefixes:
+  /// 'arguments' - arguments list for your placeholder. Each placeholder type supports its own arguments, check examples below for more details.
+  /// The placeholder type may be omitted and determined from the placeholder name, if the name has one of the following prefixes:
   /// <list type="bullet">
   /// <item>expr, expression - expression placeholder, e.g. $exprPlaceholder{}$, $expressionFoo{}$</item>
   /// <item>arg, argument - argument placeholder, e.g. $argPlaceholder{}$, $argumentFoo{}$</item>
@@ -1094,7 +1105,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     | AttributeTargets.Enum,
     AllowMultiple = true,
     Inherited = false)]
-  public sealed class CodeTemplateAttribute : Attribute
+internal sealed class CodeTemplateAttribute : Attribute
   {
     public CodeTemplateAttribute(string searchTemplate)
     {
@@ -1103,7 +1114,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 
     /// <summary>
     /// Structural search pattern to use in the code template.
-    /// Pattern includes textual part, which must contain only identifiers allowed in the target language,
+    /// The pattern includes a textual part, which must contain only identifiers allowed in the target language,
     /// and placeholders, which allow matching variable parts of the target code blocks.
     /// </summary>
     public string SearchTemplate { get; }
@@ -1111,8 +1122,8 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     /// <summary>
     /// Message to show when the search pattern was found.
     /// You can also prepend the message text with "Error:", "Warning:", "Suggestion:" or "Hint:" prefix to specify the pattern severity.
-    /// Code patterns with replace template produce suggestions by default.
-    /// However, if replace template is not provided, then warning severity will be used.
+    /// Code patterns with replace templates produce suggestions by default.
+    /// However, if a replace template is not provided, then warning severity will be used.
     /// </summary>
     public string Message { get; set; }
 
@@ -1122,7 +1133,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     public string ReplaceTemplate { get; set; }
 
     /// <summary>
-    /// Replace message to show in the light bulb.
+    /// The replace message to show in the light bulb.
     /// </summary>
     public string ReplaceMessage { get; set; }
 
@@ -1142,7 +1153,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
     public bool ShortenReferences { get; set; }
 
     /// <summary>
-    /// String to use as a suppression key.
+    /// The string to use as a suppression key.
     /// By default the following suppression key is used 'CodeTemplate_SomeType_SomeMember',
     /// where 'SomeType' and 'SomeMember' are names of the associated containing type and member to which this attribute is applied.
     /// </summary>
@@ -1152,7 +1163,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   #region ASP.NET
 
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-  public sealed class AspChildControlTypeAttribute : Attribute
+internal sealed class AspChildControlTypeAttribute : Attribute
   {
     public AspChildControlTypeAttribute([NotNull] string tagName, [NotNull] Type controlType)
     {
@@ -1166,16 +1177,16 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-  public sealed class AspDataFieldAttribute : Attribute { }
+internal sealed class AspDataFieldAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-  public sealed class AspDataFieldsAttribute : Attribute { }
+internal sealed class AspDataFieldsAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property)]
-  public sealed class AspMethodPropertyAttribute : Attribute { }
+internal sealed class AspMethodPropertyAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-  public sealed class AspRequiredAttributeAttribute : Attribute
+internal sealed class AspRequiredAttributeAttribute : Attribute
   {
     public AspRequiredAttributeAttribute([NotNull] string attribute)
     {
@@ -1186,7 +1197,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Property)]
-  public sealed class AspTypePropertyAttribute : Attribute
+internal sealed class AspTypePropertyAttribute : Attribute
   {
     public bool CreateConstructorReferences { get; }
 
@@ -1201,7 +1212,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   #region ASP.NET MVC
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
+internal sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
   {
     public AspMvcAreaMasterLocationFormatAttribute([NotNull] string format)
     {
@@ -1212,7 +1223,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
+internal sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaPartialViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1223,7 +1234,18 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
+internal sealed class AspMvcAreaViewComponentViewLocationFormatAttribute : Attribute
+  {
+    public AspMvcAreaViewComponentViewLocationFormatAttribute([NotNull] string format)
+    {
+      Format = format;
+    }
+
+    [NotNull] public string Format { get; }
+  }
+
+  [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
+internal sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1234,7 +1256,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcMasterLocationFormatAttribute : Attribute
+internal sealed class AspMvcMasterLocationFormatAttribute : Attribute
   {
     public AspMvcMasterLocationFormatAttribute([NotNull] string format)
     {
@@ -1245,7 +1267,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
+internal sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcPartialViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1256,7 +1278,18 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-  public sealed class AspMvcViewLocationFormatAttribute : Attribute
+internal sealed class AspMvcViewComponentViewLocationFormatAttribute : Attribute
+  {
+    public AspMvcViewComponentViewLocationFormatAttribute([NotNull] string format)
+    {
+      Format = format;
+    }
+
+    [NotNull] public string Format { get; }
+  }
+
+  [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
+internal sealed class AspMvcViewLocationFormatAttribute : Attribute
   {
     public AspMvcViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1273,7 +1306,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcActionAttribute : Attribute
+internal sealed class AspMvcActionAttribute : Attribute
   {
     public AspMvcActionAttribute() { }
 
@@ -1291,7 +1324,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcAreaAttribute : Attribute
+internal sealed class AspMvcAreaAttribute : Attribute
   {
     public AspMvcAreaAttribute() { }
 
@@ -1310,7 +1343,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcControllerAttribute : Attribute
+internal sealed class AspMvcControllerAttribute : Attribute
   {
     public AspMvcControllerAttribute() { }
 
@@ -1327,14 +1360,14 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcMasterAttribute : Attribute { }
+internal sealed class AspMvcMasterAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC model type. Use this attribute
   /// for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, Object)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class AspMvcModelTypeAttribute : Attribute { }
+internal sealed class AspMvcModelTypeAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC
@@ -1343,13 +1376,13 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.RenderPartialExtensions.RenderPartial(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcPartialViewAttribute : Attribute { }
+internal sealed class AspMvcPartialViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Allows disabling inspections for MVC views within a class or a method.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-  public sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
+internal sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that a parameter is an MVC display template.
@@ -1357,7 +1390,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcDisplayTemplateAttribute : Attribute { }
+internal sealed class AspMvcDisplayTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC editor template.
@@ -1365,7 +1398,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcEditorTemplateAttribute : Attribute { }
+internal sealed class AspMvcEditorTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC template.
@@ -1373,7 +1406,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.ComponentModel.DataAnnotations.UIHintAttribute(System.String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcTemplateAttribute : Attribute { }
+internal sealed class AspMvcTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
@@ -1382,21 +1415,21 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.Mvc.Controller.View(Object)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcViewAttribute : Attribute { }
+internal sealed class AspMvcViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
   /// is an MVC view component name.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcViewComponentAttribute : Attribute { }
+internal sealed class AspMvcViewComponentAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
   /// is an MVC view component view. If applied to a method, the MVC view component view name is default.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class AspMvcViewComponentViewAttribute : Attribute { }
+internal sealed class AspMvcViewComponentViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. When applied to a parameter of an attribute,
@@ -1410,7 +1443,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
-  public sealed class AspMvcActionSelectorAttribute : Attribute { }
+internal sealed class AspMvcActionSelectorAttribute : Attribute { }
 
   #endregion
 
@@ -1424,20 +1457,20 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// to enable syntax highlighting, code completion, navigation, rename and other features in string literals.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class RouteTemplateAttribute : Attribute { }
+internal sealed class RouteTemplateAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked type is custom route parameter constraint,
-  /// which is registered in application's Startup with name <c>ConstraintName</c>
+  /// which is registered in the application's Startup with the name <c>ConstraintName</c>.
   /// </summary>
   /// <remarks>
   /// You can specify <c>ProposedType</c> if target constraint matches only route parameters of specific type,
   /// it will allow IDE to create method's parameter from usage in route template
   /// with specified type instead of default <c>System.String</c>
-  /// and check if constraint's proposed type conflicts with matched parameter's type
+  /// and check if constraint's proposed type conflicts with matched parameter's type.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
-  public sealed class RouteParameterConstraintAttribute : Attribute
+internal sealed class RouteParameterConstraintAttribute : Attribute
   {
     [NotNull] public string ConstraintName { get; }
     [CanBeNull] public Type ProposedType { get; set; }
@@ -1452,11 +1485,11 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// Indicates that the marked parameter, field, or property is an URI string.
   /// </summary>
   /// <remarks>
-  /// This attribute enables code completion, navigation, rename and other features
-  /// in URI string literals assigned to annotated parameter, field or property.
+  /// This attribute enables code completion, navigation, renaming and other features
+  /// in URI string literals assigned to annotated parameters, fields, or properties.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class UriStringAttribute : Attribute
+internal sealed class UriStringAttribute : Attribute
   {
     public UriStringAttribute() { }
 
@@ -1469,14 +1502,14 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Indicates that the marked method declares routing convention for ASP.NET
+  /// Indicates that the marked method declares routing convention for ASP.NET.
   /// </summary>
   /// <remarks>
-  /// IDE will analyze all usages of methods marked with this attribute,
-  /// and will add all routes to completion, navigation and other features over URI strings
+  /// The IDE will analyze all usages of methods marked with this attribute,
+  /// and will add all routes to completion, navigation, and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class AspRouteConventionAttribute : Attribute
+internal sealed class AspRouteConventionAttribute : Attribute
   {
     public AspRouteConventionAttribute() { }
 
@@ -1489,67 +1522,73 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   /// <summary>
-  /// Indicates that the marked method parameter contains default route values of routing convention for ASP.NET
+  /// Indicates that the marked method parameter contains default route values of routing convention for ASP.NET.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class AspDefaultRouteValuesAttribute : Attribute { }
+internal sealed class AspDefaultRouteValuesAttribute : Attribute { }
 
   /// <summary>
-  /// Indicates that the marked method parameter contains constraints on route values of routing convention for ASP.NET
+  /// Indicates that the marked method parameter contains constraints on route values of routing convention for ASP.NET.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class AspRouteValuesConstraintsAttribute : Attribute { }
+internal sealed class AspRouteValuesConstraintsAttribute : Attribute { }
 
   /// <summary>
-  /// Indicates that the marked parameter or property contains routing order provided by ASP.NET routing attribute
+  /// Indicates that the marked parameter or property contains routing order provided by ASP.NET routing attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-  public sealed class AspRouteOrderAttribute : Attribute { }
+internal sealed class AspRouteOrderAttribute : Attribute { }
 
   /// <summary>
-  /// Indicates that the marked parameter or property contains HTTP verbs provided by ASP.NET routing attribute
+  /// Indicates that the marked parameter or property contains HTTP verbs provided by ASP.NET routing attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-  public sealed class AspRouteVerbsAttribute : Attribute { }
+internal sealed class AspRouteVerbsAttribute : Attribute { }
 
   /// <summary>
-  /// Indicates that the marked attribute is used for attribute routing in ASP.NET
+  /// Indicates that the marked attribute is used for attribute routing in ASP.NET.
   /// </summary>
   /// <remarks>
-  /// IDE will analyze all usages of attributes marked with this attribute,
-  /// and will add all routes to completion, navigation and other features over URI strings
+  /// The IDE will analyze all usages of attributes marked with this attribute,
+  /// and will add all routes to completion, navigation and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
-  public sealed class AspAttributeRoutingAttribute : Attribute
+internal sealed class AspAttributeRoutingAttribute : Attribute
   {
     public string HttpVerb { get; set; }
   }
 
   /// <summary>
-  /// Indicates that the marked method declares ASP.NET Minimal API endpoint
+  /// Indicates that the marked method declares an ASP.NET Minimal API endpoint.
   /// </summary>
   /// <remarks>
-  /// IDE will analyze all usages of methods marked with this attribute,
-  /// and will add all routes to completion, navigation and other features over URI strings
+  /// The IDE will analyze all usages of methods marked with this attribute,
+  /// and will add all routes to completion, navigation and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class AspMinimalApiDeclarationAttribute : Attribute
+internal sealed class AspMinimalApiDeclarationAttribute : Attribute
   {
     public string HttpVerb { get; set; }
   }
 
   /// <summary>
-  /// Indicates that the marked parameter contains ASP.NET Minimal API endpoint handler
+  /// Indicates that the marked method declares an ASP.NET Minimal API endpoints group.
+  /// </summary>
+  [AttributeUsage(AttributeTargets.Method)]
+internal sealed class AspMinimalApiGroupAttribute : Attribute { }
+
+  /// <summary>
+  /// Indicates that the marked parameter contains an ASP.NET Minimal API endpoint handler.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class AspMinimalApiHandlerAttribute : Attribute { }
+internal sealed class AspMinimalApiHandlerAttribute : Attribute { }
 
   #endregion
 
   #region Razor
 
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field)]
-  public sealed class HtmlElementAttributesAttribute : Attribute
+internal sealed class HtmlElementAttributesAttribute : Attribute
   {
     public HtmlElementAttributesAttribute() { }
 
@@ -1562,7 +1601,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class HtmlAttributeValueAttribute : Attribute
+internal sealed class HtmlAttributeValueAttribute : Attribute
   {
     public HtmlAttributeValueAttribute([NotNull] string name)
     {
@@ -1578,10 +1617,10 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <c>System.Web.WebPages.WebPageBase.RenderSection(String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
-  public sealed class RazorSectionAttribute : Attribute { }
+internal sealed class RazorSectionAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-  public sealed class RazorImportNamespaceAttribute : Attribute
+internal sealed class RazorImportNamespaceAttribute : Attribute
   {
     public RazorImportNamespaceAttribute([NotNull] string name)
     {
@@ -1592,7 +1631,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-  public sealed class RazorInjectionAttribute : Attribute
+internal sealed class RazorInjectionAttribute : Attribute
   {
     public RazorInjectionAttribute([NotNull] string type, [NotNull] string fieldName)
     {
@@ -1606,7 +1645,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-  public sealed class RazorDirectiveAttribute : Attribute
+internal sealed class RazorDirectiveAttribute : Attribute
   {
     public RazorDirectiveAttribute([NotNull] string directive)
     {
@@ -1617,7 +1656,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-  public sealed class RazorPageBaseTypeAttribute : Attribute
+internal sealed class RazorPageBaseTypeAttribute : Attribute
   {
       public RazorPageBaseTypeAttribute([NotNull] string baseType)
       {
@@ -1634,46 +1673,46 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   }
 
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class RazorHelperCommonAttribute : Attribute { }
+internal sealed class RazorHelperCommonAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property)]
-  public sealed class RazorLayoutAttribute : Attribute { }
+internal sealed class RazorLayoutAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class RazorWriteLiteralMethodAttribute : Attribute { }
+internal sealed class RazorWriteLiteralMethodAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Method)]
-  public sealed class RazorWriteMethodAttribute : Attribute { }
+internal sealed class RazorWriteMethodAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Parameter)]
-  public sealed class RazorWriteMethodParameterAttribute : Attribute { }
+internal sealed class RazorWriteMethodParameterAttribute : Attribute { }
 
   #endregion
 
   #region XAML
 
   /// <summary>
-  /// XAML attribute. Indicates the type that has <c>ItemsSource</c> property and should be treated
-  /// as <c>ItemsControl</c>-derived type, to enable inner items <c>DataContext</c> type resolve.
+  /// XAML attribute. Indicates the type that has an <c>ItemsSource</c> property and should be treated
+  /// as an <c>ItemsControl</c>-derived type, to enable inner items <c>DataContext</c> type resolution.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class)]
-  public sealed class XamlItemsControlAttribute : Attribute { }
+internal sealed class XamlItemsControlAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates the property of some <c>BindingBase</c>-derived type, that
-  /// is used to bind some item of <c>ItemsControl</c>-derived type. This annotation will
+  /// is used to bind some item of an <c>ItemsControl</c>-derived type. This annotation will
   /// enable the <c>DataContext</c> type resolve for XAML bindings for such properties.
   /// </summary>
   /// <remarks>
-  /// Property should have the tree ancestor of the <c>ItemsControl</c> type or
+  /// The property should have the tree ancestor of the <c>ItemsControl</c> type, or
   /// marked with the <see cref="XamlItemsControlAttribute"/> attribute.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Property)]
-  public sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
+internal sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
 
   /// <summary>
-  /// XAML attribute. Indicates the property of some <c>Style</c>-derived type, that
-  /// is used to style items of <c>ItemsControl</c>-derived type. This annotation will
+  /// XAML attribute. Indicates the property of some <c>Style</c>-derived type that
+  /// is used to style items of an <c>ItemsControl</c>-derived type. This annotation will
   /// enable the <c>DataContext</c> type resolve for XAML bindings for such properties.
   /// </summary>
   /// <remarks>
@@ -1681,25 +1720,81 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// marked with the <see cref="XamlItemsControlAttribute"/> attribute.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Property)]
-  public sealed class XamlItemStyleOfItemsControlAttribute : Attribute { }
+internal sealed class XamlItemStyleOfItemsControlAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates that DependencyProperty has <c>OneWay</c> binding mode by default.
   /// </summary>
   /// <remarks>
-  /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, to DependencyProperty descriptor field otherwise.
+  /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, or to a DependencyProperty descriptor field otherwise.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class XamlOneWayBindingModeByDefaultAttribute : Attribute { }
+internal sealed class XamlOneWayBindingModeByDefaultAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates that DependencyProperty has <c>TwoWay</c> binding mode by default.
   /// </summary>
   /// <remarks>
-  /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, to DependencyProperty descriptor field otherwise.
+  /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, or to a DependencyProperty descriptor field otherwise.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-  public sealed class XamlTwoWayBindingModeByDefaultAttribute : Attribute { }
+internal sealed class XamlTwoWayBindingModeByDefaultAttribute : Attribute { }
+
+  #endregion
+
+  #region Unit Testing
+
+  /// <summary>
+  /// Specifies the subject being tested by a test class or a test method.
+  /// </summary>
+  /// <remarks>
+  /// The <see cref="TestSubjectAttribute"/> can be applied to a test class or a test method to indicate what class
+  /// or interface the tests defined in them test. This information can be used by an IDE to provide better navigation
+  /// support or by test runners to group tests by subject and to provide better test reports.
+  /// </remarks>
+  [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
+internal sealed class TestSubjectAttribute : Attribute
+  {
+    /// <summary>
+    /// Gets the type of the subject being tested.
+    /// </summary>
+    [NotNull] public Type Subject { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestSubjectAttribute"/> class with the specified subject type.
+    /// </summary>
+    /// <param name="subject">The type of the subject being tested.</param>
+    public TestSubjectAttribute([NotNull] Type subject)
+    {
+      Subject = subject;
+    }
+  }
+
+  /// <summary>
+  /// Signifies a generic argument as the test subject for a test class.
+  /// </summary>
+  /// <remarks>
+  /// The <see cref="MeansTestSubjectAttribute"/> can be applied to a generic parameter of a base test class to indicate that
+  /// the type passed as the argument is the class being tested. This information can be used by an IDE to provide better
+  /// navigation support or by test runners to group tests by subject and to provide better test reports.
+  /// </remarks>
+  /// <example><code>
+  /// public class BaseTestClass&lt;[MeansTestSubject] T&gt;
+  /// {
+  ///   protected T Component { get; }
+  /// }
+  /// 
+  /// public class CalculatorAdditionTests : BaseTestClass&lt;Calculator&gt;
+  /// {
+  ///   [Test]
+  ///   public void Should_add_two_numbers()
+  ///   {
+  ///      Assert.That(Component.Add(2, 3), Is.EqualTo(5));
+  ///   }
+  /// }
+  /// </code></example>
+  [AttributeUsage(AttributeTargets.GenericParameter)]
+internal sealed class MeansTestSubjectAttribute : Attribute { }
 
   #endregion
 }
