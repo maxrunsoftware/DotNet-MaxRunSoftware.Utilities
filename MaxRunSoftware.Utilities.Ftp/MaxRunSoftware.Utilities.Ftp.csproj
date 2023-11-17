@@ -47,4 +47,10 @@
         <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
         <PackageReference Include="FluentFTP" Version="48.0.3" />
     </ItemGroup>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
+    </Target>
 </Project>

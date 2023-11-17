@@ -46,4 +46,10 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
         <PackageReference Include="TaskScheduler" Version="2.10.1" />
     </ItemGroup>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
+    </Target>
 </Project>

@@ -65,10 +65,10 @@
         <Folder Include="Collections\" />
         <Folder Include="Reflection\" />
     </ItemGroup>
-    <Target Name="InstallPackageLocally" AfterTargets="Pack">
-      <Exec Command="$(SolutionDir)publish.sh buildpost" />
-    </Target>
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-      <Exec Command="$(SolutionDir)publish.sh buildpre" />
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
     </Target>
 </Project>

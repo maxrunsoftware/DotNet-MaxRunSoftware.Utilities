@@ -50,4 +50,10 @@
         <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
         <PackageReference Include="CsvHelper" Version="30.0.1" />
     </ItemGroup>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
+    </Target>
 </Project>
