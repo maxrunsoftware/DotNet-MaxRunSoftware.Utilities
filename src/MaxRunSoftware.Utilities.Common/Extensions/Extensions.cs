@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Diagnostics;
-using System.Drawing;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 

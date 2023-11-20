@@ -1,38 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>    
+    <PropertyGroup>
+        <PreBuildMessageVariablesImportance>low</PreBuildMessageVariablesImportance>
+        <PreBuildMessageVariablesTextPrefix>$(ProjectName) - VARIABLES -</PreBuildMessageVariablesTextPrefix>
+    </PropertyGroup>
+    
     <Target Name="PreBuildMessageVariables" BeforeTargets="PreBuildEvent">
     
-        <Message Text="$(ProjectName) - VARIABLES -  TargetFramework: $(TargetFramework)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  IncludeSymbols: $(IncludeSymbols)" Importance="high"/> 
-        <Message Text="$(ProjectName) - VARIABLES -  IncludeSource: $(IncludeSource)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  ImplicitUsings: $(ImplicitUsings)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Authors: $(Authors)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Owners: $(Owners)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Copyright: $(Copyright)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  AssemblyVersion: $(AssemblyVersion)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  FileVersion: $(FileVersion)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  ReleaseVersion: $(ReleaseVersion)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageVersion: $(PackageVersion)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageTags: $(PackageTags)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageLicenseExpression: $(PackageLicenseExpression)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageLicenseUrl: $(PackageLicenseUrl)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageProjectUrl: $(PackageProjectUrl)" Importance="high"/>
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) TargetFramework: $(TargetFramework)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) IncludeSymbols: $(IncludeSymbols)" Importance="$(PreBuildMessageVariablesImportance)" /> 
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) IncludeSource: $(IncludeSource)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) ImplicitUsings: $(ImplicitUsings)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Authors: $(Authors)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Owners: $(Owners)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Copyright: $(Copyright)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) AssemblyVersion: $(AssemblyVersion)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) FileVersion: $(FileVersion)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) ReleaseVersion: $(ReleaseVersion)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageVersion: $(PackageVersion)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageTags: $(PackageTags)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageLicenseExpression: $(PackageLicenseExpression)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageLicenseUrl: $(PackageLicenseUrl)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageProjectUrl: $(PackageProjectUrl)" Importance="$(PreBuildMessageVariablesImportance)" />
         
-        <Message Text="$(ProjectName) - VARIABLES -  GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  IsPackable: $(IsPackable)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackOnBuild: $(PackOnBuild)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Nullable: $(Nullable)" Importance="high"/>
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) IsPackable: $(IsPackable)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackOnBuild: $(PackOnBuild)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Nullable: $(Nullable)" Importance="$(PreBuildMessageVariablesImportance)" />
         
-        <Message Text="$(ProjectName) - VARIABLES -  Description: $(Description)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  PackageId: $(PackageId)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Summary: $(Summary)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  Title: $(Title)" Importance="high"/>
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Description: $(Description)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) PackageId: $(PackageId)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Summary: $(Summary)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) Title: $(Title)" Importance="$(PreBuildMessageVariablesImportance)" />
         
-        <Message Text="$(ProjectName) - VARIABLES -  WarningLevel: $(WarningLevel)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  DocumentationFile: $(DocumentationFile)" Importance="high"/>
-        <Message Text="$(ProjectName) - VARIABLES -  NoWarn: $(NoWarn)" Importance="high"/>
-        
-        
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) WarningLevel: $(WarningLevel)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) DocumentationFile: $(DocumentationFile)" Importance="$(PreBuildMessageVariablesImportance)" />
+        <Message Text="$(PreBuildMessageVariablesTextPrefix) NoWarn: $(NoWarn)" Importance="$(PreBuildMessageVariablesImportance)" />
         
     </Target>
 </Project>    

@@ -14,8 +14,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Drawing;
-
 namespace MaxRunSoftware.Utilities.Common;
 
 public class TerminalColor4 : TerminalColor8

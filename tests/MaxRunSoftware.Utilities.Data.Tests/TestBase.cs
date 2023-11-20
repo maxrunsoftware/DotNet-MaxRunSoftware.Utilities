@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Common.Tests;
-
 namespace MaxRunSoftware.Utilities.Data.Tests;
 
 public class TestBase : Common.Tests.TestBase

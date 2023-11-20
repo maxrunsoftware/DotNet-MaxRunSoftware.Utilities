@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Common;
-
 namespace MaxRunSoftware.Utilities.Data.Tests;
 
 // ReSharper disable StringLiteralTypo

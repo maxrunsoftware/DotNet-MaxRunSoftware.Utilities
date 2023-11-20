@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System.Runtime.CompilerServices;
-using MaxRunSoftware.Utilities.Common;
+
 // ReSharper disable StringLiteralTypo
 // ReSharper disable AssignNullToNotNullAttribute
 
