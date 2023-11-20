@@ -22,7 +22,7 @@ SOFTWARE. */
 
 #nullable disable
 
-
+using System;
 // ReSharper disable UnusedType.Global
 
 #pragma warning disable 1591
@@ -33,7 +33,7 @@ SOFTWARE. */
 // ReSharper disable MemberCanBeProtected.Global
 // ReSharper disable InconsistentNaming
 
-namespace JetBrains.Annotations
+namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
 {
   /// <summary>
   /// Indicates that the value of the marked element could be <c>null</c> sometimes,
@@ -51,7 +51,7 @@ namespace JetBrains.Annotations
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-internal sealed class CanBeNullAttribute : Attribute { }
+  public sealed class CanBeNullAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the value of the marked element can never be <c>null</c>.
@@ -65,7 +65,7 @@ internal sealed class CanBeNullAttribute : Attribute { }
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field | AttributeTargets.Event |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.GenericParameter)]
-internal sealed class NotNullAttribute : Attribute { }
+  public sealed class NotNullAttribute : Attribute { }
 
   /// <summary>
   /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -84,7 +84,7 @@ internal sealed class NotNullAttribute : Attribute { }
   [AttributeUsage(
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field)]
-internal sealed class ItemNotNullAttribute : Attribute { }
+  public sealed class ItemNotNullAttribute : Attribute { }
 
   /// <summary>
   /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
@@ -104,7 +104,7 @@ internal sealed class ItemNotNullAttribute : Attribute { }
   [AttributeUsage(
     AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property |
     AttributeTargets.Delegate | AttributeTargets.Field)]
-internal sealed class ItemCanBeNullAttribute : Attribute { }
+  public sealed class ItemCanBeNullAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked method builds a string by the format pattern and (optional) arguments.
@@ -122,7 +122,7 @@ internal sealed class ItemCanBeNullAttribute : Attribute { }
   [AttributeUsage(
     AttributeTargets.Constructor | AttributeTargets.Method |
     AttributeTargets.Property | AttributeTargets.Delegate)]
-internal sealed class StringFormatMethodAttribute : Attribute
+  public sealed class StringFormatMethodAttribute : Attribute
   {
     /// <param name="formatParameterName">
     /// Specifies which parameter of an annotated method should be treated as the format string.
@@ -147,7 +147,7 @@ internal sealed class StringFormatMethodAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class StructuredMessageTemplateAttribute : Attribute {}
+  public sealed class StructuredMessageTemplateAttribute : Attribute {}
 
   /// <summary>
   /// Use this annotation to specify a type that contains static or const fields
@@ -179,7 +179,7 @@ internal sealed class StructuredMessageTemplateAttribute : Attribute {}
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field,
     AllowMultiple = true)]
-internal sealed class ValueProviderAttribute : Attribute
+  public sealed class ValueProviderAttribute : Attribute
   {
     public ValueProviderAttribute([NotNull] string name)
     {
@@ -205,7 +205,7 @@ internal sealed class ValueProviderAttribute : Attribute
     AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property |
     AttributeTargets.Method | AttributeTargets.Delegate,
     AllowMultiple = true)]
-internal sealed class ValueRangeAttribute : Attribute
+  public sealed class ValueRangeAttribute : Attribute
   {
     public object From { get; }
     public object To { get; }
@@ -246,7 +246,7 @@ internal sealed class ValueRangeAttribute : Attribute
   [AttributeUsage(
     AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property |
     AttributeTargets.Method | AttributeTargets.Delegate)]
-internal sealed class NonNegativeValueAttribute : Attribute { }
+  public sealed class NonNegativeValueAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the function argument should be a string literal and match
@@ -260,7 +260,7 @@ internal sealed class NonNegativeValueAttribute : Attribute { }
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class InvokerParameterNameAttribute : Attribute { }
+  public sealed class InvokerParameterNameAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the method is contained in a type that implements
@@ -301,7 +301,7 @@ internal sealed class InvokerParameterNameAttribute : Attribute { }
   /// </list>
   /// </example>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
+  public sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
   {
     public NotifyPropertyChangedInvocatorAttribute() { }
     public NotifyPropertyChangedInvocatorAttribute([NotNull] string parameterName)
@@ -357,7 +357,7 @@ internal sealed class NotifyPropertyChangedInvocatorAttribute : Attribute
   /// </code></item>
   /// </list></examples>
   [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-internal sealed class ContractAnnotationAttribute : Attribute
+  public sealed class ContractAnnotationAttribute : Attribute
   {
     public ContractAnnotationAttribute([NotNull] string contract)
       : this(contract, false) { }
@@ -383,7 +383,7 @@ internal sealed class ContractAnnotationAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.All)]
-internal sealed class LocalizationRequiredAttribute : Attribute
+  public sealed class LocalizationRequiredAttribute : Attribute
   {
     public LocalizationRequiredAttribute() : this(true) { }
 
@@ -416,7 +416,7 @@ internal sealed class LocalizationRequiredAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class | AttributeTargets.Struct)]
-internal sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
+  public sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
 
   /// <summary>
   /// When applied to a target attribute, specifies a requirement for any type marked
@@ -431,7 +431,7 @@ internal sealed class CannotApplyEqualityOperatorAttribute : Attribute { }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
   [BaseTypeRequired(typeof(Attribute))]
-internal sealed class BaseTypeRequiredAttribute : Attribute
+  public sealed class BaseTypeRequiredAttribute : Attribute
   {
     public BaseTypeRequiredAttribute([NotNull] Type baseType)
     {
@@ -461,7 +461,7 @@ internal sealed class BaseTypeRequiredAttribute : Attribute
   /// public interface IService {}
   /// </code></example>
   [AttributeUsage(AttributeTargets.All)]
-internal sealed class UsedImplicitlyAttribute : Attribute
+  public sealed class UsedImplicitlyAttribute : Attribute
   {
     public UsedImplicitlyAttribute()
       : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
@@ -490,7 +490,7 @@ internal sealed class UsedImplicitlyAttribute : Attribute
   /// indicates that the corresponding type is used implicitly.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.GenericParameter | AttributeTargets.Parameter)]
-internal sealed class MeansImplicitUseAttribute : Attribute
+  public sealed class MeansImplicitUseAttribute : Attribute
   {
     public MeansImplicitUseAttribute()
       : this(ImplicitUseKindFlags.Default, ImplicitUseTargetFlags.Default) { }
@@ -517,7 +517,7 @@ internal sealed class MeansImplicitUseAttribute : Attribute
   /// with <see cref="MeansImplicitUseAttribute"/> or <see cref="UsedImplicitlyAttribute"/>.
   /// </summary>
   [Flags]
-internal enum ImplicitUseKindFlags
+  public enum ImplicitUseKindFlags
   {
     Default = Access | Assign | InstantiatedWithFixedConstructorSignature,
     /// <summary>Only entity marked with attribute considered used.</summary>
@@ -538,7 +538,7 @@ internal enum ImplicitUseKindFlags
   /// with <see cref="MeansImplicitUseAttribute"/> or <see cref="UsedImplicitlyAttribute"/>.
   /// </summary>
   [Flags]
-internal enum ImplicitUseTargetFlags
+  public enum ImplicitUseTargetFlags
   {
     Default = Itself,
     Itself = 1,
@@ -556,7 +556,7 @@ internal enum ImplicitUseTargetFlags
   /// </summary>
   [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
   [AttributeUsage(AttributeTargets.All, Inherited = false)]
-internal sealed class PublicAPIAttribute : Attribute
+  public sealed class PublicAPIAttribute : Attribute
   {
     public PublicAPIAttribute() { }
 
@@ -577,7 +577,7 @@ internal sealed class PublicAPIAttribute : Attribute
   /// If <see cref="RequireAwait"/> is true, the attribute will only take effect if the method invocation is located under the 'await' expression.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class InstantHandleAttribute : Attribute
+  public sealed class InstantHandleAttribute : Attribute
   {
     /// <summary>
     /// Require the method invocation to be used under the 'await' expression for this attribute to take effect on the code analysis engine.
@@ -598,7 +598,7 @@ internal sealed class InstantHandleAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class PureAttribute : Attribute { }
+  public sealed class PureAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the return value of the method invocation must be used.
@@ -612,7 +612,7 @@ internal sealed class PureAttribute : Attribute { }
   /// <code>[MustUseReturnValue("Use the return value to...")]</code>.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class MustUseReturnValueAttribute : Attribute
+  public sealed class MustUseReturnValueAttribute : Attribute
   {
     public MustUseReturnValueAttribute() { }
 
@@ -638,7 +638,7 @@ internal sealed class MustUseReturnValueAttribute : Attribute
   /// to make use of the similar analysis provided by the language/compiler.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class RequireStaticDelegateAttribute : Attribute
+  public sealed class RequireStaticDelegateAttribute : Attribute
   {
     public bool IsError { get; set; }
   }
@@ -661,14 +661,14 @@ internal sealed class RequireStaticDelegateAttribute : Attribute
   [AttributeUsage(
     AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Parameter | AttributeTargets.Method |
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.GenericParameter)]
-internal sealed class ProvidesContextAttribute : Attribute { }
+  public sealed class ProvidesContextAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that a parameter is a path to a file or a folder within a web project.
   /// Path can be relative or absolute, starting from web root (~).
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class PathReferenceAttribute : Attribute
+  public sealed class PathReferenceAttribute : Attribute
   {
     public PathReferenceAttribute() { }
 
@@ -704,7 +704,7 @@ internal sealed class PathReferenceAttribute : Attribute
   /// </code>
   /// </example>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class SourceTemplateAttribute : Attribute { }
+  public sealed class SourceTemplateAttribute : Attribute { }
 
   /// <summary>
   /// Allows specifying a macro for a parameter of a <see cref="SourceTemplateAttribute">source template</see>.
@@ -735,7 +735,7 @@ internal sealed class SourceTemplateAttribute : Attribute { }
   /// </code>
   /// </example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method, AllowMultiple = true)]
-internal sealed class MacroAttribute : Attribute
+  public sealed class MacroAttribute : Attribute
   {
     /// <summary>
     /// Allows specifying a macro that will be executed for a <see cref="SourceTemplateAttribute">source template</see>
@@ -791,7 +791,7 @@ internal sealed class MacroAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property | AttributeTargets.ReturnValue)]
-internal sealed class CollectionAccessAttribute : Attribute
+  public sealed class CollectionAccessAttribute : Attribute
   {
     public CollectionAccessAttribute(CollectionAccessType collectionAccessType)
     {
@@ -806,7 +806,7 @@ internal sealed class CollectionAccessAttribute : Attribute
   /// how the collection method invocation affects the contents of the collection.
   /// </summary>
   [Flags]
-internal enum CollectionAccessType
+  public enum CollectionAccessType
   {
     /// <summary>Method does not use or modify content of the collection.</summary>
     None = 0,
@@ -824,7 +824,7 @@ internal enum CollectionAccessType
   /// <see cref="AssertionConditionAttribute"/> attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class AssertionMethodAttribute : Attribute { }
+  public sealed class AssertionMethodAttribute : Attribute { }
 
   /// <summary>
   /// Indicates the condition parameter of the assertion method. The method itself should be
@@ -832,7 +832,7 @@ internal sealed class AssertionMethodAttribute : Attribute { }
   /// the attribute is the assertion type.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class AssertionConditionAttribute : Attribute
+  public sealed class AssertionConditionAttribute : Attribute
   {
     public AssertionConditionAttribute(AssertionConditionType conditionType)
     {
@@ -846,7 +846,7 @@ internal sealed class AssertionConditionAttribute : Attribute
   /// Specifies the assertion type. If the assertion method argument satisfies the condition,
   /// then the execution continues. Otherwise, execution is assumed to be halted.
   /// </summary>
-internal enum AssertionConditionType
+  public enum AssertionConditionType
   {
     /// <summary>Marked parameter should be evaluated to true.</summary>
     IS_TRUE = 0,
@@ -864,7 +864,7 @@ internal enum AssertionConditionType
   /// </summary>
   [Obsolete("Use [ContractAnnotation('=> halt')] instead")]
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class TerminatesProgramAttribute : Attribute { }
+  public sealed class TerminatesProgramAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the method is a pure LINQ method, with postponed enumeration (like Enumerable.Select,
@@ -872,7 +872,7 @@ internal sealed class TerminatesProgramAttribute : Attribute { }
   /// of delegate type by analyzing LINQ method chains.
   /// </summary>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class LinqTunnelAttribute : Attribute { }
+  public sealed class LinqTunnelAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that IEnumerable passed as a parameter is not enumerated.
@@ -891,18 +891,18 @@ internal sealed class LinqTunnelAttribute : Attribute { }
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class NoEnumerationAttribute : Attribute { }
+  public sealed class NoEnumerationAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked parameter, field, or property is a regular expression pattern.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class RegexPatternAttribute : Attribute { }
+  public sealed class RegexPatternAttribute : Attribute { }
 
   /// <summary>
   /// Language of injected code fragment inside marked by the <see cref="LanguageInjectionAttribute"/> string literal.
   /// </summary>
-internal enum InjectedLanguage
+  public enum InjectedLanguage
   {
     CSS,
     HTML,
@@ -927,7 +927,7 @@ internal enum InjectedLanguage
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class LanguageInjectionAttribute : Attribute
+  public sealed class LanguageInjectionAttribute : Attribute
   {
     public LanguageInjectionAttribute(InjectedLanguage injectedLanguage)
     {
@@ -960,7 +960,7 @@ internal sealed class LanguageInjectionAttribute : Attribute
   /// </remarks>
   [AttributeUsage(
     AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Struct | AttributeTargets.Enum)]
-internal sealed class NoReorderAttribute : Attribute { }
+  public sealed class NoReorderAttribute : Attribute { }
 
   /// <summary>
   /// <para>
@@ -1105,7 +1105,7 @@ internal sealed class NoReorderAttribute : Attribute { }
     | AttributeTargets.Enum,
     AllowMultiple = true,
     Inherited = false)]
-internal sealed class CodeTemplateAttribute : Attribute
+  public sealed class CodeTemplateAttribute : Attribute
   {
     public CodeTemplateAttribute(string searchTemplate)
     {
@@ -1163,7 +1163,7 @@ internal sealed class CodeTemplateAttribute : Attribute
   #region ASP.NET
 
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-internal sealed class AspChildControlTypeAttribute : Attribute
+  public sealed class AspChildControlTypeAttribute : Attribute
   {
     public AspChildControlTypeAttribute([NotNull] string tagName, [NotNull] Type controlType)
     {
@@ -1177,16 +1177,16 @@ internal sealed class AspChildControlTypeAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-internal sealed class AspDataFieldAttribute : Attribute { }
+  public sealed class AspDataFieldAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-internal sealed class AspDataFieldsAttribute : Attribute { }
+  public sealed class AspDataFieldsAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property)]
-internal sealed class AspMethodPropertyAttribute : Attribute { }
+  public sealed class AspMethodPropertyAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-internal sealed class AspRequiredAttributeAttribute : Attribute
+  public sealed class AspRequiredAttributeAttribute : Attribute
   {
     public AspRequiredAttributeAttribute([NotNull] string attribute)
     {
@@ -1197,7 +1197,7 @@ internal sealed class AspRequiredAttributeAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Property)]
-internal sealed class AspTypePropertyAttribute : Attribute
+  public sealed class AspTypePropertyAttribute : Attribute
   {
     public bool CreateConstructorReferences { get; }
 
@@ -1212,7 +1212,7 @@ internal sealed class AspTypePropertyAttribute : Attribute
   #region ASP.NET MVC
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
+  public sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
   {
     public AspMvcAreaMasterLocationFormatAttribute([NotNull] string format)
     {
@@ -1223,7 +1223,7 @@ internal sealed class AspMvcAreaMasterLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaPartialViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1234,7 +1234,7 @@ internal sealed class AspMvcAreaPartialViewLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcAreaViewComponentViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcAreaViewComponentViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaViewComponentViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1245,7 +1245,7 @@ internal sealed class AspMvcAreaViewComponentViewLocationFormatAttribute : Attri
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
   {
     public AspMvcAreaViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1256,7 +1256,7 @@ internal sealed class AspMvcAreaViewLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcMasterLocationFormatAttribute : Attribute
+  public sealed class AspMvcMasterLocationFormatAttribute : Attribute
   {
     public AspMvcMasterLocationFormatAttribute([NotNull] string format)
     {
@@ -1267,7 +1267,7 @@ internal sealed class AspMvcMasterLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
   {
     public AspMvcPartialViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1278,7 +1278,7 @@ internal sealed class AspMvcPartialViewLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcViewComponentViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcViewComponentViewLocationFormatAttribute : Attribute
   {
     public AspMvcViewComponentViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1289,7 +1289,7 @@ internal sealed class AspMvcViewComponentViewLocationFormatAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
-internal sealed class AspMvcViewLocationFormatAttribute : Attribute
+  public sealed class AspMvcViewLocationFormatAttribute : Attribute
   {
     public AspMvcViewLocationFormatAttribute([NotNull] string format)
     {
@@ -1306,7 +1306,7 @@ internal sealed class AspMvcViewLocationFormatAttribute : Attribute
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcActionAttribute : Attribute
+  public sealed class AspMvcActionAttribute : Attribute
   {
     public AspMvcActionAttribute() { }
 
@@ -1324,7 +1324,7 @@ internal sealed class AspMvcActionAttribute : Attribute
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcAreaAttribute : Attribute
+  public sealed class AspMvcAreaAttribute : Attribute
   {
     public AspMvcAreaAttribute() { }
 
@@ -1343,7 +1343,7 @@ internal sealed class AspMvcAreaAttribute : Attribute
   /// <c>System.Web.Mvc.Html.ChildActionExtensions.RenderAction(HtmlHelper, String, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcControllerAttribute : Attribute
+  public sealed class AspMvcControllerAttribute : Attribute
   {
     public AspMvcControllerAttribute() { }
 
@@ -1360,14 +1360,14 @@ internal sealed class AspMvcControllerAttribute : Attribute
   /// for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcMasterAttribute : Attribute { }
+  public sealed class AspMvcMasterAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC model type. Use this attribute
   /// for custom wrappers similar to <c>System.Web.Mvc.Controller.View(String, Object)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class AspMvcModelTypeAttribute : Attribute { }
+  public sealed class AspMvcModelTypeAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter is an MVC
@@ -1376,13 +1376,13 @@ internal sealed class AspMvcModelTypeAttribute : Attribute { }
   /// <c>System.Web.Mvc.Html.RenderPartialExtensions.RenderPartial(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcPartialViewAttribute : Attribute { }
+  public sealed class AspMvcPartialViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Allows disabling inspections for MVC views within a class or a method.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-internal sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
+  public sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that a parameter is an MVC display template.
@@ -1390,7 +1390,7 @@ internal sealed class AspMvcSuppressViewErrorAttribute : Attribute { }
   /// <c>System.Web.Mvc.Html.DisplayExtensions.DisplayForModel(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcDisplayTemplateAttribute : Attribute { }
+  public sealed class AspMvcDisplayTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC editor template.
@@ -1398,7 +1398,7 @@ internal sealed class AspMvcDisplayTemplateAttribute : Attribute { }
   /// <c>System.Web.Mvc.Html.EditorExtensions.EditorForModel(HtmlHelper, String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcEditorTemplateAttribute : Attribute { }
+  public sealed class AspMvcEditorTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. Indicates that the marked parameter is an MVC template.
@@ -1406,7 +1406,7 @@ internal sealed class AspMvcEditorTemplateAttribute : Attribute { }
   /// <c>System.ComponentModel.DataAnnotations.UIHintAttribute(System.String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcTemplateAttribute : Attribute { }
+  public sealed class AspMvcTemplateAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
@@ -1415,21 +1415,21 @@ internal sealed class AspMvcTemplateAttribute : Attribute { }
   /// <c>System.Web.Mvc.Controller.View(Object)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcViewAttribute : Attribute { }
+  public sealed class AspMvcViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
   /// is an MVC view component name.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcViewComponentAttribute : Attribute { }
+  public sealed class AspMvcViewComponentAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. If applied to a parameter, indicates that the parameter
   /// is an MVC view component view. If applied to a method, the MVC view component view name is default.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class AspMvcViewComponentViewAttribute : Attribute { }
+  public sealed class AspMvcViewComponentViewAttribute : Attribute { }
 
   /// <summary>
   /// ASP.NET MVC attribute. When applied to a parameter of an attribute,
@@ -1443,7 +1443,7 @@ internal sealed class AspMvcViewComponentViewAttribute : Attribute { }
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property)]
-internal sealed class AspMvcActionSelectorAttribute : Attribute { }
+  public sealed class AspMvcActionSelectorAttribute : Attribute { }
 
   #endregion
 
@@ -1457,7 +1457,7 @@ internal sealed class AspMvcActionSelectorAttribute : Attribute { }
   /// to enable syntax highlighting, code completion, navigation, rename and other features in string literals.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class RouteTemplateAttribute : Attribute { }
+  public sealed class RouteTemplateAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked type is custom route parameter constraint,
@@ -1470,7 +1470,7 @@ internal sealed class RouteTemplateAttribute : Attribute { }
   /// and check if constraint's proposed type conflicts with matched parameter's type.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
-internal sealed class RouteParameterConstraintAttribute : Attribute
+  public sealed class RouteParameterConstraintAttribute : Attribute
   {
     [NotNull] public string ConstraintName { get; }
     [CanBeNull] public Type ProposedType { get; set; }
@@ -1489,7 +1489,7 @@ internal sealed class RouteParameterConstraintAttribute : Attribute
   /// in URI string literals assigned to annotated parameters, fields, or properties.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class UriStringAttribute : Attribute
+  public sealed class UriStringAttribute : Attribute
   {
     public UriStringAttribute() { }
 
@@ -1509,7 +1509,7 @@ internal sealed class UriStringAttribute : Attribute
   /// and will add all routes to completion, navigation, and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class AspRouteConventionAttribute : Attribute
+  public sealed class AspRouteConventionAttribute : Attribute
   {
     public AspRouteConventionAttribute() { }
 
@@ -1525,25 +1525,25 @@ internal sealed class AspRouteConventionAttribute : Attribute
   /// Indicates that the marked method parameter contains default route values of routing convention for ASP.NET.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class AspDefaultRouteValuesAttribute : Attribute { }
+  public sealed class AspDefaultRouteValuesAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked method parameter contains constraints on route values of routing convention for ASP.NET.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class AspRouteValuesConstraintsAttribute : Attribute { }
+  public sealed class AspRouteValuesConstraintsAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked parameter or property contains routing order provided by ASP.NET routing attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-internal sealed class AspRouteOrderAttribute : Attribute { }
+  public sealed class AspRouteOrderAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked parameter or property contains HTTP verbs provided by ASP.NET routing attribute.
   /// </summary>
   [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
-internal sealed class AspRouteVerbsAttribute : Attribute { }
+  public sealed class AspRouteVerbsAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked attribute is used for attribute routing in ASP.NET.
@@ -1553,7 +1553,7 @@ internal sealed class AspRouteVerbsAttribute : Attribute { }
   /// and will add all routes to completion, navigation and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Class)]
-internal sealed class AspAttributeRoutingAttribute : Attribute
+  public sealed class AspAttributeRoutingAttribute : Attribute
   {
     public string HttpVerb { get; set; }
   }
@@ -1566,7 +1566,7 @@ internal sealed class AspAttributeRoutingAttribute : Attribute
   /// and will add all routes to completion, navigation and other features over URI strings.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class AspMinimalApiDeclarationAttribute : Attribute
+  public sealed class AspMinimalApiDeclarationAttribute : Attribute
   {
     public string HttpVerb { get; set; }
   }
@@ -1575,20 +1575,20 @@ internal sealed class AspMinimalApiDeclarationAttribute : Attribute
   /// Indicates that the marked method declares an ASP.NET Minimal API endpoints group.
   /// </summary>
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class AspMinimalApiGroupAttribute : Attribute { }
+  public sealed class AspMinimalApiGroupAttribute : Attribute { }
 
   /// <summary>
   /// Indicates that the marked parameter contains an ASP.NET Minimal API endpoint handler.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class AspMinimalApiHandlerAttribute : Attribute { }
+  public sealed class AspMinimalApiHandlerAttribute : Attribute { }
 
   #endregion
 
   #region Razor
 
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.Field)]
-internal sealed class HtmlElementAttributesAttribute : Attribute
+  public sealed class HtmlElementAttributesAttribute : Attribute
   {
     public HtmlElementAttributesAttribute() { }
 
@@ -1601,7 +1601,7 @@ internal sealed class HtmlElementAttributesAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class HtmlAttributeValueAttribute : Attribute
+  public sealed class HtmlAttributeValueAttribute : Attribute
   {
     public HtmlAttributeValueAttribute([NotNull] string name)
     {
@@ -1617,10 +1617,10 @@ internal sealed class HtmlAttributeValueAttribute : Attribute
   /// <c>System.Web.WebPages.WebPageBase.RenderSection(String)</c>.
   /// </summary>
   [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Method)]
-internal sealed class RazorSectionAttribute : Attribute { }
+  public sealed class RazorSectionAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-internal sealed class RazorImportNamespaceAttribute : Attribute
+  public sealed class RazorImportNamespaceAttribute : Attribute
   {
     public RazorImportNamespaceAttribute([NotNull] string name)
     {
@@ -1631,7 +1631,7 @@ internal sealed class RazorImportNamespaceAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-internal sealed class RazorInjectionAttribute : Attribute
+  public sealed class RazorInjectionAttribute : Attribute
   {
     public RazorInjectionAttribute([NotNull] string type, [NotNull] string fieldName)
     {
@@ -1645,7 +1645,7 @@ internal sealed class RazorInjectionAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-internal sealed class RazorDirectiveAttribute : Attribute
+  public sealed class RazorDirectiveAttribute : Attribute
   {
     public RazorDirectiveAttribute([NotNull] string directive)
     {
@@ -1656,7 +1656,7 @@ internal sealed class RazorDirectiveAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-internal sealed class RazorPageBaseTypeAttribute : Attribute
+  public sealed class RazorPageBaseTypeAttribute : Attribute
   {
       public RazorPageBaseTypeAttribute([NotNull] string baseType)
       {
@@ -1673,19 +1673,19 @@ internal sealed class RazorPageBaseTypeAttribute : Attribute
   }
 
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class RazorHelperCommonAttribute : Attribute { }
+  public sealed class RazorHelperCommonAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Property)]
-internal sealed class RazorLayoutAttribute : Attribute { }
+  public sealed class RazorLayoutAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class RazorWriteLiteralMethodAttribute : Attribute { }
+  public sealed class RazorWriteLiteralMethodAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Method)]
-internal sealed class RazorWriteMethodAttribute : Attribute { }
+  public sealed class RazorWriteMethodAttribute : Attribute { }
 
   [AttributeUsage(AttributeTargets.Parameter)]
-internal sealed class RazorWriteMethodParameterAttribute : Attribute { }
+  public sealed class RazorWriteMethodParameterAttribute : Attribute { }
 
   #endregion
 
@@ -1696,7 +1696,7 @@ internal sealed class RazorWriteMethodParameterAttribute : Attribute { }
   /// as an <c>ItemsControl</c>-derived type, to enable inner items <c>DataContext</c> type resolution.
   /// </summary>
   [AttributeUsage(AttributeTargets.Class)]
-internal sealed class XamlItemsControlAttribute : Attribute { }
+  public sealed class XamlItemsControlAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates the property of some <c>BindingBase</c>-derived type, that
@@ -1708,7 +1708,7 @@ internal sealed class XamlItemsControlAttribute : Attribute { }
   /// marked with the <see cref="XamlItemsControlAttribute"/> attribute.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Property)]
-internal sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
+  public sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates the property of some <c>Style</c>-derived type that
@@ -1720,7 +1720,7 @@ internal sealed class XamlItemBindingOfItemsControlAttribute : Attribute { }
   /// marked with the <see cref="XamlItemsControlAttribute"/> attribute.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Property)]
-internal sealed class XamlItemStyleOfItemsControlAttribute : Attribute { }
+  public sealed class XamlItemStyleOfItemsControlAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates that DependencyProperty has <c>OneWay</c> binding mode by default.
@@ -1729,7 +1729,7 @@ internal sealed class XamlItemStyleOfItemsControlAttribute : Attribute { }
   /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, or to a DependencyProperty descriptor field otherwise.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class XamlOneWayBindingModeByDefaultAttribute : Attribute { }
+  public sealed class XamlOneWayBindingModeByDefaultAttribute : Attribute { }
 
   /// <summary>
   /// XAML attribute. Indicates that DependencyProperty has <c>TwoWay</c> binding mode by default.
@@ -1738,7 +1738,7 @@ internal sealed class XamlOneWayBindingModeByDefaultAttribute : Attribute { }
   /// This attribute must be applied to DependencyProperty's CLR accessor property if it is present, or to a DependencyProperty descriptor field otherwise.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-internal sealed class XamlTwoWayBindingModeByDefaultAttribute : Attribute { }
+  public sealed class XamlTwoWayBindingModeByDefaultAttribute : Attribute { }
 
   #endregion
 
@@ -1753,7 +1753,7 @@ internal sealed class XamlTwoWayBindingModeByDefaultAttribute : Attribute { }
   /// support or by test runners to group tests by subject and to provide better test reports.
   /// </remarks>
   [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
-internal sealed class TestSubjectAttribute : Attribute
+  public sealed class TestSubjectAttribute : Attribute
   {
     /// <summary>
     /// Gets the type of the subject being tested.
@@ -1794,7 +1794,7 @@ internal sealed class TestSubjectAttribute : Attribute
   /// }
   /// </code></example>
   [AttributeUsage(AttributeTargets.GenericParameter)]
-internal sealed class MeansTestSubjectAttribute : Attribute { }
+  public sealed class MeansTestSubjectAttribute : Attribute { }
 
   #endregion
 }

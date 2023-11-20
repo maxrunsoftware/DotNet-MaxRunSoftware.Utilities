@@ -26,6 +26,6 @@ global using System.Reflection;
 global using System.Text;
 global using System.Threading;
 global using Microsoft.Extensions.Logging;
-global using JetBrains.Annotations;
 global using MaxRunSoftware.Utilities.Common;
+global using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
 global using PureAttribute = System.Diagnostics.Contracts.PureAttribute;
