@@ -22,8 +22,8 @@ namespace MaxRunSoftware.Utilities.Common.Tests;
 public abstract class TestBase : IDisposable
 {
     // ReSharper disable once IntroduceOptionalParameters.Global
-    protected TestBase(ITestOutputHelper testOutputHelper) : this(testOutputHelper, null) { }
-    protected TestBase(ITestOutputHelper testOutputHelper, IEnumerable<SkippedTest>? skippedTests)
+    protected TestBase(ITestOutputHelper? testOutputHelper) : this(testOutputHelper, null) { }
+    protected TestBase(ITestOutputHelper? testOutputHelper, IEnumerable<SkippedTest>? skippedTests)
     {
         testOutputHelperWrapper = new(testOutputHelper);
         LogLevel = LogLevel.Information;
@@ -70,8 +70,9 @@ public abstract class TestBase : IDisposable
 
         public TestOutputHelper TestOutputHelper { get; }
 
-        public TestOutputHelperWrapper(ITestOutputHelper helper)
+        public TestOutputHelperWrapper(ITestOutputHelper? helper)
         {
+            if (helper == null) throw new ArgumentNullException(nameof(helper));
             TestOutputHelper = (TestOutputHelper)helper;
 
             buffer = GetField<StringBuilder>(nameof(buffer));
