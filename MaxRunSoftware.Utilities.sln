@@ -1,20 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common", "MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj", "{D2F4C033-3B7E-4B55-87A1-5D76297DC512}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common", "src\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj", "{D2F4C033-3B7E-4B55-87A1-5D76297DC512}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common.Tests", "MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj", "{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Common.Tests", "tests\MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj", "{DC93EE06-DD45-4155-B5DB-6EB5B79ED00F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp", "MaxRunSoftware.Utilities.Ftp\MaxRunSoftware.Utilities.Ftp.csproj", "{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp", "src\MaxRunSoftware.Utilities.Ftp\MaxRunSoftware.Utilities.Ftp.csproj", "{4934D9D7-D304-4A3F-82EB-A66D40B2FACA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp.Tests", "MaxRunSoftware.Utilities.Ftp.Tests\MaxRunSoftware.Utilities.Ftp.Tests.csproj", "{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Ftp.Tests", "tests\MaxRunSoftware.Utilities.Ftp.Tests\MaxRunSoftware.Utilities.Ftp.Tests.csproj", "{BEFA5985-0C60-43A6-AFF7-8D08499ED7B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Data", "MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj", "{A8A82FC3-1225-4B58-834A-7001E46EDE9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Data", "src\MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj", "{A8A82FC3-1225-4B58-834A-7001E46EDE9A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Data.Tests", "MaxRunSoftware.Utilities.Data.Tests\MaxRunSoftware.Utilities.Data.Tests.csproj", "{F3AB84E9-F09A-44E4-91BC-627E283BC4CC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Data.Tests", "tests\MaxRunSoftware.Utilities.Data.Tests\MaxRunSoftware.Utilities.Data.Tests.csproj", "{F3AB84E9-F09A-44E4-91BC-627E283BC4CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Windows", "MaxRunSoftware.Utilities.Windows\MaxRunSoftware.Utilities.Windows.csproj", "{8ED9687B-BE9F-4969-B0BC-D45E45A408F3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Windows", "src\MaxRunSoftware.Utilities.Windows\MaxRunSoftware.Utilities.Windows.csproj", "{8ED9687B-BE9F-4969-B0BC-D45E45A408F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Windows.Tests", "MaxRunSoftware.Utilities.Windows.Tests\MaxRunSoftware.Utilities.Windows.Tests.csproj", "{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Windows.Tests", "tests\MaxRunSoftware.Utilities.Windows.Tests\MaxRunSoftware.Utilities.Windows.Tests.csproj", "{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

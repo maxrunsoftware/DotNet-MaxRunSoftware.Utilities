@@ -3,6 +3,8 @@
 #set -x #echo on
 #set +x #echo off
 
+exit 0  # don't do anything
+
 # config
 script_dir=
 buildpre=0

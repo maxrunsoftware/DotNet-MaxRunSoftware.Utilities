@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Description>Various helper methods and functions</Description>
+        <PackageId>MaxRunSoftware.Utilities.Ftp</PackageId>
+        <Summary>Various tools and helper functions</Summary>
+        <Title>Max Run Software Utilities</Title>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <WarningLevel>4</WarningLevel>
+        <DocumentationFile>bin\Debug\net6.0\MaxRunSoftware.Ftp.xml</DocumentationFile>
+        <NoWarn>1701;1702;1591</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <DebugType>
+        </DebugType>
+        <WarningLevel>4</WarningLevel>
+        <DocumentationFile>bin\Release\net6.0\MaxRunSoftware.Ftp.xml</DocumentationFile>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+        <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
+        <PackageReference Include="FluentFTP" Version="48.0.3" />
+    </ItemGroup>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
+    </Target>
+</Project>
