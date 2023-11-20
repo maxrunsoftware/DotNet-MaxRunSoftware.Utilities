@@ -7,18 +7,21 @@
         <ImplicitUsings>disable</ImplicitUsings>
 
         <Authors>Max Run Software</Authors>
-        <Owners>Max Run Software</Owners>
-        <Copyright>(c) Max Run Software 2023</Copyright>
+        <Owners>$(Authors)</Owners>
+        <Copyright>(c) Max Run Software $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
+        
         <AssemblyVersion>2.0.0</AssemblyVersion>
-        <FileVersion>2.0.0</FileVersion>
-        <ReleaseVersion>2.0.0</ReleaseVersion>
-        <PackageVersion>2.0.0-$(Configuration)-$(Platform)-$([System.DateTime]::UtcNow.ToString(yyyyMMdd-HHmmss))</PackageVersion>
-
+        <FileVersion>$(AssemblyVersion)</FileVersion>
+        <ReleaseVersion>$(AssemblyVersion)</ReleaseVersion>
+        <PackageVersion>$(AssemblyVersion)</PackageVersion>
+        
         <PackageTags>Utility</PackageTags>
-        <PackageIconUrl></PackageIconUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
 
     </PropertyGroup>
+    
+
+    
 </Project>
