@@ -106,6 +106,7 @@ public class FtpClientFtp : FtpClientBase
     protected override void GetFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress) =>
         Client.DownloadStream(localStream, remoteFile, progress: progress => handlerProgress(new()
         {
+            // ReSharper disable once RedundantCast
             Progress = (Percent)progress.Progress,
             BytesTransferred = progress.TransferredBytes
         }));
@@ -114,6 +115,7 @@ public class FtpClientFtp : FtpClientBase
     {
         Action<FtpProgress> ftpProgressHandler = progress => handlerProgress(new()
         {
+            // ReSharper disable once RedundantCast
             Progress = (Percent)progress.Progress,
             BytesTransferred = progress.TransferredBytes
         });
@@ -189,7 +191,7 @@ public class FtpClientFtp : FtpClientBase
     protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath) =>
         CreateFileSystemObject(Client.GetObjectInfo(remotePath));
 
-    protected override string? GetAbsolutePathInternal(string remotePath)
+    protected override string GetAbsolutePathInternal(string remotePath)
     {
         throw new NotImplementedException();
     }

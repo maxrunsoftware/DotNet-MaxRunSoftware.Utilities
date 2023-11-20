@@ -58,6 +58,7 @@ public class FtpClientSFtp : FtpClientBase
         const double multiplierDouble = 100;
 
         var percent = bytesDouble / totalDouble * multiplierDouble;
+        // ReSharper disable once RedundantCast
         return (Percent)percent;
     }
 

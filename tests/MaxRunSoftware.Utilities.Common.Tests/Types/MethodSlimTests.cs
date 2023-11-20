@@ -14,6 +14,9 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
+
 public class MethodSlimTests : TestBase
 {
     public MethodSlimTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
@@ -30,6 +33,7 @@ public class MethodSlimTests : TestBase
     {
         return typeof(TestClassA).GetMethods().First(o => o.Name == name);
     }
+
     [SkippableFact]
     public void TestMethodStaticA_Can_Create()
     {

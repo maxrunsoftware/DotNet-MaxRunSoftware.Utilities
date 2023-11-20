@@ -13,9 +13,11 @@
 // limitations under the License.
 
 using System.Diagnostics.CodeAnalysis;
-// ReSharper disable InconsistentNaming
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Data;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable PossibleNullReferenceException
 
 [SuppressMessage("Assertions", "xUnit2013:Do not use equality check to check for collection size.")]
 public class XmlElementTests : TestBase

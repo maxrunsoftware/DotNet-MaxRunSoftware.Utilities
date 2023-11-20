@@ -14,6 +14,9 @@
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
+
 public class FtpClientSFtpTests : FtpClientTests<FtpClientSFtp>
 {
     public FtpClientSFtpTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }

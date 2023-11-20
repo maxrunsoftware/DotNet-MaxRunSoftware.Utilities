@@ -15,6 +15,9 @@
 namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 
 // ReSharper disable once InconsistentNaming
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
+
 public class UtilIOTests : TestBase
 {
     public UtilIOTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }

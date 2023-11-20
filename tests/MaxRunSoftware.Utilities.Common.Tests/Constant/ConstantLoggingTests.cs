@@ -14,6 +14,7 @@
 
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable AssignNullToNotNullAttribute
 
 namespace MaxRunSoftware.Utilities.Common.Tests;
 

@@ -27,7 +27,7 @@ public class TerminalColor8 : TerminalColor
             foreach (var c in Colors8)
             {
                 var key = ToUInt(c);
-                if (!d.ContainsKey(key)) d.Add(key, c);
+                d.TryAdd(key, c);
             }
             return d.ToImmutableDictionary();
         });
@@ -63,6 +63,7 @@ public class TerminalColor8 : TerminalColor
 
     private static uint ToUInt(TerminalColor c) => ToUInt(c.Color.A, c.Color.R, c.Color.G, c.Color.B);
     private static uint ToUInt(Color c) => ToUInt(c.A, c.R, c.G, c.B);
+    // ReSharper disable once UnusedMember.Local
     private static uint ToUInt(byte red, byte green, byte blue) => ToUInt(255, red, green, blue);
     private static uint ToUInt(byte alpha, byte red, byte green, byte blue) => BitConverter.ToUInt32(new[] { alpha, red, green, blue });
 

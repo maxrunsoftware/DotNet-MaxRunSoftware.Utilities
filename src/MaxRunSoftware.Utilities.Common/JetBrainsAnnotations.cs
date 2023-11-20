@@ -22,8 +22,10 @@ SOFTWARE. */
 
 #nullable disable
 
+// ReSharper disable once RedundantUsingDirective
 using System;
 // ReSharper disable UnusedType.Global
+// ReSharper disable CheckNamespace
 
 #pragma warning disable 1591
 // ReSharper disable UnusedMember.Global
@@ -41,7 +43,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </summary>
   /// <example><code>
   /// [CanBeNull] object Test() => null;
-  /// 
+  ///
   /// void UseTest() {
   ///   var p = Test();
   ///   var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
@@ -114,7 +116,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [StringFormatMethod("message")]
   /// void ShowError(string message, params object[] args) { /* do something */ }
-  /// 
+  ///
   /// void Foo() {
   ///   ShowError("Failed: {0}"); // Warning: Non-existing argument in format string
   /// }
@@ -141,7 +143,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </summary>
   /// <example><code>
   /// void LogInfo([StructuredMessageTemplate]string message, params object[] args) { /* do something */ }
-  /// 
+  ///
   /// void Foo() {
   ///   LogInfo("User created: {username}"); // Warning: Non-existing argument in format string
   /// }
@@ -280,12 +282,12 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// public class Foo : INotifyPropertyChanged {
   ///   public event PropertyChangedEventHandler PropertyChanged;
-  /// 
+  ///
   ///   [NotifyPropertyChangedInvocator]
   ///   protected virtual void NotifyChanged(string propertyName) { ... }
   ///
   ///   string _name;
-  /// 
+  ///
   ///   public string Name {
   ///     get { return _name; }
   ///     set { _name = value; NotifyChanged("LastName"); /* Warning */ }
@@ -404,7 +406,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [CannotApplyEqualityOperator]
   /// class NoEquality { }
-  /// 
+  ///
   /// class UsesNoEquality {
   ///   void Test() {
   ///     var ca1 = new NoEquality();
@@ -425,7 +427,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [BaseTypeRequired(typeof(IComponent)] // Specify requirement
   /// class ComponentAttribute : Attribute { }
-  /// 
+  ///
   /// [Component] // ComponentAttribute requires implementing IComponent interface
   /// class MyComponent : IComponent { }
   /// </code></example>
@@ -450,13 +452,13 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// [UsedImplicitly]
   /// public class TypeConverter {}
-  /// 
+  ///
   /// public class SummaryData
   /// {
   ///   [UsedImplicitly(ImplicitUseKindFlags.InstantiatedWithFixedConstructorSignature)]
   ///   public SummaryData() {}
   /// }
-  /// 
+  ///
   /// [UsedImplicitly(ImplicitUseTargetFlags.WithInheritors | ImplicitUseTargetFlags.Default)]
   /// public interface IService {}
   /// </code></example>
@@ -592,7 +594,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// </summary>
   /// <example><code>
   /// [Pure] int Multiply(int x, int y) => x * y;
-  /// 
+  ///
   /// void M() {
   ///   Multiply(123, 42); // Warning: Return value of pure method is not used
   /// }
@@ -651,7 +653,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// <example><code>
   /// class Foo {
   ///   [ProvidesContext] IBarService _barService = ...;
-  /// 
+  ///
   ///   void ProcessNode(INode node) {
   ///     DoSomething(node, node.GetGlobalServices().Bar);
   ///     //              ^ Warning: use value of '_barService' field
@@ -1783,7 +1785,7 @@ namespace MaxRunSoftware.Utilities.Common.JetBrains.Annotations
   /// {
   ///   protected T Component { get; }
   /// }
-  /// 
+  ///
   /// public class CalculatorAdditionTests : BaseTestClass&lt;Calculator&gt;
   /// {
   ///   [Test]

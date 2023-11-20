@@ -389,10 +389,9 @@ public abstract class FtpClientBase : IFtpClient
 
     public string GetAbsolutePath(string remotePath)
     {
-        string? remotePathAbsolute = null;
         try
         {
-            remotePathAbsolute = GetAbsolutePathInternal(remotePath);
+            var remotePathAbsolute = GetAbsolutePathInternal(remotePath);
             if (remotePathAbsolute != null) return remotePathAbsolute;
         } catch (NotImplementedException) { }
 

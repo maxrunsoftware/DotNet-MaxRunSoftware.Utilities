@@ -15,6 +15,8 @@
 namespace MaxRunSoftware.Utilities.Data.Tests;
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
 
 /// <summary>
 /// https://xunit.net/docs/shared-context

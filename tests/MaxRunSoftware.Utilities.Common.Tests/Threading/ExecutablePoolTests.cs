@@ -14,6 +14,8 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Threading;
 
+// ReSharper disable PossibleNullReferenceException
+
 public class ExecutablePoolTests : TestBase
 {
     public ExecutablePoolTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }

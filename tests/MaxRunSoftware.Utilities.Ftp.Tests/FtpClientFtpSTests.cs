@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // ReSharper disable LocalVariableHidesMember
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
