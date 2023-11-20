@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using CsvHelper.Configuration;
-using MaxRunSoftware.Utilities.Common;
-using Microsoft.Extensions.Logging;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedType.Global
