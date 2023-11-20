@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <Description>Various helper methods and functions</Description>
         <PackageId>MaxRunSoftware.Utilities.Common</PackageId>
         <Summary>Various tools and helper functions</Summary>
@@ -28,21 +27,6 @@
     <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
       <Exec Command="$(SolutionDir)publish.sh buildpre $(ProjectName) $(Configuration)" />
     </Target>
-    
-    <Target Name="PostBuildMessages" AfterTargets="Build" >
-
-        <!-- Use $(Property Name) to reference a property -->
-        <Message Text="   --- MESSAGES: $(ProjectName)" Importance="high"/>
-
-        <!-- Use @(Item Name) to output a semi-colon separated list of items on one line      -->
-        <Message Text="  TargetFramework: $(TargetFramework)" Importance="high"/>
-
-        <!-- Use %(Item Name.Metadata Property Name) to call the Message task once for each item.   -->
-        <!-- This will output each item on a separate line -->
-        <Message Text="  IncludeSymbols: $(IncludeSymbols)" Importance="high"/>
-
-    </Target>
-  
     <Target Name="InstallPackageLocally" AfterTargets="Pack">
       <Exec Command="$(SolutionDir)publish.sh buildpost $(ProjectName) $(Configuration)" />
     </Target>    

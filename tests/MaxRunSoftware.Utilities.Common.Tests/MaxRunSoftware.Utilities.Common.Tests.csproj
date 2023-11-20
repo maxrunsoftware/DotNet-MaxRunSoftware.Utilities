@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
         <Description>Various helper methods and functions</Description>
         <PackageId>MaxRunSoftware.Utilities.Common.Tests</PackageId>
         <Summary>Various tools and helper functions</Summary>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>    
+    <Target Name="PreBuildMessageVariables" BeforeTargets="PreBuildEvent">
+    
+        <Message Text="$(ProjectName) - VARIABLES -  TargetFramework: $(TargetFramework)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  IncludeSymbols: $(IncludeSymbols)" Importance="high"/> 
+        <Message Text="$(ProjectName) - VARIABLES -  IncludeSource: $(IncludeSource)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  ImplicitUsings: $(ImplicitUsings)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Authors: $(Authors)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Owners: $(Owners)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Copyright: $(Copyright)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  AssemblyVersion: $(AssemblyVersion)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  FileVersion: $(FileVersion)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  ReleaseVersion: $(ReleaseVersion)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageVersion: $(PackageVersion)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageTags: $(PackageTags)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageLicenseExpression: $(PackageLicenseExpression)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageLicenseUrl: $(PackageLicenseUrl)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageProjectUrl: $(PackageProjectUrl)" Importance="high"/>
+        
+        <Message Text="$(ProjectName) - VARIABLES -  GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  IsPackable: $(IsPackable)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackOnBuild: $(PackOnBuild)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Nullable: $(Nullable)" Importance="high"/>
+        
+        <Message Text="$(ProjectName) - VARIABLES -  Description: $(Description)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  PackageId: $(PackageId)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Summary: $(Summary)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  Title: $(Title)" Importance="high"/>
+        
+        <Message Text="$(ProjectName) - VARIABLES -  WarningLevel: $(WarningLevel)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  DocumentationFile: $(DocumentationFile)" Importance="high"/>
+        <Message Text="$(ProjectName) - VARIABLES -  NoWarn: $(NoWarn)" Importance="high"/>
+        
+        
+        
+    </Target>
+</Project>    
