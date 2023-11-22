@@ -6,5 +6,6 @@
         <IsPackable>false</IsPackable>
         <PackOnBuild>false</PackOnBuild>
         <Nullable>disable</Nullable>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
 </Project>

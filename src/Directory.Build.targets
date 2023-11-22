@@ -4,4 +4,10 @@
     <ItemGroup>
         <Compile Include="$(SolutionDir)src/common/**/*.cs" />
     </ItemGroup>
+    <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+      <Exec Command="$(SolutionDir)publish.sh buildpre $(AssemblyName) $(Configuration)" />
+    </Target>
+    <Target Name="InstallPackageLocally" AfterTargets="Pack">
+      <Exec Command="$(SolutionDir)publish.sh buildpost $(AssemblyName) $(Configuration)" />
+    </Target>
 </Project>    

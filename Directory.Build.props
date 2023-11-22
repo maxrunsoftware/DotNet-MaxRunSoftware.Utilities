@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
     <PropertyGroup>
 
@@ -10,16 +11,19 @@
         <Owners>$(Authors)</Owners>
         <Copyright>(c) Max Run Software $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
         
-        <AssemblyVersion>2.0.0</AssemblyVersion>
-        <FileVersion>$(AssemblyVersion)</FileVersion>
-        <ReleaseVersion>$(AssemblyVersion)</ReleaseVersion>
-        <PackageVersion>$(AssemblyVersion)</PackageVersion>
+        <VersionPrefix>2.0.0</VersionPrefix>
         
+        <PackageId>$(MSBuildProjectName)</PackageId>
         <PackageTags>Utility</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
-
+        <RepositoryType>git</RepositoryType>
+        
+        <EnablePackageValidation>false</EnablePackageValidation>
+        
+        <ProduceReferenceAssemblyInOutDir>true</ProduceReferenceAssemblyInOutDir>
+        
     </PropertyGroup>
     
 

@@ -6,5 +6,8 @@
         <IsPackable>true</IsPackable>
         <PackOnBuild>true</PackOnBuild>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        
+        <DocumentationFile>bin\Debug\net6.0\$(AssemblyName).xml</DocumentationFile>
     </PropertyGroup>
 </Project>
