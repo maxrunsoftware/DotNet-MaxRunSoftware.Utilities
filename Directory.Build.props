@@ -3,10 +3,12 @@
     <PropertyGroup>
 
         <TargetFramework>net7.0</TargetFramework>
-        <IncludeSymbols>true</IncludeSymbols>
-        <IncludeSource>true</IncludeSource>
         <ImplicitUsings>disable</ImplicitUsings>
 
+        <IncludeSymbols>true</IncludeSymbols>
+        <IncludeSource>true</IncludeSource>
+        <DebugType>embedded</DebugType>
+        
         <Authors>Max Run Software</Authors>
         <Owners>$(Authors)</Owners>
         <Copyright>(c) Max Run Software $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
@@ -16,13 +18,10 @@
         <PackageId>$(MSBuildProjectName)</PackageId>
         <PackageTags>Utility</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageLicenseUrl>http://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         
         <EnablePackageValidation>false</EnablePackageValidation>
-        
-        <ProduceReferenceAssemblyInOutDir>true</ProduceReferenceAssemblyInOutDir>
         
     </PropertyGroup>
     

@@ -3,9 +3,9 @@
 #set -x #echo on
 #set +x #echo off
 
-#exit 0  # don't do anything
-
 # config
+nuget_suffix_datetime=$(date -u '+%Y%m%d-%H%M%S')
+nuget_suffix="beta-${nuget_suffix_datetime}"
 script_dir=
 buildpre=0
 buildpost=0
@@ -15,6 +15,7 @@ project_dir=
 publish_dir=
 publish_nuget_dir=
 nuget_build=0
+action=none
 
 for arg in "$@" 
 do
@@ -28,11 +29,17 @@ do
         project_type="Debug"
     elif [[ " $arg " =~ " Release " ]]; then
         project_type="Release"
+    elif [[ " $arg " =~ " clean " ]]; then
+        action="clean"
     elif [[ " $arg " =~ " nuget " ]]; then
-        nuget_build=1  
+        action="nuget"
     fi
     
 done
+
+
+if [[ $buildpre = 1 ]] || [[ $buildpost = 1 ]]; then exit 0; fi
+
 
 
 # https://stackoverflow.com/a/50265513
@@ -90,70 +97,32 @@ echo "      PROJECT_TYPE: $project_type"
 echo "       PUBLISH_DIR: $publish_dir"
 echo " PUBLISH_NUGET_DIR: $publish_nuget_dir"
 echo "       NUGET_BUILD: $nuget_build"
+echo "       ACTION: $action"
 
 
 if dir_not_exists $publish_dir; then mkdir -p $publish_dir; fi
 if dir_not_exists $publish_nuget_dir; then mkdir -p $publish_nuget_dir; fi
 
 
-
-if is_not_empty $project && [[ $nuget_build = 6 ]]; then 
-    project_dir_raw="${script_dir}/${project}"
-    project_dir=$(realpath -q "$project_dir_raw")
-    exit_if_error $? "Directory does not exist: ${project_dir_raw}"
-    echo "       PROJECT_DIR: $project_dir"
-    check_dir_exists $project_dir
-    
-    if is_empty $project_type; then exit_if_error 1 "project_type not defined, should be Debug or Release"; fi
-    
-    project_compiled_dir_raw="${project_dir}/bin/${project_type}"
-    echo " PROJECT_COMPILED_DIR: $project_compiled_dir_raw"
-    echo ""
-    project_compiled_dir=$(realpath -q "$project_compiled_dir_raw")
-
-    if dir_not_exists $project_compiled_dir; then
-        echo "Skipping directory because it does not exist: $project_compiled_dir_raw"
-    else
-        if [[ $buildpre = 1 ]]; then
-            echo "Removing existing packages from $project_compiled_dir"
-            rm -fv ${project_compiled_dir}/*.nupkg
-        fi
-        
-        if [[ $buildpost = 1 ]]; then                
-            #echo "Removing existing packages from $publish_nuget_dir"
-            #rm -fv ${publish_nuget_dir}/${project}.*.nupkg
-
-            echo "Copying compiled nuget packages from $project_compiled_dir to ${publish_nuget_dir}"
-            find "$project_compiled_dir" -iname '*.nupkg' -exec cp -prv '{}' "${publish_nuget_dir}/" ';'
-            
-            #for filename in $script_dir/publish/nuget/*.nupkg; do
-                #echo "  ->  $filename"
-                #nuget add "$filename" -source $script_dir/publish/packages
-            #done
-        fi
-        
-    fi
-    
+if [[ " $action " =~ " clean " ]]; then
+    find "${script_dir}" -type d -name bin -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
+    find "${script_dir}" -type d -name obj -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
 fi
 
-
-if [[ $nuget_build = 1 ]]; then
+if [[ " $action " =~ " nuget " ]]; then
     echo "Building NUGET packages"
     
+    find "${script_dir}" -type d -name bin -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
+    find "${script_dir}" -type d -name obj -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
+
+    
     echo "  Removing existing packages from $publish_nuget_dir"
-    rm -fv ${publish_nuget_dir}/${project}.*.nupkg
+    if dir_exists $publish_nuget_dir; then rm -rfv $publish_nuget_dir; fi
+    if dir_not_exists $publish_nuget_dir; then mkdir -p $publish_nuget_dir; fi
 
-    dotnet pack "$[script_dir}/MaxRunSoftware.Utilities.sln" --output "\"${publish_nuget_dir}\"" --include-symbols --nologo --version-suffix beta1
-
+    dotnet build "${script_dir}/MaxRunSoftware.Utilities.sln" --nologo --include-symbols --include-source --version-suffix beta1
+    dotnet pack "${script_dir}/MaxRunSoftware.Utilities.sln" --output "${publish_nuget_dir}" --nologo --include-symbols --include-source --version-suffix "${nuget_suffix}"
+     
 fi
 
-
-
-
-
 echo ""
-
-
-
-
-
