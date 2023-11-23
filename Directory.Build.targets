@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project>    
+<Project>
     <PropertyGroup>
         <MRS_MessagePrefix>$(ProjectName) - VARIABLES -</MRS_MessagePrefix>
         <MRS_PreBuild_Info_Importance>low</MRS_PreBuild_Info_Importance>
-        <MRS_PrePack_Info_Importance>high</MRS_PreBuild_Info_Importance>
-        
+        <MRS_PrePack_Info_Importance>high</MRS_PrePack_Info_Importance>
+
     </PropertyGroup>
-    
+
     <Target Name="MRS_PreBuild_Info" BeforeTargets="PreBuildEvent">
         <Message Text="$(MRS_MessagePrefix) ProjectName: $(ProjectName)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) AssemblyName: $(AssemblyName)" Importance="$(MRS_PreBuild_Info_Importance)" />
 
 
         <Message Text="$(MRS_MessagePrefix) TargetFramework: $(TargetFramework)" Importance="$(MRS_PreBuild_Info_Importance)" />
-        <Message Text="$(MRS_MessagePrefix) IncludeSymbols: $(IncludeSymbols)" Importance="$(MRS_PreBuild_Info_Importance)" /> 
+        <Message Text="$(MRS_MessagePrefix) IncludeSymbols: $(IncludeSymbols)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) IncludeSource: $(IncludeSource)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) ImplicitUsings: $(ImplicitUsings)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Authors: $(Authors)" Importance="$(MRS_PreBuild_Info_Importance)" />
@@ -27,73 +27,69 @@
         <Message Text="$(MRS_MessagePrefix) PackageLicenseExpression: $(PackageLicenseExpression)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageLicenseUrl: $(PackageLicenseUrl)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageProjectUrl: $(PackageProjectUrl)" Importance="$(MRS_PreBuild_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) IsPackable: $(IsPackable)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackOnBuild: $(PackOnBuild)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Nullable: $(Nullable)" Importance="$(MRS_PreBuild_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) Description: $(Description)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageId: $(PackageId)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Summary: $(Summary)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Title: $(Title)" Importance="$(MRS_PreBuild_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) WarningLevel: $(WarningLevel)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) DocumentationFile: $(DocumentationFile)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) NoWarn: $(NoWarn)" Importance="$(MRS_PreBuild_Info_Importance)" />
-        
+
     </Target>
-    
-    
+
+
     <Target Name="MRS_PrePack_Info" BeforeTargets="Pack">
         <Message Text="$(MRS_MessagePrefix) ProjectName: $(ProjectName)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) AssemblyName: $(AssemblyName)" Importance="$(MRS_PrePack_Info_Importance)" />
 
         <Message Text="$(MRS_MessagePrefix) VersionPrefix: $(VersionPrefix)" Importance="$(MRS_PrePack_Info_Importance)" />
-        <Message Text="$(MRS_MessagePrefix) VersionSuffix: $(VersionSuffix)" Importance="$(MRS_PrePack_Info_Importance)" /> 
+        <Message Text="$(MRS_MessagePrefix) VersionSuffix: $(VersionSuffix)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Version: $(Version)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) AssemblyVersion: $(AssemblyVersion)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) FileVersion: $(FileVersion)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) InformationalVersion: $(InformationalVersion)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) ReleaseVersion: $(ReleaseVersion)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageVersion: $(PackageVersion)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) PackageId: $(PackageId)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageTags: $(PackageTags)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageLicenseExpression: $(PackageLicenseExpression)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageLicenseUrl: $(PackageLicenseUrl)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackageProjectUrl: $(PackageProjectUrl)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) RepositoryUrl: $(RepositoryUrl)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) RepositoryType: $(RepositoryType)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) RepositoryBranch: $(RepositoryBranch)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) RepositoryCommit: $(RepositoryCommit)" Importance="$(MRS_PrePack_Info_Importance)" />
 
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <Message Text="$(MRS_MessagePrefix) GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) IsPackable: $(IsPackable)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) PackOnBuild: $(PackOnBuild)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Nullable: $(Nullable)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) Description: $(Description)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Summary: $(Summary)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) Title: $(Title)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
+
         <Message Text="$(MRS_MessagePrefix) WarningLevel: $(WarningLevel)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) DocumentationFile: $(DocumentationFile)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) NoWarn: $(NoWarn)" Importance="$(MRS_PrePack_Info_Importance)" />
-        
-    </Target>    
-        <Version>2.0.0</Version>
-        <AssemblyVersion>$(Version)</AssemblyVersion>
-        <FileVersion>$(Version)</FileVersion>
-        <ReleaseVersion>$(Version)</ReleaseVersion>
-        <PackageVersion>$(Version)</PackageVersion>
-        
-</Project>    
+
+    </Target>
+
+
+</Project>
