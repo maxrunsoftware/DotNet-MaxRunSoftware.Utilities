@@ -4,10 +4,6 @@
 
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
-
-        <IncludeSymbols>true</IncludeSymbols>
-        <IncludeSource>true</IncludeSource>
-        <DebugType>embedded</DebugType>
         
         <Authors>Max Run Software</Authors>
         <Owners>$(Authors)</Owners>
@@ -18,6 +14,10 @@
         <PackageId>$(MSBuildProjectName)</PackageId>
         <PackageTags>Utility</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         
@@ -25,6 +25,9 @@
         
     </PropertyGroup>
     
-
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" />
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
+    </ItemGroup>
     
 </Project>

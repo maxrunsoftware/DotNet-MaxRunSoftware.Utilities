@@ -3,7 +3,7 @@
     <PropertyGroup>
         <MRS_MessagePrefix>$(ProjectName) - VARIABLES -</MRS_MessagePrefix>
         <MRS_PreBuild_Info_Importance>low</MRS_PreBuild_Info_Importance>
-        <MRS_PrePack_Info_Importance>high</MRS_PrePack_Info_Importance>
+        <MRS_PrePack_Info_Importance>low</MRS_PrePack_Info_Importance>
 
     </PropertyGroup>
 
