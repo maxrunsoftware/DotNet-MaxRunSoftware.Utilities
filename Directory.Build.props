@@ -15,16 +15,16 @@
         <PackageTags>Utility</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
-    
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
-        
-        <EnablePackageValidation>false</EnablePackageValidation>
-        
+         
     </PropertyGroup>
     
+    
+    <PropertyGroup>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
     <ItemGroup>
         <None Include="$(MSBuildThisFileDirectory)LICENSE" Pack="true" PackagePath="" />
         <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="" />
