@@ -7,8 +7,11 @@
 script_dir=
 build_dir="build"
 build_nuget_dir="nuget"
+git_id=
+git_branch=
+git_url=
 action="none"
-build_config="Debug"
+build_config="debug"
 version_suffix_datetime=$(date -u '+%Y%m%d-%H%M%S')
 version_suffix="beta-${version_suffix_datetime}"
 
@@ -49,6 +52,15 @@ check_dir_exists() {
     if dir_not_exists $1; then exit_if_error 1 "Directory does not exist: $1"; fi
 }
 
+file_exists() {
+    if is_not_empty $1 && [ -e "$1" ]; then return 0; else return 1; fi  # https://stackoverflow.com/a/40082454
+}
+
+file_not_exists() {
+    if file_exists $1; then return 1; else return 0; fi
+}
+
+
 str_equals() {
     local x=$( tr '[:upper:]' '[:lower:]' <<<"$1" )
     local y=$( tr '[:upper:]' '[:lower:]' <<<"$2" )
@@ -61,16 +73,44 @@ str_not_equals() {
 
 
 
+declare -a actions_possible=(
+    "clean"
+    "nuget"
+    "nugetpush"
+)
+
+declare -a builds_possible=(
+    "debug"
+    "release"
+)
+
 for arg in "$@" 
 do
-    if str_equals $arg "debug"; then build_config="Debug"; fi
-    if str_equals $arg "release"; then build_config="Release"; fi
+    is_valid_arg=false  # https://stackoverflow.com/a/2953673
     
-    if str_equals $arg "clean"; then action="clean"; fi
-    if str_equals $arg "nuget"; then action="nuget"; fi
-    if str_equals $arg "nugetpush"; then action="nugetpush"; fi
+    for action_possible in "${actions_possible[@]}"
+    do
+        if str_equals $arg $action_possible; then
+            action=$action_possible
+            is_valid_arg=true 
+        fi        
+    done
+        
+    for build_possible in "${builds_possible[@]}"
+    do
+        if str_equals $arg $build_possible; then
+            build_config=$build_possible
+            is_valid_arg=true
+        fi        
+    done
     
+    if [ "$is_valid_arg" = false ] ; then
+        exit_if_error 1 "Invalid argument: $arg"
+    fi    
 done
+
+if str_equals $build_config "debug"; then build_config="Debug"; fi
+if str_equals $build_config "release"; then build_config="Release"; fi
 
 
 
@@ -82,21 +122,30 @@ check_dir_exists $script_dir
 build_dir_path="${script_dir}/${build_dir}"
 build_nuget_dir_path="${build_dir_path}/${build_nuget_dir}"
 
+git_id=$(git -C $script_dir rev-parse HEAD)
+git_branch=$(git -C $script_dir branch --show-current)
+git_url=$(git -C $script_dir config --get remote.origin.url)
+
 
 echo ""
-echo " ----------------- SETTINGS ----------------- "
-echo "        SCRIPT_DIR: $script_dir"
-echo "         BUILD_DIR: $build_dir_path"
-echo "   BUILD_NUGET_DIR: $build_nuget_dir_path"
-echo "            ACTION: $action"
-echo "      BUILD_CONFIG: $build_config"
-echo "    VERSION_SUFFIX: $version_suffix"
+echo " --------------------- SETTINGS --------------------- "
+echo "              SCRIPT_DIR: $script_dir"
+echo "               BUILD_DIR: $build_dir_path"
+echo "         BUILD_NUGET_DIR: $build_nuget_dir_path"
+echo "                  ACTION: $action"
+echo "            BUILD_CONFIG: $build_config"
+echo "          VERSION_SUFFIX: $version_suffix"
+echo "                  GIT_ID: $git_id"
+echo "              GIT_BRANCH: $git_branch"
+echo "                 GIT_URL: $git_url"
 echo ""
+
 
 
 clean_dirs() {
     find "${script_dir}" -type d -name bin -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
     find "${script_dir}" -type d -name obj -prune -mindepth 3 -maxdepth 3 -exec rm -rf {} \;
+    
     if dir_exists $build_dir_path; then
         rm -rf $build_dir_path;
         exit_if_error_last
@@ -106,6 +155,7 @@ clean_dirs() {
         rm -rf $build_nuget_dir_path;
         exit_if_error_last
     fi
+    
 }
 
 nuget_create() {
@@ -120,10 +170,12 @@ nuget_create() {
         mkdir -p $build_nuget_dir_path;
         exit_if_error_last
     fi
+        
+    local dotnet_props="\"/p:RepositoryCommit=${git_id};RepositoryBranch=${git_branch};RepositoryUrl=${git_url}\""  # https://stackoverflow.com/a/51485481    
     
-    dotnet build "${script_dir}/MaxRunSoftware.Utilities.sln" --configuration "${build_config}" --nologo --version-suffix "${version_suffix}"
+    dotnet build "${script_dir}/MaxRunSoftware.Utilities.sln" --configuration "${build_config}" --nologo --version-suffix "${version_suffix}" "${dotnet_props}"
     exit_if_error_last
-    dotnet pack "${script_dir}/MaxRunSoftware.Utilities.sln" --configuration "${build_config}" --output "${build_nuget_dir_path}" --nologo --include-symbols --include-source --version-suffix "${version_suffix}"
+    dotnet pack "${script_dir}/MaxRunSoftware.Utilities.sln" --configuration "${build_config}" --output "${build_nuget_dir_path}" --nologo --include-symbols --include-source --version-suffix "${version_suffix}" "${dotnet_props}"
     exit_if_error_last
 }
 
@@ -138,6 +190,10 @@ nuget_push() {
     done
     set +x #echo off
 }
+
+
+
+
 
 if str_equals $action "clean"; then clean_dirs;
 elif str_equals $action "nuget"; then nuget_create;
