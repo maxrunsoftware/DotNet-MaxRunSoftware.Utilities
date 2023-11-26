@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Title>Max Run Software Utilities</Title>
-        <Description>Various helper methods and functions</Description>
-        <Summary>Various tools and helper functions</Summary>
+        <Title>Data helper utilities</Title>
+        <Description>Various helper methods and functions for data manipulation such as SQL and CSV files</Description>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="MySql.Data" Version="8.2.0" />
-        <PackageReference Include="Npgsql" Version="7.0.6" />
+        <PackageReference Include="Npgsql" Version="8.0.0" />
         <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
         <PackageReference Include="CsvHelper" Version="30.0.1" />
