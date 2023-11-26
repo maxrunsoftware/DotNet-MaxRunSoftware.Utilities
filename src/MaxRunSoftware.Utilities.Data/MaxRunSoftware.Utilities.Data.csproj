@@ -9,10 +9,6 @@
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
         <PackageReference Include="MySql.Data" Version="8.2.0" />
         <PackageReference Include="Npgsql" Version="7.0.6" />

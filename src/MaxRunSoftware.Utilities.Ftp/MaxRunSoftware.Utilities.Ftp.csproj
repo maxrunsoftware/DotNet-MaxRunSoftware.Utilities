@@ -9,10 +9,6 @@
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="NuGet.Build.Packaging" Version="0.2.5-pr174.14">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
         <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
         <PackageReference Include="FluentFTP" Version="48.0.3" />
