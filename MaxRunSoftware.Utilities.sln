@@ -16,6 +16,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Wi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Windows.Tests", "tests\MaxRunSoftware.Utilities.Windows.Tests\MaxRunSoftware.Utilities.Windows.Tests.csproj", "{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Web", "src\MaxRunSoftware.Utilities.Web\MaxRunSoftware.Utilities.Web.csproj", "{E607641E-A350-45A4-8978-2E76711106EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaxRunSoftware.Utilities.Web.Tests", "tests\MaxRunSoftware.Utilities.Web.Tests\MaxRunSoftware.Utilities.Web.Tests.csproj", "{0CEAF0C2-ADC8-4A12-A331-C1F1D007A0DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +58,13 @@ Global
 		{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7472203-8C3C-4D16-92FB-9E13B8B5AB5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E607641E-A350-45A4-8978-2E76711106EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E607641E-A350-45A4-8978-2E76711106EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E607641E-A350-45A4-8978-2E76711106EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E607641E-A350-45A4-8978-2E76711106EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CEAF0C2-ADC8-4A12-A331-C1F1D007A0DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEAF0C2-ADC8-4A12-A331-C1F1D007A0DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CEAF0C2-ADC8-4A12-A331-C1F1D007A0DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CEAF0C2-ADC8-4A12-A331-C1F1D007A0DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
