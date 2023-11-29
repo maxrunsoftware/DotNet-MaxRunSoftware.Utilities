@@ -19,7 +19,7 @@ namespace MaxRunSoftware.Utilities.Web.Server;
 
 public class WebServerBasicAuthentication : WebModuleBase
 {
-    private readonly string _wwwAuthenticateHeaderValue;
+    private readonly string wwwAuthenticateHeaderValue;
 
     public override bool IsFinalHandler => false;
 
@@ -27,42 +27,35 @@ public class WebServerBasicAuthentication : WebModuleBase
 
     public WebServerBasicAuthentication(string baseRoute, string? realm = null) : base(baseRoute)
     {
-        Realm = string.IsNullOrEmpty(realm) ? BaseRoute : realm;
-        _wwwAuthenticateHeaderValue = "Basic realm=\"" + Realm + "\" charset=UTF-8";
+        Realm = realm.TrimOrNull() ?? BaseRoute;
+        wwwAuthenticateHeaderValue = $"Basic realm=\"{Realm}\" charset=UTF-8";
     }
 
     protected override async Task OnRequestAsync(IHttpContext context)
     {
-        context.Response.Headers.Set("WWW-Authenticate", _wwwAuthenticateHeaderValue);
-        if (!await IsAuthenticatedAsync().ConfigureAwait(false))
-            throw HttpException.Unauthorized();
-
-        async Task<bool> IsAuthenticatedAsync()
+        context.Response.Headers.Set("WWW-Authenticate", wwwAuthenticateHeaderValue);
+        if (!await IsAuthenticatedAsync(context).ConfigureAwait(false))
         {
-            try
-            {
-                var up = GetCredentials(context.Request);
-                var username = up?.UserName;
-                var password = up?.Password;
-                return await VerifyCredentialsAsync(context, username, password, context.CancellationToken).ConfigureAwait(false);
-            }
-            catch (FormatException ex)
-            {
-                // TODO: log exception
-                return false;
-            }
+            throw HttpException.Unauthorized();
         }
     }
 
-    /// <summary>
-    /// Verifies the credentials given in the <c>Authentication</c> request header.
-    /// </summary>
-    /// <param name="context">The context of the request being handled.</param>
-    /// <param name="userName">The user name, or <see langword="null" /> if none has been given.</param>
-    /// <param name="password">The password, or <see langword="null" /> if none has been given.</param>
-    /// <param name="cancellationToken">A <see cref="T:System.Threading.CancellationToken" /> use to cancel the operation.</param>
-    /// <returns>A <see cref="T:System.Threading.Tasks.Task`1" /> whose result will be <see langword="true" /> if the given credentials
-    /// are valid, <see langword="false" /> if they are not.</returns>
+    private async Task<bool> IsAuthenticatedAsync(IHttpContext context)
+    {
+        try
+        {
+            var up = GetCredentials(context.Request);
+            var username = up?.UserName;
+            var password = up?.Password;
+            return await VerifyCredentialsAsync(context, username, password, context.CancellationToken).ConfigureAwait(false);
+        }
+        catch (FormatException ex)
+        {
+            // TODO: log exception
+            return false;
+        }
+    }
+
     protected virtual Task<bool> VerifyCredentialsAsync(
         IHttpContext context,
         string? userName,

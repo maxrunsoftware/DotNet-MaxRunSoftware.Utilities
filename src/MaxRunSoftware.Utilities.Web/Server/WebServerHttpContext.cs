@@ -20,65 +20,72 @@ public class WebServerHttpContext
 {
     public IHttpContext HttpContext { get; }
 
-    public WebServerHttpContextAuthorization? Authorization => AuthorizationBasic;
+    public WebUrlPath RequestPath { get; }
 
-    public WebServerHttpContextAuthorizationBasic? AuthorizationBasic { get; }
+    private readonly Lzy<IReadOnlyDictionary<string, string?>> parameters;
+    public IReadOnlyDictionary<string, string?> Parameters => parameters.Value;
+    private IReadOnlyDictionary<string, string?> Parameters_Create()
+    {
+        var d = new Dictionary<string, string?>();
+        var ps = HttpContext.GetRequestQueryData();
+        foreach (var key in ps.AllKeys)
+        {
+            var k = key.TrimOrNull();
+            if (k == null) continue;
+
+            var v = ps[key];
+            if (v == null) continue;
+
+            d[k] = v;
+        }
+
+        return new DictionaryReadOnlyStringCaseInsensitive<string?>(d);
+    }
+
+    private readonly Lzy<WebServerHttpContextAuthorization?> authorization;
+    public WebServerHttpContextAuthorization? Authorization => authorization.Value;
+    private WebServerHttpContextAuthorization? Authorization_Create()
+    {
+        static (string? name, string? value) ParseAuthorization(IHttpContext httpContext)
+        {
+            var auth = httpContext.Request.Headers["Authorization"].TrimOrNull();
+            if (auth == null) return (null, null);
+
+            if (!auth.Contains(' ', StringComparison.Ordinal)) return (auth, null);
+
+            var parts = auth.Split(' ', 2);
+            var name = parts.GetAtIndexOrDefault(0).TrimOrNull();
+            var val = parts.GetAtIndexOrDefault(1).TrimOrNull();
+            return (name, val);
+        }
+
+        var (auth, value) = ParseAuthorization(HttpContext);
+        if (auth == null) return null;
+
+        if (WebServerHttpContextAuthorizationBasic.CanHandle(auth)) return new WebServerHttpContextAuthorizationBasic(auth, value);
+
+        return new WebServerHttpContextAuthorizationUnknown(auth, value);
+    }
+
+    public WebServerHttpContextAuthorizationUnknown? AuthorizationUnknown => Authorization as WebServerHttpContextAuthorizationUnknown;
+    public WebServerHttpContextAuthorizationBasic? AuthorizationBasic => Authorization as WebServerHttpContextAuthorizationBasic;
 
     public WebServerHttpContext(IHttpContext httpContext)
     {
         HttpContext = httpContext;
-
-        AuthorizationBasic = WebServerHttpContextAuthorizationBasic.Create(httpContext);
+        RequestPath = new WebUrlPath(HttpContext.RequestedPath);
+        parameters = Lzy.Create(Parameters_Create);
+        authorization = Lzy.Create(Authorization_Create);
     }
 
+    public T? GetParameter<T>(string parameterName) => Parameters.TryGetValue(parameterName, out var value)
+        ? Util.ChangeType<T>(value)
+        : default;
+
+    public bool HasParameter(string parameterName) => Parameters.TryGetValue(parameterName, out _);
 }
 
-public abstract class WebServerHttpContextAuthorization
+public static class WebServerHttpContextExtensions
 {
-    public string Authorization { get; }
 
-    protected WebServerHttpContextAuthorization(string authorization)
-    {
-        Authorization = authorization;
-    }
-
-    protected static string? ParseAuthorization(IHttpContext httpContext, string authorizationScheme)
-    {
-        var hAuthorization = httpContext.Request.Headers["Authorization"].TrimOrNull();
-        if (hAuthorization == null) return null;
-
-        if (!hAuthorization.Contains(' ', StringComparison.Ordinal)) return null;
-
-        var hAuthorizationParts = hAuthorization.Split(' ', 2);
-        var authorization = hAuthorizationParts.GetAtIndexOrDefault(0).TrimOrNull();
-        var authValue = hAuthorizationParts.GetAtIndexOrDefault(1).TrimOrNull();
-        if (authorization == null || authValue == null) return null;
-
-        if (!StringComparer.OrdinalIgnoreCase.Equals(authorizationScheme, authorization)) return null;
-        return authValue;
-    }
-}
-
-public class WebServerHttpContextAuthorizationBasic : WebServerHttpContextAuthorization
-{
-    public string? Username { get; private set; }
-    public string? Password { get; private set; }
-    public WebServerHttpContextAuthorizationBasic(string authorization) : base(authorization) { }
-
-    public static WebServerHttpContextAuthorizationBasic? Create(IHttpContext httpContext)
-    {
-        var authValue = ParseAuthorization(httpContext, "basic");
-        if (authValue == null) return null;
-        var o = new WebServerHttpContextAuthorizationBasic("basic");
-        var upEncoded = Convert.FromBase64String(authValue);
-        var up = Constant.Encoding_UTF8_Without_BOM.GetString(upEncoded).TrimOrNull();
-        if (up != null)
-        {
-            var upParts = up.Split(':', 2);
-            o.Username = upParts.GetAtIndexOrDefault(0).TrimOrNull();
-            o.Password = upParts.GetAtIndexOrDefault(1).TrimOrNull();
-        }
-
-        return o;
-    }
 }

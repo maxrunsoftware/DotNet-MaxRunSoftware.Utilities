@@ -16,9 +16,11 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using EmbedIO;
 using EmbedIO.Actions;
+using EmbedIO.Sessions;
 using LogLevelSwan = Swan.Logging.LogLevel;
 using LogLevelMicrosoft = Microsoft.Extensions.Logging.LogLevel;
 using ILoggerSwan = Swan.Logging.ILogger;
+// ReSharper disable InconsistentlySynchronizedField
 
 namespace MaxRunSoftware.Utilities.Web.Server;
 
@@ -82,53 +84,98 @@ public class WebServer : IDisposable
     }
 
     private readonly ILogger log;
-    private EmbedIO.WebServer? server;
-    private readonly SingleUse disposable = new();
-    private Func<WebServerHttpContext, Task> Handler { get; }
+    private readonly object locker = new();
+
+    private readonly SingleUse disposable;
+
+    public WebServerOptions ServerOptions { get; set; }
+
+    public EmbedIO.WebServer? Server { get; private set; }
+
+    public Func<WebServerHttpContext, Task>? Handler { get; set;  }
+    public Func<WebServerHttpException, Task>? HandlerException { get; set; }
+
     public int ResponseDelayMilliseconds { get; set; } = 100;
 
-    public WebServer(ILoggerProvider loggerProvider, ushort port, Func<WebServerHttpContext, Task> handler)
+    public ushort Port { get; set; } = 8080;
+
+    public LocalSessionManager? SessionManager { get; set; } = new();
+
+    public IList<string> Hostnames { get; set; }
+
+    public WebServer(ILoggerProvider loggerProvider)
     {
+        disposable = new(locker);
         log = loggerProvider.CreateLogger<WebServer>();
-        Handler = handler;
-        SwanLogger.RegisterLoggers(log);
+        SwanLogger.RegisterLoggers(loggerProvider.CreateLogger<EmbedIO.WebServer>());
 
-        log.LogDebug("{Type}: Starting", GetType().FullNameFormatted());
+        ServerOptions = new WebServerOptions()
+                .WithMode(HttpListenerMode.EmbedIO)
+            ;
 
-        var urlPrefixes = Util.NetGetIPAddresses()
-            .Where(o => o.AddressFamily == AddressFamily.InterNetwork)
-            .Select(ip => ip.ToString())
-            .Concat(new[] {"localhost", "127.0.0.1"})
+        var hostnames = new List<string>();
+        try
+        {
+            foreach (var ip in Util.NetGetIPAddresses().Where(o => o.AddressFamily == AddressFamily.InterNetwork))
+            {
+                hostnames.Add(ip.ToString());
+            }
+        }
+        catch (Exception e)
+        {
+            log.LogWarning(e, "Unable to obtain local IP address list for {Type}.{Property}", GetType().FullNameFormatted(), nameof(Hostnames));
+        }
+        hostnames.Add("localhost");
+        hostnames.Add("127.0.0.1");
+
+        Hostnames = hostnames
             .Select(o => o.TrimOrNull())
             .WhereNotNull()
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(o => o, StringComparer.OrdinalIgnoreCase)
-            .Select(o => $"http://{o}:{port}")
             .ToList();
+    }
 
-        foreach (var urlPrefix in urlPrefixes)
+    public void Start()
+    {
+        lock (locker)
         {
-            log.LogDebug("{Type}: Registering URL {Url}", GetType().FullNameFormatted(), urlPrefix);
+            StartInternal();
+        }
+    }
+
+    private void StartInternal()
+    {
+        var logPrefix = GetType().FullNameFormatted();
+        log.LogDebug("{Prefix}: Starting", logPrefix);
+
+        foreach (var hostname in Hostnames.OrderBy(o => o, StringComparer.OrdinalIgnoreCase))
+        {
+            var urlPrefix = $"http://{hostname}:{Port}";
+            log.LogDebug("{Prefix}: Registering URL {Url}", logPrefix, urlPrefix);
+            ServerOptions.AddUrlPrefix(urlPrefix);
         }
 
-        EmbedIO.WebServer s = new(o => o
-            .WithUrlPrefixes(urlPrefixes)
-            .WithMode(HttpListenerMode.EmbedIO)
-        );
+        EmbedIO.WebServer s = new(ServerOptions);
 
-        s = s.WithLocalSessionManager();
+        var sm = SessionManager;
+        if (sm != null)
+        {
+            log.LogDebug("{Prefix}: Registering SessionManager {SessionManagerType}", logPrefix, sm.GetType().FullNameFormatted());
+            s.SessionManager = sm;
+        }
 
         var am = new ActionModule(HandleHttp);
         s = s.WithModule(am);
 
-        s.StateChanged += (_, e) => log.LogDebug("WebServer New State - {WebServerState}", e.NewState);
+        s.StateChanged += (_, e) => log.LogDebug("{Type}: New State - {WebServerState}", typeof(EmbedIO.WebServer).FullNameFormatted(), e.NewState);
 
         s.HandleHttpException(HandleHttpException);
 
-        server = s;
-        server.RunAsync();
+        Server = s;
+        Server.RunAsync();
 
-        log.LogDebug("{Type}: Started", GetType().FullNameFormatted());
+        log.LogDebug("{Prefix}: Started", logPrefix);
     }
 
     private async Task HandleHttp(IHttpContext context)
@@ -137,7 +184,16 @@ public class WebServer : IDisposable
         await Task.Delay(ResponseDelayMilliseconds);
 
         var c = new WebServerHttpContext(context);
-        await Handler(c);
+        var handler = Handler;
+        if (handler != null)
+        {
+            await handler(c);
+        }
+        else
+        {
+            log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
+            await context.SendStringHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
+        }
     }
 
     private async Task HandleHttpException(IHttpContext context, IHttpException exception)
@@ -145,29 +201,48 @@ public class WebServer : IDisposable
         log.LogDebug("HTTP Exception for {RequestedPath}  {Exception}", context.RequestedPath, exception);
         await Task.Delay(ResponseDelayMilliseconds);
 
-        context.Response.StatusCode = exception.StatusCode;
-        switch (exception.StatusCode)
+        var httpException = new WebServerHttpException(context, exception);
+
+        var handlerException = HandlerException;
+        if (handlerException != null)
         {
-            case 404:
-                await context.SendStringHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
-                break;
-            case 401:
-                context.AddHeader("WWW-Authenticate", "Basic");
-                await context.SendStringHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
-                break;
-            default:
-                await HttpExceptionHandler.Default(context, exception);
-                break;
+            await handlerException(httpException);
+        }
+        else
+        {
+            log.LogWarning("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(HandlerException));
+            context.Response.StatusCode = exception.StatusCode;
+            switch (exception.StatusCode)
+            {
+                case 404:
+                    await context.SendStringHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
+                    break;
+                case 401:
+                    context.AddHeader("WWW-Authenticate", "Basic");
+                    await context.SendStringHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
+                    break;
+                default:
+                    await HttpExceptionHandler.Default(context, exception);
+                    break;
+            }
         }
     }
 
     public void Dispose()
     {
+        lock (locker)
+        {
+            DisposeInternal();
+        }
+    }
+
+    private void DisposeInternal()
+    {
         if (!disposable.TryUse()) return;
 
         log.LogDebug("Shutting down web server");
-        var s = server;
-        server = null;
+        var s = Server;
+        Server = null;
         if (s == null) return;
 
         try
@@ -181,5 +256,7 @@ public class WebServer : IDisposable
 
         log.LogDebug("Web server shut down");
     }
+
+
 
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,9 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Web.Tests;
+using EmbedIO;
 
-public class TestBase : Common.Tests.TestBase
+namespace MaxRunSoftware.Utilities.Web.Server;
+
+public class WebServerHttpException
 {
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constants.IGNORED_TESTS) { }
-}
+    public WebServerHttpContext Context { get; }
+    public IHttpException HttpException { get; }
+
+    public WebServerHttpException(IHttpContext httpContext, IHttpException httpException)
+    {
+        Context = new(httpContext);
+        HttpException = httpException;
+    }
+
+ }

@@ -19,50 +19,7 @@ namespace MaxRunSoftware.Utilities.Web.Server;
 
 public static class WebServerExtensions
 {
-    public static SortedDictionary<string, string> GetParameters(this IHttpContext context)
-    {
-        var d = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var parameters = context.GetRequestQueryData();
-        foreach (var key in parameters.AllKeys)
-        {
-            var k = key.TrimOrNull();
-            if (k == null) continue;
 
-            var v = parameters[key].TrimOrNull();
-            if (v == null) continue;
-
-            d[k] = v;
-        }
-
-        return d;
-    }
-
-    public static string? GetParameterString(this IHttpContext context, string parameterName) => GetParameters(context).GetValueNullable(parameterName);
-
-    public static string GetParameterString(this IHttpContext context, string parameterName, string defaultValue) => GetParameterString(context, parameterName) ?? defaultValue;
-
-    public static int? GetParameterInt(this IHttpContext context, string parameterName)
-    {
-        var s = GetParameterString(context, parameterName);
-        if (s == null) return null;
-
-        if (int.TryParse(s, out var o)) return o;
-
-        return null;
-    }
-
-    public static int GetParameterInt(this IHttpContext context, string parameterName, int defaultValue) => GetParameterInt(context, parameterName) ?? defaultValue;
-
-    public static bool HasParameter(this IHttpContext context, string parameterName)
-    {
-        var parameters = context.GetRequestQueryData();
-        foreach (var key in parameters.AllKeys)
-        {
-            if (string.Equals(key, parameterName, StringComparison.OrdinalIgnoreCase)) { return true; }
-        }
-
-        return false;
-    }
 
     public static void AddHeader(this IHttpContext context, string name, params string[] values) => context.Response.Headers.Add(name + ": " + values.ToStringDelimited("; "));
 
