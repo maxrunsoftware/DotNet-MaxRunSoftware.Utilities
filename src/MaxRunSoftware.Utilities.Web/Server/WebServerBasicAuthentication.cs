@@ -19,82 +19,38 @@ namespace MaxRunSoftware.Utilities.Web.Server;
 
 public class WebServerBasicAuthentication : WebModuleBase
 {
-    private readonly string wwwAuthenticateHeaderValue;
+    private readonly ILogger log;
+    private string AuthenticateHeaderValue => "Basic realm=\"" + (Realm ?? BaseRoute) + "\" charset=UTF-8";
 
     public override bool IsFinalHandler => false;
 
-    public string Realm { get; }
+    public string? Realm { get; set; }
 
-    public WebServerBasicAuthentication(string baseRoute, string? realm = null) : base(baseRoute)
+    public Func<WebServerHttpContext, bool>? HandlerAuthenticate { get; set; }
+
+    public WebServerBasicAuthentication(ILoggerProvider loggerProvider, string baseRoute = "/") : base(baseRoute)
     {
-        Realm = realm.TrimOrNull() ?? BaseRoute;
-        wwwAuthenticateHeaderValue = $"Basic realm=\"{Realm}\" charset=UTF-8";
+        log = loggerProvider.CreateLogger<WebServerBasicAuthentication>();
     }
 
     protected override async Task OnRequestAsync(IHttpContext context)
     {
-        context.Response.Headers.Set("WWW-Authenticate", wwwAuthenticateHeaderValue);
-        if (!await IsAuthenticatedAsync(context).ConfigureAwait(false))
+        context.Response.Headers.Set("WWW-Authenticate", AuthenticateHeaderValue);
+
+        var httpContext = new WebServerHttpContext(context);
+        var handler = HandlerAuthenticate;
+        if (handler == null)
+        {
+            log.LogError("{Property} not defined", nameof(HandlerAuthenticate));
+            throw HttpException.InternalServerError();
+        }
+
+        var isAuthenticated = await Task.FromResult(handler(httpContext));
+        if (!isAuthenticated)
         {
             throw HttpException.Unauthorized();
         }
     }
 
-    private async Task<bool> IsAuthenticatedAsync(IHttpContext context)
-    {
-        try
-        {
-            var up = GetCredentials(context.Request);
-            var username = up?.UserName;
-            var password = up?.Password;
-            return await VerifyCredentialsAsync(context, username, password, context.CancellationToken).ConfigureAwait(false);
-        }
-        catch (FormatException ex)
-        {
-            // TODO: log exception
-            return false;
-        }
-    }
 
-    protected virtual Task<bool> VerifyCredentialsAsync(
-        IHttpContext context,
-        string? userName,
-        string? password,
-        CancellationToken cancellationToken) =>
-        Task.FromResult(VerifyCredentialsInternal(userName, password));
-
-    private bool VerifyCredentialsInternal(string? userName, string? password) =>
-        //string b;
-        //return userName != null && this.Accounts.TryGetValue(userName, out b) && string.Equals(password, b, StringComparison.Ordinal);
-        true;
-
-    private static (string? UserName, string? Password)? GetCredentials(IHttpRequest request)
-    {
-        try
-        {
-            var header = request.Headers["Authorization"];
-            if (header == null) return null;
-            if (!header.StartsWith("basic ", StringComparison.OrdinalIgnoreCase)) return null;
-
-
-            var upBase64 = header.Substring("basic ".Length).TrimOrNull();
-            if (upBase64 == null) return null;
-            var upEncoded = Convert.FromBase64String(upBase64);
-            var up = EmbedIO.WebServer.DefaultEncoding.GetString(upEncoded).TrimOrNull();
-            if (up == null) return null;
-
-            var upParts = up.Split(':', 2);
-            return upParts.Length switch
-            {
-                0 => null,
-                1 => (upParts[0].Trim(), string.Empty),
-                _ => (upParts[0].Trim(), upParts[1].Trim()),
-            };
-        }
-        catch (Exception ex)
-        {
-            // TODO: log exception
-            return null;
-        }
-    }
 }

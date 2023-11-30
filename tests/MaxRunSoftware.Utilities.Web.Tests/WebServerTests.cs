@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using EmbedIO;
 using MaxRunSoftware.Utilities.Web.Server;
 using WebServer = MaxRunSoftware.Utilities.Web.Server.WebServer;
+// ReSharper disable PossibleNullReferenceException
 
 namespace MaxRunSoftware.Utilities.Web.Tests;
 
-public class WebServerTests : WebServerTestBase
+public class WebServerTests : TestBase
 {
     public WebServerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
@@ -24,11 +25,10 @@ public class WebServerTests : WebServerTestBase
         Assert.True(ws != null);
         return;
 
-        async Task Handle(WebServerHttpContext httpContext)
+        async Task Handle(WebServerHttpContext context)
         {
-            var context = httpContext!.HttpContext;
-            log.LogInformation("Received [{Action}] request for URL {Url}", context.Request.HttpVerb, context.RequestedPath);
-            var msg = $"<p>Handling [{context.Request.HttpVerb}] request for {context.RequestedPath}</p>";
+            log.LogInformation("Received [{Action}] request for URL {Url}", context.Method, context.RequestPath);
+            var msg = $"<p>Handling [{context.Method}] request for {context.RequestPath}</p>";
             await context.SendStringHtmlSimpleAsync("HttpResponse", msg);
         }
     }

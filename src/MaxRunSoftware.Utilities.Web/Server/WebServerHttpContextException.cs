@@ -16,14 +16,12 @@ using EmbedIO;
 
 namespace MaxRunSoftware.Utilities.Web.Server;
 
-public class WebServerHttpException
+public class WebServerHttpContextException : WebServerHttpContext
 {
-    public WebServerHttpContext Context { get; }
     public IHttpException HttpException { get; }
 
-    public WebServerHttpException(IHttpContext httpContext, IHttpException httpException)
+    public WebServerHttpContextException(IHttpContext httpContext, IHttpException httpException) : base(httpContext)
     {
-        Context = new(httpContext);
         HttpException = httpException;
     }
 

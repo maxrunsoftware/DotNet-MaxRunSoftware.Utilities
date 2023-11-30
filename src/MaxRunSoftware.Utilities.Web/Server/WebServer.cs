@@ -93,13 +93,13 @@ public class WebServer : IDisposable
     public EmbedIO.WebServer? Server { get; private set; }
 
     public Func<WebServerHttpContext, Task>? Handler { get; set;  }
-    public Func<WebServerHttpException, Task>? HandlerException { get; set; }
+    public Func<WebServerHttpContextException, Task>? HandlerException { get; set; }
 
     public int ResponseDelayMilliseconds { get; set; } = 100;
 
     public ushort Port { get; set; } = 8080;
 
-    public LocalSessionManager? SessionManager { get; set; } = new();
+    public ISessionManager? SessionManager { get; set; }
 
     public IList<string> Hostnames { get; set; }
 
@@ -136,6 +136,8 @@ public class WebServer : IDisposable
             .ToList();
     }
 
+
+
     public void Start()
     {
         lock (locker)
@@ -146,13 +148,12 @@ public class WebServer : IDisposable
 
     private void StartInternal()
     {
-        var logPrefix = GetType().FullNameFormatted();
-        log.LogDebug("{Prefix}: Starting", logPrefix);
+        log.LogDebugMethod(new() ,"Starting");
 
         foreach (var hostname in Hostnames.OrderBy(o => o, StringComparer.OrdinalIgnoreCase))
         {
             var urlPrefix = $"http://{hostname}:{Port}";
-            log.LogDebug("{Prefix}: Registering URL {Url}", logPrefix, urlPrefix);
+            log.LogDebugMethod(new(), "Registering URL {Url}", urlPrefix);
             ServerOptions.AddUrlPrefix(urlPrefix);
         }
 
@@ -161,7 +162,7 @@ public class WebServer : IDisposable
         var sm = SessionManager;
         if (sm != null)
         {
-            log.LogDebug("{Prefix}: Registering SessionManager {SessionManagerType}", logPrefix, sm.GetType().FullNameFormatted());
+            log.LogDebugMethod(new(), "Registering SessionManager {SessionManagerType}", sm.GetType().FullNameFormatted());
             s.SessionManager = sm;
         }
 
@@ -175,55 +176,65 @@ public class WebServer : IDisposable
         Server = s;
         Server.RunAsync();
 
-        log.LogDebug("{Prefix}: Started", logPrefix);
+        log.LogDebugMethod(new(), "Started");
     }
 
-    private async Task HandleHttp(IHttpContext context)
+    private async Task HandleHttp(IHttpContext context) => await HandleHttp(context: context, exception: null);
+
+    private async Task HandleHttpException(IHttpContext context, IHttpException exception) => await HandleHttp(context: context, exception: exception);
+
+    private async Task HandleHttp(IHttpContext context, IHttpException? exception)
     {
-        log.LogDebug("HTTP [{HttpVerb}] request for {RequestedPath}", context.Request.HttpVerb, context.RequestedPath);
+        log.LogDebug("HTTP {IsException}[{HttpVerb}] request for {RequestedPath}{Exception}",
+            exception == null ? "" : "Exception ",
+            context.Request.HttpVerb,
+            context.RequestedPath,
+            exception == null ? "" : $": {exception}"
+        );
+
         await Task.Delay(ResponseDelayMilliseconds);
 
-        var c = new WebServerHttpContext(context);
-        var handler = Handler;
-        if (handler != null)
+        if (exception == null)
         {
-            await handler(c);
-        }
-        else
-        {
-            log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
-            await context.SendStringHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
-        }
-    }
-
-    private async Task HandleHttpException(IHttpContext context, IHttpException exception)
-    {
-        log.LogDebug("HTTP Exception for {RequestedPath}  {Exception}", context.RequestedPath, exception);
-        await Task.Delay(ResponseDelayMilliseconds);
-
-        var httpException = new WebServerHttpException(context, exception);
-
-        var handlerException = HandlerException;
-        if (handlerException != null)
-        {
-            await handlerException(httpException);
-        }
-        else
-        {
-            log.LogWarning("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(HandlerException));
-            context.Response.StatusCode = exception.StatusCode;
-            switch (exception.StatusCode)
+            var ctx = new WebServerHttpContext(context);
+            var handler = Handler;
+            if (handler != null)
             {
-                case 404:
-                    await context.SendStringHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
-                    break;
-                case 401:
-                    context.AddHeader("WWW-Authenticate", "Basic");
-                    await context.SendStringHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
-                    break;
-                default:
-                    await HttpExceptionHandler.Default(context, exception);
-                    break;
+                await handler(ctx);
+            }
+            else
+            {
+                log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
+                await ctx.SendStringHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
+            }
+
+        }
+        else
+        {
+            var ctx = new WebServerHttpContextException(context, exception);
+
+            var handlerException = HandlerException;
+            if (handlerException != null)
+            {
+                await handlerException(ctx);
+            }
+            else
+            {
+                log.LogWarning("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(HandlerException));
+                ctx.SetStatus(exception.StatusCode);
+                switch (exception.StatusCode)
+                {
+                    case 404:
+                        await ctx.SendStringHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
+                        break;
+                    case 401:
+                        ctx.AddHeader("WWW-Authenticate", "Basic");
+                        await ctx.SendStringHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
+                        break;
+                    default:
+                        await HttpExceptionHandler.Default(context, exception);
+                        break;
+                }
             }
         }
     }

@@ -12,12 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Net.Http;
+using System.Threading.Tasks;
 using EmbedIO;
 
 namespace MaxRunSoftware.Utilities.Web.Server;
 
 public class WebServerHttpContext
 {
+    private static ImmutableDictionary<string, HttpMethod> HttpMethod_Map_Build()
+    {
+        var d = ImmutableDictionary.CreateBuilder<string, HttpMethod>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var p in typeof(HttpMethod).GetProperties(BindingFlags.Public | BindingFlags.Static))
+        {
+            if (!p.CanRead) continue;
+            if (!p.PropertyType.IsAssignableTo<HttpMethod>()) continue;
+
+            var mo = p.GetValue(null);
+            if (mo == null) continue;
+            var m = mo as HttpMethod;
+            if (m == null) continue;
+            d.Add(m.Method, m);
+        }
+
+        return d.ToImmutable();
+    }
+
+    private static readonly ImmutableDictionary<string, HttpMethod> HttpMethod_Map = HttpMethod_Map_Build();
+
     public IHttpContext HttpContext { get; }
 
     public WebUrlPath RequestPath { get; }
@@ -70,12 +93,17 @@ public class WebServerHttpContext
     public WebServerHttpContextAuthorizationUnknown? AuthorizationUnknown => Authorization as WebServerHttpContextAuthorizationUnknown;
     public WebServerHttpContextAuthorizationBasic? AuthorizationBasic => Authorization as WebServerHttpContextAuthorizationBasic;
 
+    public HttpMethod Method { get; }
+
     public WebServerHttpContext(IHttpContext httpContext)
     {
         HttpContext = httpContext;
         RequestPath = new WebUrlPath(HttpContext.RequestedPath);
         parameters = Lzy.Create(Parameters_Create);
         authorization = Lzy.Create(Authorization_Create);
+
+        var method = httpContext.Request.HttpMethod.Trim();
+        Method = HttpMethod_Map[method];
     }
 
     public T? GetParameter<T>(string parameterName) => Parameters.TryGetValue(parameterName, out var value)
@@ -83,9 +111,69 @@ public class WebServerHttpContext
         : default;
 
     public bool HasParameter(string parameterName) => Parameters.TryGetValue(parameterName, out _);
+
+
 }
 
 public static class WebServerHttpContextExtensions
 {
+    public static WebServerHttpContext AddHeader(this WebServerHttpContext context, string name, params string[] values)
+    {
+        context.HttpContext.Response.Headers.Add(name + ": " + values.ToStringDelimited("; "));
+        return context;
+    }
 
+    public static WebServerHttpContext SendFile(this WebServerHttpContext context, byte[] bytes, string fileName)
+    {
+        context.AddHeader("Content-Disposition", "attachment", "filename=\"" + fileName + "\"");
+
+        using var stream = context.HttpContext.OpenResponseStream();
+        stream.Write(bytes, 0, bytes.Length);
+
+        return context;
+    }
+
+    public static WebServerHttpContext SendFile(this WebServerHttpContext context, string data, string fileName, Encoding? encoding = null)
+    {
+        encoding ??= Constant.Encoding_UTF8_Without_BOM;
+        var bytes = encoding.GetBytes(data);
+        return SendFile(context, bytes, fileName);
+    }
+
+    public static WebServerHttpContext SetStatus(this WebServerHttpContext context, int httpStatusCode)
+    {
+        context.HttpContext.Response.StatusCode = httpStatusCode;
+        return context;
+    }
+
+    public static async Task SendStringHtmlSimpleAsync(this WebServerHttpContext context, string? title, string? msg, string? css = null)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("<html>");
+        sb.AppendLine("  <head>");
+        sb.AppendLine("    <meta charset=\"utf-8\">");
+        if (title != null) sb.AppendLine($"    <title>{title}</title>");
+
+        if (css != null)
+        {
+            sb.AppendLine("    <style>");
+            sb.AppendLine($"    {css}");
+            sb.AppendLine("    </style>");
+        }
+
+        sb.AppendLine("  </head>");
+        sb.AppendLine("  <body>");
+        if (title != null) sb.AppendLine($"    <h1>{title}</h1>");
+
+        if (msg != null) sb.AppendLine($"    {msg}");
+
+        sb.AppendLine("  </body>");
+        sb.AppendLine("</html>");
+
+        var s = sb.ToString();
+
+        await context.HttpContext.SendStringAsync(s, "text/html", Constant.Encoding_UTF8_Without_BOM);
+
+
+    }
 }

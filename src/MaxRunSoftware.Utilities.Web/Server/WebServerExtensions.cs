@@ -21,51 +21,6 @@ public static class WebServerExtensions
 {
 
 
-    public static void AddHeader(this IHttpContext context, string name, params string[] values) => context.Response.Headers.Add(name + ": " + values.ToStringDelimited("; "));
-
-    public static void SendFile(this IHttpContext context, byte[] bytes, string fileName)
-    {
-        context.AddHeader("Content-Disposition", "attachment", "filename=\"" + fileName + "\"");
-
-        using var stream = context.OpenResponseStream();
-        stream.Write(bytes, 0, bytes.Length);
-    }
-
-    public static void SendFile(this IHttpContext context, string data, string fileName, Encoding? encoding = null)
-    {
-        encoding ??= Constant.Encoding_UTF8_Without_BOM;
-        var bytes = encoding.GetBytes(data);
-        SendFile(context, bytes, fileName);
-    }
-
-    public static async Task SendStringHtmlSimpleAsync(this IHttpContext context, string? title, string? msg, string? css = null)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("<html>");
-        sb.AppendLine("  <head>");
-        sb.AppendLine("    <meta charset=\"utf-8\">");
-        if (title != null) sb.AppendLine($"    <title>{title}</title>");
-
-        if (css != null)
-        {
-            sb.AppendLine("    <style>");
-            sb.AppendLine($"    {css}");
-            sb.AppendLine("    </style>");
-        }
-
-        sb.AppendLine("  </head>");
-        sb.AppendLine("  <body>");
-        if (title != null) sb.AppendLine($"    <h1>{title}</h1>");
-
-        if (msg != null) sb.AppendLine($"    {msg}");
-
-        sb.AppendLine("  </body>");
-        sb.AppendLine("</html>");
-
-        var s = sb.ToString();
-
-        await context.SendStringAsync(s, "text/html", Constant.Encoding_UTF8_Without_BOM);
 
 
-    }
 }
