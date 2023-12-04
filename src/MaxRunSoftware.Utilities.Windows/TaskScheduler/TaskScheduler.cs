@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Microsoft.Win32.TaskScheduler;
+using Task=Microsoft.Win32.TaskScheduler.Task;
 
 namespace MaxRunSoftware.Utilities.Windows;
 
