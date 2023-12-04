@@ -25,6 +25,7 @@ global using System.Linq;
 global using System.Reflection;
 global using System.Text;
 global using System.Threading;
+global using System.Threading.Tasks;
 global using Microsoft.Extensions.Logging;
 global using MaxRunSoftware.Utilities.Common;
 global using MaxRunSoftware.Utilities.Common.JetBrains.Annotations;
