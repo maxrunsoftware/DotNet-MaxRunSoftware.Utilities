@@ -13,13 +13,15 @@
 // limitations under the License.
 
 using System.Net.Sockets;
-using System.Threading.Tasks;
 using EmbedIO;
 using EmbedIO.Actions;
 using EmbedIO.Sessions;
+using Swan.Logging;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevelSwan = Swan.Logging.LogLevel;
 using LogLevelMicrosoft = Microsoft.Extensions.Logging.LogLevel;
 using ILoggerSwan = Swan.Logging.ILogger;
+
 // ReSharper disable InconsistentlySynchronizedField
 
 namespace MaxRunSoftware.Utilities.Web.Server;
@@ -52,7 +54,7 @@ public class WebServer : IDisposable
 
         public void Dispose() { }
 
-        public void Log(Swan.Logging.LogMessageReceivedEventArgs logEvent)
+        public void Log(LogMessageReceivedEventArgs logEvent)
         {
             if (logEvent.MessageType != LogLevel) return;
             var logLevelMicrosoft = LOG_LEVELS_MAP[logEvent.MessageType];
@@ -72,15 +74,14 @@ public class WebServer : IDisposable
             {
                 if (!loggerRegistrationIsComplete.TryUse()) return;
                 logger.LogDebug("Registering once, static logging for web server {Type}", typeof(EmbedIO.WebServer).FullNameFormatted());
-                Swan.Logging.Logger.NoLogging();
+                Logger.NoLogging();
                 foreach (var logLevelSwan in LOG_LEVELS_MAP.Keys)
                 {
                     var loggerSwan = new SwanLogger(logLevelSwan, logger);
-                    Swan.Logging.Logger.RegisterLogger(loggerSwan);
+                    Logger.RegisterLogger(loggerSwan);
                 }
             }
         }
-
     }
 
     private readonly ILogger log;
@@ -92,7 +93,7 @@ public class WebServer : IDisposable
 
     public EmbedIO.WebServer? Server { get; private set; }
 
-    public Func<WebServerHttpContext, Task>? Handler { get; set;  }
+    public Func<WebServerHttpContext, Task>? Handler { get; set; }
     public Func<WebServerHttpContextException, Task>? HandlerException { get; set; }
 
     public int ResponseDelayMilliseconds { get; set; } = 100;
@@ -125,6 +126,7 @@ public class WebServer : IDisposable
         {
             log.LogWarning(e, "Unable to obtain local IP address list for {Type}.{Property}", GetType().FullNameFormatted(), nameof(Hostnames));
         }
+
         hostnames.Add("localhost");
         hostnames.Add("127.0.0.1");
 
@@ -137,7 +139,6 @@ public class WebServer : IDisposable
     }
 
 
-
     public void Start()
     {
         lock (locker)
@@ -148,7 +149,7 @@ public class WebServer : IDisposable
 
     private void StartInternal()
     {
-        log.LogDebugMethod(new() ,"Starting");
+        log.LogDebugMethod(new(), "Starting");
 
         foreach (var hostname in Hostnames.OrderBy(o => o, StringComparer.OrdinalIgnoreCase))
         {
@@ -179,9 +180,9 @@ public class WebServer : IDisposable
         log.LogDebugMethod(new(), "Started");
     }
 
-    private async Task HandleHttp(IHttpContext context) => await HandleHttp(context: context, exception: null);
+    private async Task HandleHttp(IHttpContext context) => await HandleHttp(context, null);
 
-    private async Task HandleHttpException(IHttpContext context, IHttpException exception) => await HandleHttp(context: context, exception: exception);
+    private async Task HandleHttpException(IHttpContext context, IHttpException exception) => await HandleHttp(context, exception);
 
     private async Task HandleHttp(IHttpContext context, IHttpException? exception)
     {
@@ -207,7 +208,6 @@ public class WebServer : IDisposable
                 log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
                 await ctx.SendStringHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
             }
-
         }
         else
         {
@@ -267,7 +267,4 @@ public class WebServer : IDisposable
 
         log.LogDebug("Web server shut down");
     }
-
-
-
 }
