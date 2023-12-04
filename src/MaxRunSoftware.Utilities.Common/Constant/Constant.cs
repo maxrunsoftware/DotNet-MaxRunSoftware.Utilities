@@ -39,6 +39,16 @@ public static partial class Constant
         return b.ToImmutable();
     }
 
+    private static ImmutableDictionary<TKey, TValue> TransposeDictionary<TKey, TValue>(IReadOnlyDictionary<TValue, TKey> items) where TKey : notnull => TransposeDictionary(null, items);
+
+    private static ImmutableDictionary<TKey, TValue> TransposeDictionary<TKey, TValue>(IEqualityComparer<TKey>? comparer, IReadOnlyDictionary<TValue, TKey> items) where TKey : notnull
+    {
+        var b = comparer != null ? ImmutableDictionary.CreateBuilder<TKey, TValue>(comparer) : ImmutableDictionary.CreateBuilder<TKey, TValue>();
+        foreach (var item in items) b.TryAdd(item.Value, item.Key);
+        return b.ToImmutable();
+    }
+
+
     private static ImmutableArray<T> CreateArray<T>(params T[] items)
     {
         var b = ImmutableArray.CreateBuilder<T>();

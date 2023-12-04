@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using System.Net.Mime;
 
@@ -78,4 +79,12 @@ public static class ExtensionsNet
             for (var i = ui1; i >= ui2; i--) yield return i.ToIPAddress();
         }
     }
+
+    public static string GetName(this HttpRequestHeader header) => Constant.HttpRequestHeader_String[header];
+
+    public static string GetName(this HttpResponseHeader header) => Constant.HttpResponseHeader_String[header];
+
+    public static HttpRequestMethod GetHttpRequestMethod(this HttpMethod httpMethod) => Constant.HttpMethod_HttpRequestMethod[httpMethod];
+
+    public static HttpMethod GetHttpMethod(this HttpRequestMethod httpRequestMethod) => Constant.HttpRequestMethod_HttpMethod[httpRequestMethod];
 }
