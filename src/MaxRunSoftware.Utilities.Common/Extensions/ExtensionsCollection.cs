@@ -997,7 +997,7 @@ public static class ExtensionsCollection
 
     #region Dictionary
 
-    public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
+    //public static ReadOnlyDictionary<TKey, TValue> AsReadOnly<TKey, TValue>(this IDictionary<TKey, TValue> dictionary) where TKey : notnull => new(dictionary);
 
     public static TValue? GetValueNullable<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key) where TValue : class => dictionary.TryGetValue(key, out var value) ? value : null;
 

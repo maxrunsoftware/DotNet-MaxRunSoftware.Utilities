@@ -16,7 +16,52 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public class HttpHeaderCollection : IEnumerable<string>
 {
+    public static ISet<string> ALLOWED_DUPLICATE_HEADERS { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Set-Cookie",
+    };
+
     protected readonly IDictionary<string, IList<string>> d = new DictionaryIndexed<string, IList<string>>(StringComparer.OrdinalIgnoreCase);
+
+    #region Properties
+
+    protected virtual string? GetPropertyFirstTrimmed(string name) => this[name].TrimOrNull().WhereNotNull().FirstOrDefault();
+
+    public virtual string? Authorization => GetPropertyFirstTrimmed(nameof(Authorization));
+
+    public virtual string? AuthorizationType => (Authorization ?? string.Empty).SplitOnWhiteSpace().TrimOrNull().WhereNotNull().FirstOrDefault();
+
+    public virtual (string? username, string? password)? AuthorizationBasic
+    {
+        get
+        {
+            if (!AuthorizationType.EqualsOrdinalIgnoreCase("basic")) return null;
+            var auth = Authorization;
+            if (auth == null) return null;
+            var authParts = auth.SplitOnWhiteSpace(2).Select(o => o.TrimOrNull()).WhereNotNull().ToArray();
+            var authType = authParts.GetAtIndexOrDefault(0);
+            if (authType == null) return null;
+            if (!authType.EqualsOrdinalIgnoreCase("basic")) return null;
+
+            var authValue = authParts.GetAtIndexOrDefault(1);
+            if (authValue == null) return (null, null); // Authorization: BASIC is defined but nothing specified after BASIC
+
+
+            var userpassEncoded = Convert.FromBase64String(authValue);
+            var userpass = Constant.Encoding_UTF8_Without_BOM.GetString(userpassEncoded).TrimOrNull();
+            if (userpass == null) return (null, null);
+
+            var userpassParts = userpass.Split(':', 2);
+            var username = userpassParts.GetAtIndexOrDefault(0).TrimOrNull();
+            var password = userpassParts.GetAtIndexOrDefault(1).TrimOrNull();
+
+            return (username, password);
+        }
+    }
+
+    #endregion Properties
+
+    #region Collection Functions
 
     public virtual HttpHeaderCollection Add(string header, params string[] values)
     {
@@ -33,7 +78,6 @@ public class HttpHeaderCollection : IEnumerable<string>
 
         return this;
     }
-
 
     public virtual HttpHeaderCollection Remove(params string[] headers)
     {
@@ -65,7 +109,7 @@ public class HttpHeaderCollection : IEnumerable<string>
         {
             foreach (var kvp in d.Where(kvp => !kvp.Value.IsEmpty()))
             {
-                if (kvp.Key.EqualsOrdinalIgnoreCase("Set-Cookie"))
+                if (ALLOWED_DUPLICATE_HEADERS.Contains(kvp.Key))
                 {
                     foreach (var value in kvp.Value)
                     {
@@ -85,4 +129,6 @@ public class HttpHeaderCollection : IEnumerable<string>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public virtual IEnumerator<string> GetEnumerator() => d.Keys.GetEnumerator();
+
+    #endregion Collection Functions
 }
