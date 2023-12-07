@@ -1,11 +1,11 @@
 // Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,28 +18,8 @@ namespace MaxRunSoftware.Utilities.Web.Server;
 
 public static class WebServerHttpContextExtensions
 {
-    public static WebServerHttpContext AddHeader(this WebServerHttpContext context, string name, params string[] values)
-    {
-        context.HttpContext.Response.Headers.Add(name + ": " + values.ToStringDelimited("; "));
-        return context;
-    }
 
-    public static WebServerHttpContext SendFile(this WebServerHttpContext context, byte[] bytes, string fileName)
-    {
-        context.AddHeader("Content-Disposition", "attachment", "filename=\"" + fileName + "\"");
 
-        using var stream = context.HttpContext.OpenResponseStream();
-        stream.Write(bytes, 0, bytes.Length);
-
-        return context;
-    }
-
-    public static WebServerHttpContext SendFile(this WebServerHttpContext context, string data, string fileName, Encoding? encoding = null)
-    {
-        encoding ??= Constant.Encoding_UTF8_Without_BOM;
-        var bytes = encoding.GetBytes(data);
-        return SendFile(context, bytes, fileName);
-    }
 
     public static WebServerHttpContext SetStatus(this WebServerHttpContext context, int httpStatusCode)
     {
