@@ -1,11 +1,11 @@
 ﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -667,33 +667,7 @@ public static class ExtensionsString
     #region WhiteSpace
 
     [Pure]
-    public static string[] SplitOnWhiteSpace(this string str, StringSplitOptions options = StringSplitOptions.None)
-    {
-        var list = new List<string>();
-
-        if (str.Length == 0) return Array.Empty<string>();
-
-        var sb = new StringBuilder();
-
-        for (var i = 0; i < str.Length; i++)
-        {
-            var c = str[i];
-            if (char.IsWhiteSpace(c))
-            {
-                if (sb.Length == 0 && options == StringSplitOptions.RemoveEmptyEntries) { }
-                else
-                    list.Add(sb.ToString());
-
-                sb = new();
-            }
-            else
-                sb.Append(c);
-        }
-
-        if (sb.Length > 0) list.Add(sb.ToString());
-
-        return list.ToArray();
-    }
+    public static string[] SplitOnWhiteSpace(this string str, int count = int.MaxValue, StringSplitOptions options = StringSplitOptions.None) => str.Split(default(string[]), count, options);
 
     #endregion WhiteSpace
 
