@@ -86,17 +86,14 @@ public class WebServer : IDisposable
 
     private readonly ILogger log;
     private readonly object locker = new();
-
     private readonly SingleUse disposable;
 
     public WebServerOptions ServerOptions { get; set; }
-
     public EmbedIO.WebServer? Server { get; private set; }
+    public int ResponseDelayMilliseconds { get; set; } = 100;
 
     public Func<WebServerHttpContext, Task>? Handler { get; set; }
     public Func<WebServerHttpContextException, Task>? HandlerException { get; set; }
-
-    public int ResponseDelayMilliseconds { get; set; } = 100;
 
     public ushort Port { get; set; } = 8080;
 
@@ -228,7 +225,7 @@ public class WebServer : IDisposable
                         await ctx.SendStringHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
                         break;
                     case 401:
-                        ctx.AddHeader("WWW-Authenticate", "Basic");
+                        ctx.AddResponseHeader("WWW-Authenticate", "Basic");
                         await ctx.SendStringHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
                         break;
                     default:

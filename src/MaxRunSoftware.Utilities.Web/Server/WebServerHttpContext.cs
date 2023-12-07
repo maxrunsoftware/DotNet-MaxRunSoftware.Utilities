@@ -12,105 +12,110 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.Collections.Specialized;
+using System.Net;
 using EmbedIO;
 
 namespace MaxRunSoftware.Utilities.Web.Server;
 
 public class WebServerHttpContext
 {
-    private static ImmutableDictionary<string, HttpMethod> HttpMethod_Map_Build()
-    {
-        var d = ImmutableDictionary.CreateBuilder<string, HttpMethod>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var p in typeof(HttpMethod).GetProperties(BindingFlags.Public | BindingFlags.Static))
-        {
-            if (!p.CanRead) continue;
-            if (!p.PropertyType.IsAssignableTo<HttpMethod>()) continue;
-
-            var mo = p.GetValue(null);
-            if (mo == null) continue;
-            var m = mo as HttpMethod;
-            if (m == null) continue;
-            d.Add(m.Method, m);
-        }
-
-        return d.ToImmutable();
-    }
-
-    private static readonly ImmutableDictionary<string, HttpMethod> HttpMethod_Map = HttpMethod_Map_Build();
-
     public IHttpContext HttpContext { get; }
 
     public WebUrlPath RequestPath { get; }
 
-    private readonly Lzy<IReadOnlyDictionary<string, string?>> parameters;
-    public IReadOnlyDictionary<string, string?> Parameters => parameters.Value;
-    private IReadOnlyDictionary<string, string?> Parameters_Create()
-    {
-        var d = new Dictionary<string, string?>();
-        var ps = HttpContext.GetRequestQueryData();
-        foreach (var key in ps.AllKeys)
-        {
-            var k = key.TrimOrNull();
-            if (k == null) continue;
+    public string? MethodRaw { get; }
 
-            var v = ps[key];
-            if (v == null) continue;
+    public HttpRequestMethod? Method { get; }
 
-            d[k] = v;
-        }
+    public string? RequestAuthorization => GetRequestHeaders(HttpRequestHeader.Authorization).TrimOrNull().WhereNotNull().FirstOrDefault();
 
-        return new DictionaryReadOnlyStringCaseInsensitive<string?>(d);
-    }
+    public string? RequestAuthorizationScheme => Util.WebHeaderParseAuthorization(RequestAuthorization).scheme;
 
-    private readonly Lzy<WebServerHttpContextAuthorization?> authorization;
-    public WebServerHttpContextAuthorization? Authorization => authorization.Value;
-    private WebServerHttpContextAuthorization? Authorization_Create()
-    {
-        static (string? name, string? value) ParseAuthorization(IHttpContext httpContext)
-        {
-            var auth = httpContext.Request.Headers["Authorization"].TrimOrNull();
-            if (auth == null) return (null, null);
-
-            if (!auth.Contains(' ', StringComparison.Ordinal)) return (auth, null);
-
-            var parts = auth.Split(' ', 2);
-            var name = parts.GetAtIndexOrDefault(0).TrimOrNull();
-            var val = parts.GetAtIndexOrDefault(1).TrimOrNull();
-            return (name, val);
-        }
-
-        var (auth, value) = ParseAuthorization(HttpContext);
-        if (auth == null) return null;
-
-        if (WebServerHttpContextAuthorizationBasic.CanHandle(auth)) return new WebServerHttpContextAuthorizationBasic(auth, value);
-
-        return new WebServerHttpContextAuthorizationUnknown(auth, value);
-    }
-
-    public WebServerHttpContextAuthorizationUnknown? AuthorizationUnknown => Authorization as WebServerHttpContextAuthorizationUnknown;
-    public WebServerHttpContextAuthorizationBasic? AuthorizationBasic => Authorization as WebServerHttpContextAuthorizationBasic;
-
-    public HttpMethod Method { get; }
+    public (string? username, string? password) RequestAuthorizationBasic => Util.WebHeaderParseAuthorizationBasic(RequestAuthorization);
 
     public WebServerHttpContext(IHttpContext httpContext)
     {
         HttpContext = httpContext;
-        RequestPath = new WebUrlPath(HttpContext.RequestedPath);
-        parameters = Lzy.Create(Parameters_Create);
-        authorization = Lzy.Create(Authorization_Create);
+        RequestPath = new(HttpContext.RequestedPath);
 
-        var method = httpContext.Request.HttpMethod.Trim();
-        Method = HttpMethod_Map[method];
+        RequestParameters = HttpContext.GetRequestQueryData();
+
+        RequestHeaders = HttpContext.Request.Headers;
+
+        MethodRaw = httpContext.Request.HttpMethod.TrimOrNull();
+        if (MethodRaw != null && Enum.TryParse<HttpRequestMethod>(MethodRaw, true, out var method)) Method = method;
     }
 
-    public T? GetParameter<T>(string parameterName) => Parameters.TryGetValue(parameterName, out var value)
-        ? Util.ChangeType<T>(value)
-        : default;
+    #region RequestParameters
 
-    public bool HasParameter(string parameterName) => Parameters.TryGetValue(parameterName, out _);
+    public NameValueCollection RequestParameters { get; }
 
+    public IEnumerable<string> GetRequestParameters(string parameterName) => RequestParameters.GetValues(parameterName) ?? Array.Empty<string>();
 
+    public string? GetRequestParameter(string parameterName) => GetRequestParameters(parameterName).WhereNotNull().FirstOrDefault();
+
+    public T? GetRequestParameter<T>(string parameterName)
+    {
+        var value = GetRequestParameter(parameterName);
+        return value == null ? default : Util.ChangeType<T>(value);
+    }
+
+    public bool HasRequestParameter(string parameterName) => RequestParameters.Keys.Cast<string>().Contains(parameterName, StringComparer.OrdinalIgnoreCase);
+
+    #endregion RequestParameters
+
+    #region RequestHeaders
+
+    public NameValueCollection RequestHeaders { get; }
+
+    public IEnumerable<string> GetRequestHeaders(string headerName) => RequestHeaders.GetValues(headerName) ?? Array.Empty<string>();
+
+    public IEnumerable<string> GetRequestHeaders(HttpRequestHeader header) => GetRequestHeaders(header.GetName());
+
+    public string? GetRequestHeader(string headerName) => GetRequestHeaders(headerName).WhereNotNull().FirstOrDefault();
+
+    public string? GetRequestHeader(HttpRequestHeader header) => GetRequestHeader(header.GetName());
+
+    public T? GetRequestHeader<T>(string headerName)
+    {
+        var value = GetRequestHeader(headerName);
+        return value == null ? default : Util.ChangeType<T>(value);
+    }
+
+    public T? GetRequestHeader<T>(HttpRequestHeader header) => GetRequestHeader<T>(header.GetName());
+
+    public bool HasRequestHeader(string headerName) => RequestHeaders.Keys.Cast<string>().Contains(headerName, StringComparer.OrdinalIgnoreCase);
+
+    public bool HasRequestHeader(HttpRequestHeader header) => HasRequestHeader(header.GetName());
+
+    #endregion RequestHeaders
+
+    public void AddResponseHeader(string header, params string[] values)
+    {
+        HttpContext.Response.Headers.Add(header + ": " + values.ToStringDelimited(", "));
+    }
+
+    public void AddResponseHeader(HttpResponseHeader header, params string[] values) => AddResponseHeader(header.GetName(), values);
+
+    public void SendFile(byte[] bytes, string fileName)
+    {
+        AddResponseHeader(HttpResponseHeader.Pragma, "public");
+        AddResponseHeader(HttpResponseHeader.Expires, "0");
+        AddResponseHeader(HttpResponseHeader.CacheControl, "must-revalidate", "post-check=0", "pre-check=0");
+        AddResponseHeader(HttpResponseHeader.ContentType, "application/octet-stream");
+        AddResponseHeader("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        AddResponseHeader("Content-Transfer-Encoding", "binary");
+        AddResponseHeader(HttpResponseHeader.ContentLength, bytes.Length.ToString());
+
+        using var stream = HttpContext.OpenResponseStream();
+        stream.Write(bytes, 0, bytes.Length);
+    }
+
+    public void SendFile(string data, string fileName, Encoding? encoding = null)
+    {
+        encoding ??= Constant.Encoding_UTF8_Without_BOM;
+        var bytes = encoding.GetBytes(data);
+        SendFile(bytes, fileName);
+    }
 }
