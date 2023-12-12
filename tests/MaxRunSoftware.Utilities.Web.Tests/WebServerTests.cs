@@ -1,8 +1,5 @@
-using System.Diagnostics;
-using System.Threading.Tasks;
-using EmbedIO;
 using MaxRunSoftware.Utilities.Web.Server;
-using WebServer = MaxRunSoftware.Utilities.Web.Server.WebServer;
+
 // ReSharper disable PossibleNullReferenceException
 
 namespace MaxRunSoftware.Utilities.Web.Tests;
@@ -29,7 +26,7 @@ public class WebServerTests : TestBase
         {
             log.LogInformation("Received [{Action}] request for URL {Url}", context.Method, context.RequestPath);
             var msg = $"<p>Handling [{context.Method}] request for {context.RequestPath}</p>";
-            await context.SendStringHtmlSimpleAsync("HttpResponse", msg);
+            await context.SendHtmlSimpleAsync("HttpResponse", msg);
         }
     }
 
