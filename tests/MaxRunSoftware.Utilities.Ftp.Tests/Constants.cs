@@ -21,6 +21,13 @@ namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
 public static class Constants
 {
+    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new []
+    {
+        SkippedTest.Create<FtpClientFtpSTests>("no test FTP server"),
+        SkippedTest.Create<FtpClientSFtpTests>("no test FTP server"),
+
+    }.ToImmutableArray();
+
     private static readonly string DEFAULT_SERVER = "172.16.46.16";
     private static readonly string DEFAULT_USERNAME = "testuser";
     private static readonly string DEFAULT_PASSWORD = "testPass1!";
