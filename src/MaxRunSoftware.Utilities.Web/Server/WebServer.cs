@@ -203,29 +203,34 @@ public class WebServer : IDisposable
         await Task.Delay(ResponseDelayMilliseconds);
 
         var ctx = new WebServerHttpContext(context, exception);
-        var handler = Handler;
-        if (handler != null)
+        if (exception != null)
         {
-            await handler(ctx);
+            if (exception.StatusCode == 404)
+            {
+                await ctx.SendHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
+            }
+            else if (exception.StatusCode == 401)
+            {
+                ctx.AddResponseHeader("WWW-Authenticate", "Basic");
+                await ctx.SendHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
+            }
+            else
+            {
+                await HttpExceptionHandler.Default(context, exception);
+            }
         }
         else
         {
-            log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
-            await ctx.SendHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
-        }
-
-        switch (exception.StatusCode)
-        {
-            case 404:
-                await ctx.SendHtmlSimpleAsync("404 - Not Found", $"<p>Path {context.RequestedPath} not found</p>");
-                break;
-            case 401:
-                ctx.AddResponseHeader("WWW-Authenticate", "Basic");
-                await ctx.SendHtmlSimpleAsync("401 - Unauthorized", "<p>Please login to continue</p>");
-                break;
-            default:
-                await HttpExceptionHandler.Default(context, exception);
-                break;
+            var handler = Handler;
+            if (handler != null)
+            {
+                await handler(ctx);
+            }
+            else
+            {
+                log.LogError("No {Type}.{Handler} defined", GetType().FullNameFormatted(), nameof(Handler));
+                await ctx.SendHtmlSimpleAsync("ERROR", $"<p>No {nameof(Handler)} defined</p>");
+            }
         }
     }
 
