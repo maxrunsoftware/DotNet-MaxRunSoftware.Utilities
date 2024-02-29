@@ -23,6 +23,12 @@ public static class Constants
     {
         SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableColumns), "takes too long"),
         SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableExists), "takes too long"),
+
+        SkippedTest.Create<MicrosoftSqlTests>("no test DB server"),
+        SkippedTest.Create<MySqlTests>("no test DB server"),
+        SkippedTest.Create<OracleSqlTests>("no test DB server"),
+        SkippedTest.Create<PostgreSqlTests>("no test DB server"),
+
     }.ToImmutableArray();
 
 
