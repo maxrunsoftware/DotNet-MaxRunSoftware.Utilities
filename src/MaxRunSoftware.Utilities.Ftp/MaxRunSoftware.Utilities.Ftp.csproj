@@ -10,6 +10,6 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
         <PackageReference Include="Core.Renci.SshNet" Version="2021.10.2" />
-        <PackageReference Include="FluentFTP" Version="48.0.3" />
+        <PackageReference Include="FluentFTP" Version="49.0.2" />
     </ItemGroup>
 </Project>
