@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System.Runtime.Serialization;
-
 namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -21,7 +19,7 @@ namespace MaxRunSoftware.Utilities.Common;
 public class DebugException : Exception
 {
     public DebugException() { }
-    protected DebugException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    // protected DebugException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     public DebugException(string? message) : base(message) { }
     public DebugException(string? message, Exception? innerException) : base(message, innerException) { }
 }
@@ -30,7 +28,7 @@ public class DebugException : Exception
 public class AssertException : DebugException
 {
     public AssertException() { }
-    protected AssertException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    // protected AssertException(SerializationInfo info, StreamingContext context) : base(info, context) { }
     public AssertException(string? message) : base(message) { }
     public AssertException(string? message, Exception? innerException) : base(message, innerException) { }
 }
