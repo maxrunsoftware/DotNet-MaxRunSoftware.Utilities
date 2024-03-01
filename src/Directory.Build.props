@@ -2,7 +2,7 @@
 <Project>
 
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-    
+
     <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
@@ -10,7 +10,7 @@
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <IncludeSymbols>true</IncludeSymbols>
         <IncludeSource>true</IncludeSource>
@@ -19,7 +19,7 @@
         <WarningLevel>4</WarningLevel>
         <NoWarn>1701;1702;1591</NoWarn>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <IncludeSymbols>false</IncludeSymbols>
         <IncludeSource>false</IncludeSource>
@@ -28,5 +28,5 @@
         <WarningLevel>4</WarningLevel>
         <NoWarn>1701;1702;1591</NoWarn>
     </PropertyGroup>
-    
+
 </Project>

@@ -4,30 +4,30 @@
 
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
-        
+
         <Authors>Max Run Software</Authors>
         <Owners>$(Authors)</Owners>
         <Copyright>(c) Max Run Software $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
-        
+
         <VersionPrefix>2.0.0</VersionPrefix>
-        
+
         <PackageId>$(MSBuildProjectName)</PackageId>
         <PackageTags>Utility</PackageTags>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    
+
         <PackageProjectUrl>https://github.com/maxrunsoftware/DotNet-MaxRunSoftware.Utilities</PackageProjectUrl>
-        
+
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryType>git</RepositoryType>
 
     </PropertyGroup>
-    
-    
+
     <PropertyGroup>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
+    
     <ItemGroup>
         <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="" />
     </ItemGroup>
-    
+
 </Project>

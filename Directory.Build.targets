@@ -11,7 +11,6 @@
         <Message Text="$(MRS_MessagePrefix) ProjectName: $(ProjectName)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) AssemblyName: $(AssemblyName)" Importance="$(MRS_PreBuild_Info_Importance)" />
 
-
         <Message Text="$(MRS_MessagePrefix) TargetFramework: $(TargetFramework)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) IncludeSymbols: $(IncludeSymbols)" Importance="$(MRS_PreBuild_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) IncludeSource: $(IncludeSource)" Importance="$(MRS_PreBuild_Info_Importance)" />
@@ -69,11 +68,6 @@
         <Message Text="$(MRS_MessagePrefix) RepositoryType: $(RepositoryType)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) RepositoryBranch: $(RepositoryBranch)" Importance="$(MRS_PrePack_Info_Importance)" />
         <Message Text="$(MRS_MessagePrefix) RepositoryCommit: $(RepositoryCommit)" Importance="$(MRS_PrePack_Info_Importance)" />
-
-
-
-
-
 
 
         <Message Text="$(MRS_MessagePrefix) GeneratePackageOnBuild: $(GeneratePackageOnBuild)" Importance="$(MRS_PrePack_Info_Importance)" />
