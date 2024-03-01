@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,10 +31,7 @@ public sealed class DictionaryWeakType<TValue> : IDictionary<Type, TValue>
     private sealed class Value
     {
         public readonly object? obj;
-        public Value(object? obj)
-        {
-            this.obj = obj;
-        }
+        public Value(object? obj) => this.obj = obj;
     }
 
     private readonly ConditionalWeakTable<Type, Value> table = new();
@@ -106,10 +103,7 @@ public sealed class DictionaryWeakType<TValue> : IDictionary<Type, TValue>
     public sealed class KeyCollection : ItemCollection<Type>
     {
         private readonly DictionaryWeakType<TValue> d;
-        public KeyCollection(DictionaryWeakType<TValue> dictionary)
-        {
-            d = dictionary;
-        }
+        public KeyCollection(DictionaryWeakType<TValue> dictionary) => d = dictionary;
         public override IEnumerator<Type> GetEnumerator() => d.Select(o => o.Key).GetEnumerator();
         public override bool Contains(Type item) => d.ContainsKey(item);
         public override object SyncRoot => d;
@@ -119,10 +113,7 @@ public sealed class DictionaryWeakType<TValue> : IDictionary<Type, TValue>
     public sealed class ValueCollection : ItemCollection<TValue>
     {
         private readonly DictionaryWeakType<TValue> d;
-        public ValueCollection(DictionaryWeakType<TValue> dictionary)
-        {
-            d = dictionary;
-        }
+        public ValueCollection(DictionaryWeakType<TValue> dictionary) => d = dictionary;
         public override IEnumerator<TValue> GetEnumerator() => d.Select(o => o.Value).GetEnumerator();
         public override bool Contains(TValue item) => d.ContainsValue(item);
         public override object SyncRoot => d;
