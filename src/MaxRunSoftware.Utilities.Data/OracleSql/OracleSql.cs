@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@ using Oracle.ManagedDataAccess.Client;
 namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable RedundantStringInterpolation
-
 public class OracleSql : Sql
 {
     public static OracleConnection CreateConnection(string connectionString) => new(connectionString);
@@ -66,7 +65,7 @@ public class OracleSql : Sql
             var result = this.QueryStrings(sql, out var exception);
             if (exception != null)
             {
-                errors2.Add(new SqlError(sql, exception));
+                errors2.Add(new(sql, exception));
                 continue;
             }
 
@@ -120,7 +119,7 @@ public class OracleSql : Sql
             var result = this.QueryStrings(sql, out var exception);
             if (exception != null)
             {
-                errors2.Add(new SqlError(sql, exception));
+                errors2.Add(new(sql, exception));
                 continue;
             }
 
@@ -161,7 +160,7 @@ public class OracleSql : Sql
     protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
         var currentDatabaseName = GetCurrentDatabaseName(errors);
-        if (currentDatabaseName != null) yield return new DatabaseSchemaDatabase(currentDatabaseName);
+        if (currentDatabaseName != null) yield return new(currentDatabaseName);
     }
 
     protected override IEnumerable<DatabaseSchemaSchema> GetSchemas(List<SqlError> errors, GetSchemaInfoFilter filter)
@@ -257,7 +256,7 @@ public class OracleSql : Sql
             [7] = "NULLABLE",
             [8] = "COLUMN_ID",
             [9] = "DATA_DEFAULT",
-            [10] = "CHAR_LENGTH"
+            [10] = "CHAR_LENGTH",
         };
 
         var sqls = new[]
@@ -276,7 +275,7 @@ public class OracleSql : Sql
 
             var table = new DatabaseSchemaTable(
                 currentDatabaseName,
-                (row[0].TrimOrNull() != null) ? row[0] : currentSchemaName,
+                row[0].TrimOrNull() != null ? row[0] : currentSchemaName,
                 row[1].CheckNotNull(colsDict[1])
             );
 
@@ -292,7 +291,7 @@ public class OracleSql : Sql
                 StringComparer.OrdinalIgnoreCase.Equals(row[9].TrimOrNull(), "null") ? null : row[9]
             );
 
-            return new DatabaseSchemaTableColumn(table, col);
+            return new(table, col);
         }
 
         var errors2 = new List<SqlError>();

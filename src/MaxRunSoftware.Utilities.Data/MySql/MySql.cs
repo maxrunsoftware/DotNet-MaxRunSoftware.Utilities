@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@ using MySql.Data.MySqlClient;
 namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable RedundantStringInterpolation
-
 public class MySql : Sql
 {
     // https://dev.mysql.com/doc/refman/8.0/en/information-schema-columns-table.html
@@ -115,12 +114,12 @@ public class MySql : Sql
         sql.Append(';');
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(
+            new(
                 row[0].CheckNotNull(cols[0]),
                 null,
                 row[2].CheckNotNull(cols[2])
             ),
-            new DatabaseSchemaColumn(
+            new(
                 row[3].CheckNotNullTrimmed(cols[3]),
                 row[4].CheckNotNullTrimmed(cols[4]),
                 GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,

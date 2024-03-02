@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -201,7 +201,7 @@ public enum MicrosoftSqlType
     /// value range is 00:00:00 through 23:59:59.9999999 with an accuracy of 100 nanoseconds. Time zone value range is -14:00
     /// through +14:00.
     /// </summary>
-    [DatabaseType(DbType.DateTimeOffset)] DateTimeOffset = 34
+    [DatabaseType(DbType.DateTimeOffset)] DateTimeOffset = 34,
 }
 
 public static class MicrosoftSqlTypeExtensions
@@ -236,6 +236,6 @@ public static class MicrosoftSqlTypeExtensions
             DbType.Xml => MicrosoftSqlType.Xml,
             DbType.DateTime2 => MicrosoftSqlType.DateTime2,
             DbType.DateTimeOffset => MicrosoftSqlType.DateTimeOffset,
-            _ => throw new NotImplementedException()
+            _ => throw new NotImplementedException(),
         };
 }

@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,13 +15,13 @@
 namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
-
 [PublicAPI]
 public abstract class Sql : IDisposable
 {
     protected readonly ILogger log;
     private readonly SingleUse isDisposed = new();
     private IDbConnection? connection;
+
     public virtual IDbConnection Connection
     {
         get
@@ -34,6 +34,7 @@ public abstract class Sql : IDisposable
                 log.LogTraceMethod(new(connection), "Opening database connection {ConnectionType}", connection.GetType().FullNameFormatted());
                 connection.Open();
             }
+
             return connection;
         }
     }
@@ -136,6 +137,7 @@ public abstract class Sql : IDisposable
             if (sb.Length > 0) sb.Append('.');
             sb.Append(objEscaped);
         }
+
         return sb.ToString();
     }
 
@@ -149,7 +151,7 @@ public abstract class Sql : IDisposable
         DatabaseSchemaTable table => IsExcluded(table),
         DatabaseSchemaSchema schema => IsExcluded(schema),
         DatabaseSchemaDatabase database => IsExcluded(database),
-        _ => throw new NotImplementedException()
+        _ => throw new NotImplementedException(),
     };
 
     public virtual bool IsExcluded(DatabaseSchemaDatabase database) => ExcludedDatabases.Contains(database);
@@ -165,6 +167,7 @@ public abstract class Sql : IDisposable
 
     protected abstract Type DatabaseTypesEnum { get; }
     public DatabaseTypes DatabaseTypes => DatabaseTypes.Get(DatabaseTypesEnum);
+
     #endregion DatabaseTypes
 
     #region IDisposable
@@ -259,7 +262,6 @@ public abstract class Sql : IDisposable
     }
 
 
-
     #region Helpers
 
     protected IEnumerable<T> GetSchemaObjects<T>(List<SqlError> errors, StringBuilder sql, Func<string?[], T> converter) where T : DatabaseSchemaObject =>
@@ -270,7 +272,7 @@ public abstract class Sql : IDisposable
         var tbl = this.QueryStrings(sql, out var exception);
         if (exception != null)
         {
-            errors.Add(new SqlError(sql, exception));
+            errors.Add(new(sql, exception));
             yield break;
         }
 
@@ -283,7 +285,7 @@ public abstract class Sql : IDisposable
             }
             catch (Exception e)
             {
-                errors.Add(new SqlError(sql, e));
+                errors.Add(new(sql, e));
             }
 
             if (so != null) yield return so;
@@ -373,8 +375,7 @@ public abstract class Sql : IDisposable
 
     public virtual bool GetTableExists(DatabaseSchemaTable table) =>
         GetTables(table.Schema)
-            .FirstOrDefault(o => StringComparer.OrdinalIgnoreCase.Equals(o.TableName, table.TableName)) != null
-        ;
+            .FirstOrDefault(o => StringComparer.OrdinalIgnoreCase.Equals(o.TableName, table.TableName)) != null;
 
     public abstract bool DropTable(DatabaseSchemaTable table);
 
@@ -397,10 +398,9 @@ public abstract class Sql : IDisposable
             var ss = valuesArray[i].Sql;
             sb.Append($"{Constant.NewLine}  [{iStr}] {eName}: {eMsg} --> {ss}");
         }
-        return new AggregateException(sb.ToString(), valuesArray.Select(o => o.Error));
+
+        return new(sb.ToString(), valuesArray.Select(o => o.Error));
     }
-
-
 
 
     protected string EscapeColumns(Dictionary<int, string> columns, bool skipEscaping = false) => EscapeColumns(null, columns, skipEscaping);
@@ -419,7 +419,7 @@ public abstract class Sql : IDisposable
     public IDbCommand CreateCommand() => CreateCommand(string.Empty, Array.Empty<DatabaseParameter>()).Command;
 
     protected virtual (IDbCommand Command, IDbDataParameter[] Parameters) CreateCommand<TParameter>(string sql, IReadOnlyList<TParameter> parameters)
-    where TParameter : DatabaseParameter
+        where TParameter : DatabaseParameter
     {
         var command = Connection.CreateCommand();
         command.CommandType = CommandType.Text;
@@ -438,9 +438,9 @@ public abstract class Sql : IDisposable
             command.Parameters.Add(p);
             ps.Add(p);
         }
+
         return (command, ps.ToArray());
     }
-
 
     #endregion CreateCommand
 
@@ -504,7 +504,6 @@ public abstract class Sql : IDisposable
     }
 
 
-
     public List<object?[]> QueryObjects(string sql, params DatabaseParameterValue[] values)
     {
         var result = Query(sql, values);
@@ -530,7 +529,6 @@ public abstract class Sql : IDisposable
             return new();
         }
     }
-
 
     #endregion Execute
 
@@ -589,6 +587,4 @@ public abstract class Sql : IDisposable
     public virtual DatabaseParameterValue NextParameter(object? value, DbType type) => new(GenerateParameterName(Interlocked.Increment(ref parameterCounter)), type, value);
 
     #endregion DatabaseParameter
-
-
 }

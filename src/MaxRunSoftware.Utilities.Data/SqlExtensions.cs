@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,15 +21,13 @@ public static class SqlExtensions
 
     #region Query
 
-
     public static List<string?[]> QueryStrings(this Sql instance, string sql, params DatabaseParameterValue[] values) => instance.QueryStrings(sql, ConvertToStringDefault, values);
-    public static  List<string?[]> QueryStrings(this Sql instance, string sql, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
+    public static List<string?[]> QueryStrings(this Sql instance, string sql, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
         instance.QueryObjects(sql, values).Select(o => o.Select(converter).ToArray()).ToList();
 
     public static List<string?[]> QueryStrings(this Sql instance, string sql, out Exception? exception, params DatabaseParameterValue[] values) => instance.QueryStrings(sql, out exception, ConvertToStringDefault, values);
-    public static  List<string?[]> QueryStrings(this Sql instance, string sql, out Exception? exception, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
+    public static List<string?[]> QueryStrings(this Sql instance, string sql, out Exception? exception, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
         instance.QueryObjects(sql, out exception, values).Select(o => o.Select(converter).ToArray()).ToList();
-
 
     #endregion Query
 
@@ -45,7 +43,7 @@ public static class SqlExtensions
 
     #region QueryColumn
 
-    public static  List<object?> QueryColumn(this Sql instance, string sql, int columnIndex, params DatabaseParameterValue[] values) =>
+    public static List<object?> QueryColumn(this Sql instance, string sql, int columnIndex, params DatabaseParameterValue[] values) =>
         instance.QueryObjects(sql, values).Select(o => o[columnIndex]).ToList();
 
     public static List<object?> QueryColumn(this Sql instance, string sql, int columnIndex, out Exception? exception, params DatabaseParameterValue[] values) =>
@@ -53,12 +51,12 @@ public static class SqlExtensions
 
     public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, params DatabaseParameterValue[] values) => instance.QueryColumnStrings(sql, columnIndex, ConvertToStringDefault, values);
 
-    public static  List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
+    public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
         instance.QueryColumn(sql, columnIndex, values).Select(converter).ToList();
 
     public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, out Exception? exception, params DatabaseParameterValue[] values) => instance.QueryColumnStrings(sql, columnIndex, out exception, ConvertToStringDefault, values);
 
-    public static  List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, out Exception? exception, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
+    public static List<string?> QueryColumnStrings(this Sql instance, string sql, int columnIndex, out Exception? exception, Func<object?, string?> converter, params DatabaseParameterValue[] values) =>
         instance.QueryColumn(sql, columnIndex, out exception, values).Select(converter).ToList();
 
     #endregion QueryColumn
@@ -98,7 +96,6 @@ public static class SqlExtensions
     public static int Insert(this Sql instance, string? database, string? schema, string table, IDictionary<string, string?> values) =>
         instance.Insert(InsertCreateTable(instance, database, schema, table), values);
 
-
     #endregion Insert
 
     #region DatabaseParameter
@@ -134,9 +131,9 @@ public static class SqlExtensions
             if (n != null) n = instance.Unescape(n);
             list.Add(instance.NextParameter(n));
         }
+
         return list.ToArray();
     }
 
     #endregion DatabaseParameter
-
 }

@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,6 @@
 namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable InconsistentNaming
-
 /// <summary>
 ///     <see href="https://dev.mysql.com/doc/dev/connector-net/6.10/html/T_MySql_Data_MySqlClient_MySqlDbType.htm">MySql.Data.MySqlClient.MySqlDbType</see>
 ///     <see href="https://dev.mysql.com/doc/refman/8.0/en/data-types.html">Data Types</see>
@@ -27,7 +26,7 @@ public enum MySqlType
     /// <summary>
     /// A fixed precision and scale numeric value between -1038 -1 and 10 38 -1.
     /// </summary>
-    [DatabaseType(DbType.Decimal, DatabaseTypeNames = new[] { nameof(Decimal), "DEC","NUMERIC","FIXED" })]
+    [DatabaseType(DbType.Decimal, DatabaseTypeNames = new[] { nameof(Decimal), "DEC", "NUMERIC", "FIXED" })]
     Decimal = 0,
 
     /// <summary>
@@ -51,13 +50,13 @@ public enum MySqlType
     /// <summary>
     /// A 32-bit signed integer
     /// </summary>
-    [DatabaseType(DbType.Int32, DatabaseTypeNames = new[] { "INT","INTEGER"})]
+    [DatabaseType(DbType.Int32, DatabaseTypeNames = new[] { "INT", "INTEGER" })]
     Int32 = 3,
 
     /// <summary>
     /// A 64-bit signed integer.
     /// </summary>
-    [DatabaseType(DbType.Int64, DatabaseTypeNames = new[] { "BIGINT"})]
+    [DatabaseType(DbType.Int64, DatabaseTypeNames = new[] { "BIGINT" })]
     Int64 = 8,
 
     /// <summary>
@@ -70,7 +69,7 @@ public enum MySqlType
     /// A normal-size (double-precision) floating-point number. Allowable values are -1.7976931348623157E+308 to
     /// -2.2250738585072014E-308, 0, and 2.2250738585072014E-308 to 1.7976931348623157E+308.
     /// </summary>
-    [DatabaseType(DbType.Double, DatabaseTypeNames = new[] { nameof(Double), "DOUBLE PRECISION"})]
+    [DatabaseType(DbType.Double, DatabaseTypeNames = new[] { nameof(Double), "DOUBLE PRECISION" })]
     Double = 5,
 
     /// <summary>
@@ -175,31 +174,31 @@ public enum MySqlType
     /// <summary>
     /// Unsigned 8-bit value.
     /// </summary>
-    [DatabaseType(DbType.Byte, DatabaseTypeNames = new[] { "TINYINT UNSIGNED"})]
+    [DatabaseType(DbType.Byte, DatabaseTypeNames = new[] { "TINYINT UNSIGNED" })]
     UByte = 501,
 
     /// <summary>
     /// Unsigned 16-bit value.
     /// </summary>
-    [DatabaseType(DbType.UInt16, DatabaseTypeNames = new[] { "SMALLINT UNSIGNED"})]
+    [DatabaseType(DbType.UInt16, DatabaseTypeNames = new[] { "SMALLINT UNSIGNED" })]
     UInt16 = 502,
 
     /// <summary>
     /// Unsigned 24-bit value.
     /// </summary>
-    [DatabaseType(DbType.UInt32, DatabaseTypeNames = new[] { "MEDIUMINT UNSIGNED"})]
+    [DatabaseType(DbType.UInt32, DatabaseTypeNames = new[] { "MEDIUMINT UNSIGNED" })]
     UInt24 = 509,
 
     /// <summary>
     /// Unsigned 32-bit value.
     /// </summary>
-    [DatabaseType(DbType.UInt32, DatabaseTypeNames = new[] { "INT UNSIGNED","INTEGER UNSIGNED"})]
+    [DatabaseType(DbType.UInt32, DatabaseTypeNames = new[] { "INT UNSIGNED", "INTEGER UNSIGNED" })]
     UInt32 = 503,
 
     /// <summary>
     /// Unsigned 64-bit value.
     /// </summary>
-    [DatabaseType(DbType.UInt64, DatabaseTypeNames = new[] { "BIGINT UNSIGNED"})]
+    [DatabaseType(DbType.UInt64, DatabaseTypeNames = new[] { "BIGINT UNSIGNED" })]
     UInt64 = 508,
 
     /// <summary>
@@ -235,7 +234,7 @@ public enum MySqlType
     /// <summary>
     /// A guid column.
     /// </summary>
-    [DatabaseType(DbType.Guid)] Guid = 854
+    [DatabaseType(DbType.Guid)] Guid = 854,
 }
 
 public static class SqlMySqlTypeExtensions
@@ -270,6 +269,6 @@ public static class SqlMySqlTypeExtensions
             DbType.Xml => MySqlType.LongText,
             DbType.DateTime2 => MySqlType.DateTime,
             DbType.DateTimeOffset => MySqlType.DateTime,
-            _ => throw new NotImplementedException(dbType.GetType().FullNameFormatted() + "." + dbType)
+            _ => throw new NotImplementedException(dbType.GetType().FullNameFormatted() + "." + dbType),
         };
 }

@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,7 +68,7 @@ public enum OracleSqlType
     /// dates, use a String parameter and the Oracle TO_DATE or TO_CHAR conversion functions for input and output parameters
     /// respectively. Use the .NET DateTime or OracleClient OracleDateTime data type in Value.
     /// </summary>
-    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] {"DATE"})]
+    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] { "DATE" })]
     DateTime = 6,
 
     /// <summary>
@@ -76,7 +76,7 @@ public enum OracleSqlType
     /// when binding input parameters. For information about conversion of Oracle numeric values to common language runtime
     /// (CLR) data types, see OracleNumber. Use the .NET Double or OracleClient OracleNumber data type in Value.
     /// </summary>
-    [DatabaseType(DbType.Double, AliasFor = Number, DatabaseTypeNames = new[] {"DOUBLE PRECISION"})]
+    [DatabaseType(DbType.Double, AliasFor = Number, DatabaseTypeNames = new[] { "DOUBLE PRECISION" })]
     Double = 30,
 
     /// <summary>
@@ -110,14 +110,14 @@ public enum OracleSqlType
     /// minutes, and seconds, and has a fixed size of 11 bytes. Use the .NET TimeSpan or OracleClient OracleTimeSpan data type
     /// in Value.
     /// </summary>
-    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "INTERVAL DAY TO SECOND"})]
+    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "INTERVAL DAY TO SECOND" })]
     IntervalDayToSecond = 7,
 
     /// <summary>
     /// An Oracle INTERVAL YEAR TO MONTH data type (Oracle 9i or later) that contains an interval of time in years and months,
     /// and has a fixed size of 5 bytes. Use the .NET Int32 or OracleClient OracleMonthSpan data type in Value.
     /// </summary>
-    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "INTERVAL YEAR TO MONTH"})]
+    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "INTERVAL YEAR TO MONTH" })]
     IntervalYearToMonth = 8,
 
     /// <summary>
@@ -127,14 +127,14 @@ public enum OracleSqlType
     /// column. The Oracle LONG RAW data type is a deprecated type in Oracle version 8.0. To avoid this error, use the BLOB
     /// data type instead of LONG RAW.
     /// </summary>
-    [DatabaseType(DbType.Binary, DatabaseTypeNames = new[] { "LONG RAW"})]
+    [DatabaseType(DbType.Binary, DatabaseTypeNames = new[] { "LONG RAW" })]
     LongRaw = 9,
 
     /// <summary>
     /// An Oracle LONG data type that contains a variable-length character string with a maximum size of 2 gigabytes. Use the
     /// .NET String or OracleClient OracleString data type in Value.
     /// </summary>
-    [DatabaseType(DbType.AnsiString, DatabaseTypeNames = new[] { "LONG"})]
+    [DatabaseType(DbType.AnsiString, DatabaseTypeNames = new[] { "LONG" })]
     LongVarChar = 10,
 
     /// <summary>
@@ -143,7 +143,7 @@ public enum OracleSqlType
     /// depends on the national character set of the database. See your Oracle documentation for more information. Use the .NET
     /// String or OracleClient OracleString data type in Value.
     /// </summary>
-    [DatabaseType(DbType.StringFixedLength, DatabaseTypeNames = new[] { nameof(NChar), "NATIONAL CHARACTER","NATIONAL CHAR"})]
+    [DatabaseType(DbType.StringFixedLength, DatabaseTypeNames = new[] { nameof(NChar), "NATIONAL CHARACTER", "NATIONAL CHAR" })]
     NChar = 11,
 
     /// <summary>
@@ -160,7 +160,7 @@ public enum OracleSqlType
     /// or use a String parameter and the Oracle TO_NUMBER or TO_CHAR conversion functions for input and output parameters
     /// respectively. Use the .NET Decimal or OracleClient OracleNumber data type in Value.
     /// </summary>
-    [DatabaseType(DbType.Decimal, DatabaseTypeNames = new[] { nameof(Number), "DECIMAL", "REAL"})]
+    [DatabaseType(DbType.Decimal, DatabaseTypeNames = new[] { nameof(Number), "DECIMAL", "REAL" })]
     Number = 13,
 
     /// <summary>
@@ -169,7 +169,7 @@ public enum OracleSqlType
     /// depends on the national character set of the database. See your Oracle documentation for more information. Use the .NET
     /// String or OracleClient OracleString data type in Value.
     /// </summary>
-    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "NVARCHAR2"})]
+    [DatabaseType(DbType.String, DatabaseTypeNames = new[] { "NVARCHAR2" })]
     NVarChar = 14,
 
     /// <summary>
@@ -202,14 +202,14 @@ public enum OracleSqlType
     /// time zone, and ranges in size from 7 to 11 bytes. Use the .NET DateTime or OracleClient OracleDateTime data type in
     /// Value.
     /// </summary>
-    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] { "TIMESTAMP WITH LOCAL TIME ZONE"})]
+    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] { "TIMESTAMP WITH LOCAL TIME ZONE" })]
     TimestampLocal = 19,
 
     /// <summary>
     /// An Oracle TIMESTAMP WITH TIMEZONE (Oracle 9i or later) that contains date, time, and a specified time zone, and has a
     /// fixed size of 13 bytes. Use the .NET DateTime or OracleClient OracleDateTime data type in Value.
     /// </summary>
-    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] { "TIMESTAMP WITH TIME ZONE"})]
+    [DatabaseType(DbType.DateTime, DatabaseTypeNames = new[] { "TIMESTAMP WITH TIME ZONE" })]
     // ReSharper disable once InconsistentNaming
     TimestampWithTZ = 20,
 
@@ -235,8 +235,8 @@ public enum OracleSqlType
     /// An Oracle VARCHAR2 data type that contains a variable-length character string with a maximum size of 4,000 bytes. Use
     /// the .NET String or OracleClient OracleString data type in Value.
     /// </summary>
-    [DatabaseType(DbType.AnsiString, DatabaseTypeNames = new[] { "VARCHAR2"})]
-    VarChar = 22
+    [DatabaseType(DbType.AnsiString, DatabaseTypeNames = new[] { "VARCHAR2" })]
+    VarChar = 22,
 }
 
 public static class SqlOracleTypeExtensions
@@ -271,6 +271,6 @@ public static class SqlOracleTypeExtensions
             DbType.Xml => OracleSqlType.NClob,
             DbType.DateTime2 => OracleSqlType.DateTime,
             DbType.DateTimeOffset => OracleSqlType.DateTime,
-            _ => throw new NotImplementedException()
+            _ => throw new NotImplementedException(),
         };
 }

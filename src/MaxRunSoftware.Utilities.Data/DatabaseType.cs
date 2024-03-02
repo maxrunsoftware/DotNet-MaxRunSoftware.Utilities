@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,7 @@ public class DatabaseTypesAttribute : Attribute
 {
     public DatabaseAppType DatabaseAppType { get; }
 
-    public DatabaseTypesAttribute(DatabaseAppType databaseAppType) { DatabaseAppType = databaseAppType; }
+    public DatabaseTypesAttribute(DatabaseAppType databaseAppType) => DatabaseAppType = databaseAppType;
 
     public Type? ExternalEnum { get; set; }
 }
@@ -135,7 +135,7 @@ public class DatabaseTypeAttribute : Attribute
     public string[]? DatabaseTypeNames { get; set; }
     public object? AliasFor { get; set; }
 
-    public DatabaseTypeAttribute(DbType dbType) { DbType = dbType; }
+    public DatabaseTypeAttribute(DbType dbType) => DbType = dbType;
 }
 
 public class DatabaseType
@@ -175,7 +175,7 @@ public class DatabaseType
             };
 
             // duplicate EnumItem check
-            if (!checkName.Add(st.EnumItem.Name)) throw new ArgumentException(enumType.FullNameFormatted() + $" defines multiple items with the same name but different case", nameof(enumType));
+            if (!checkName.Add(st.EnumItem.Name)) throw new ArgumentException(enumType.FullNameFormatted() + " defines multiple items with the same name but different case", nameof(enumType));
 
             // duplicate SqlTypeNames check
             foreach (var sqlTypeName in st.TypeNames)
@@ -226,9 +226,6 @@ public class DatabaseType
             }
         }
 
-        return new DatabaseTypes(databaseAppType, enumType, sqlTypes.Select(o => o.DatabaseType));
+        return new(databaseAppType, enumType, sqlTypes.Select(o => o.DatabaseType));
     }
-
-
-
 }

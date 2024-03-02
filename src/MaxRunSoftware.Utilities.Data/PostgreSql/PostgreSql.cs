@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@ namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable RedundantStringInterpolation
 // ReSharper disable StringLiteralTypo
-
 public class PostgreSql : Sql
 {
     public static NpgsqlConnection CreateConnection(string connectionString) => new(connectionString);
@@ -48,7 +47,7 @@ public class PostgreSql : Sql
 
     protected override string? GetCurrentSchemaName() => this.QueryScalarString($"SELECT current_schema();");
 
-        protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
+    protected override IEnumerable<DatabaseSchemaDatabase> GetDatabases(List<SqlError> errors)
     {
         var cols = new Dictionary<int, string>
         {
@@ -122,7 +121,7 @@ public class PostgreSql : Sql
             [9] = "numeric_scale",
             [10] = "column_default",
         };
-        sql.Append($" SELECT DISTINCT {EscapeColumns("c",cols)}");
+        sql.Append($" SELECT DISTINCT {EscapeColumns("c", cols)}");
         sql.Append($" FROM {filter.DatabaseNameEscaped}.information_schema.columns c");
         sql.Append($" INNER JOIN {filter.DatabaseNameEscaped}.information_schema.tables t ON t.table_catalog=c.table_catalog and t.table_schema=c.table_schema and t.table_name=c.table_name");
         sql.Append($" WHERE t.TABLE_TYPE='BASE TABLE'");
@@ -133,12 +132,12 @@ public class PostgreSql : Sql
 
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(
+            new(
                 row[0].CheckNotNull(cols[0]),
                 row[1],
                 row[2].CheckNotNull(cols[2])
             ),
-            new DatabaseSchemaColumn(
+            new(
                 row[3].CheckNotNullTrimmed(cols[3]),
                 row[4].CheckNotNullTrimmed(cols[4]),
                 GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,
@@ -159,5 +158,4 @@ public class PostgreSql : Sql
     }
 
     #endregion Schema
-
 }

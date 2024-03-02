@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@ namespace MaxRunSoftware.Utilities.Data;
 
 // ReSharper disable RedundantStringInterpolation
 // ReSharper disable StringLiteralTypo
-
 public class MicrosoftSql : Sql
 {
     public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
@@ -126,9 +125,9 @@ public class MicrosoftSql : Sql
             [7] = "CHARACTER_MAXIMUM_LENGTH",
             [8] = "NUMERIC_PRECISION",
             [9] = "NUMERIC_SCALE",
-            [10] = "COLUMN_DEFAULT"
+            [10] = "COLUMN_DEFAULT",
         };
-        sql.Append($" SELECT DISTINCT {EscapeColumns("c",cols)}");
+        sql.Append($" SELECT DISTINCT {EscapeColumns("c", cols)}");
         sql.Append($" FROM {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.COLUMNS c");
         sql.Append($" INNER JOIN {filter.DatabaseNameEscaped}.INFORMATION_SCHEMA.TABLES t ON t.TABLE_CATALOG=c.TABLE_CATALOG AND t.TABLE_SCHEMA=c.TABLE_SCHEMA AND t.TABLE_NAME=c.TABLE_NAME");
         sql.Append($" WHERE t.TABLE_TYPE='BASE TABLE'");
@@ -139,12 +138,12 @@ public class MicrosoftSql : Sql
 
 
         return GetSchemaObjects(errors, sql, row => new DatabaseSchemaTableColumn(
-            new DatabaseSchemaTable(
+            new(
                 row[0].CheckNotNull(cols[0]),
                 row[1],
                 row[2].CheckNotNull(cols[2])
             ),
-            new DatabaseSchemaColumn(
+            new(
                 row[3].CheckNotNullTrimmed(cols[3]),
                 row[4].CheckNotNullTrimmed(cols[4]),
                 GetDbType(row[4].CheckNotNullTrimmed(cols[4])) ?? DbType.String,

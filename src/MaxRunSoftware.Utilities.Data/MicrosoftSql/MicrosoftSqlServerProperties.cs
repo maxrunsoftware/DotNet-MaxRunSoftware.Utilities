@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -71,13 +71,13 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// ID of the SQL Server collation.
     /// <br />Base data type: int
     /// </summary>
-    public int CollationID  => GetInt(nameof(CollationID));
+    public int CollationID => GetInt(nameof(CollationID));
 
     /// <summary>
     /// Windows comparison style of the collation.
     /// <br />Base data type: int
     /// </summary>
-    public int ComparisonStyle  => GetInt(nameof(ComparisonStyle));
+    public int ComparisonStyle => GetInt(nameof(ComparisonStyle));
 
     /// <summary>
     /// NetBIOS name of the local computer on which the instance of SQL Server is currently running.
@@ -90,7 +90,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ComputerNamePhysicalNetBIOS  => GetStringNullable(nameof(ComputerNamePhysicalNetBIOS));
+    public string? ComputerNamePhysicalNetBIOS => GetStringNullable(nameof(ComputerNamePhysicalNetBIOS));
 
     /// <summary>
     /// Installed product edition of the instance of SQL Server. Use the value of this property to determine the features and
@@ -111,7 +111,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />'Azure SQL Edge' indicates the paid edition for Azure SQL Edge
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string Edition  => GetString(nameof(Edition));
+    public string Edition => GetString(nameof(Edition));
 
     /// <summary>
     /// EditionID represents the installed product edition of the instance of SQL Server. Use the value of this property to
@@ -130,7 +130,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />1994083197 = Azure SQL Edge
     /// <br />Base data type: bigint
     /// </summary>
-    public long EditionID  => GetLong(nameof(EditionID));
+    public long EditionID => GetLong(nameof(EditionID));
 
     /// <summary>
     /// Database Engine edition of the instance of SQL Server installed on the server.
@@ -145,13 +145,13 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />11 = Azure Synapse serverless SQL pool
     /// <br />Base data type: int
     /// </summary>
-    public int EngineEdition  => GetInt(nameof(EngineEdition));
+    public int EngineEdition => GetInt(nameof(EngineEdition));
 
     /// <summary>
     /// The configured level of FILESTREAM access. For more information, see filestream access level.
     /// <br />Base data type: int
     /// </summary>
-    public int FilestreamConfiguredLevel  => GetInt(nameof(FilestreamConfiguredLevel));
+    public int FilestreamConfiguredLevel => GetInt(nameof(FilestreamConfiguredLevel));
 
     /// <summary>
     /// The effective level of FILESTREAM access. This value can be different than the FilestreamConfiguredLevel if the level
@@ -159,14 +159,14 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// access level.
     /// <br />Base data type: int
     /// </summary>
-    public int FilestreamEffectiveLevel  => GetInt(nameof(FilestreamEffectiveLevel));
+    public int FilestreamEffectiveLevel => GetInt(nameof(FilestreamEffectiveLevel));
 
     /// <summary>
     /// The name of the share used by FILESTREAM.
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? FilestreamShareName  => GetStringNullable(nameof(FilestreamShareName));
+    public string? FilestreamShareName => GetStringNullable(nameof(FilestreamShareName));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) and later.
@@ -177,27 +177,27 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public int? HadrManagerStatus  => GetInt(nameof(HadrManagerStatus));
+    public int? HadrManagerStatus => GetInt(nameof(HadrManagerStatus));
 
     /// <summary>
     /// Applies to: SQL Server 2019 (15.x) and later.
     /// <br />Name of the default path to the instance backup files.
     /// </summary>
-    public string? InstanceDefaultBackupPath  => GetStringNullable(nameof(InstanceDefaultBackupPath));
+    public string? InstanceDefaultBackupPath => GetStringNullable(nameof(InstanceDefaultBackupPath));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
     /// <br />Name of the default path to the instance data files.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? InstanceDefaultDataPath  => GetStringNullable(nameof(InstanceDefaultDataPath));
+    public string? InstanceDefaultDataPath => GetStringNullable(nameof(InstanceDefaultDataPath));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
     /// <br />Name of the default path to the instance log files.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? InstanceDefaultLogPath  => GetStringNullable(nameof(InstanceDefaultLogPath));
+    public string? InstanceDefaultLogPath => GetStringNullable(nameof(InstanceDefaultLogPath));
 
     /// <summary>
     /// Name of the instance to which the user is connected.
@@ -205,20 +205,20 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? InstanceName  => GetStringNullable(nameof(InstanceName));
+    public string? InstanceName => GetStringNullable(nameof(InstanceName));
 
     /// <summary>
     /// Returns 1 if the Advanced Analytics feature was installed during setup; 0 if Advanced Analytics wasn't installed.
     /// <br />Base data type: int
     /// </summary>
-    public bool IsAdvancedAnalyticsInstalled  => GetBool(nameof(IsAdvancedAnalyticsInstalled));
+    public bool IsAdvancedAnalyticsInstalled => GetBool(nameof(IsAdvancedAnalyticsInstalled));
 
     /// <summary>
     /// Introduced in SQL Server 2019 (15.x) beginning with CU4.
     /// <br />Returns 1 if the instance is SQL Server Big Data Cluster; 0 if not.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsBigDataCluster  => GetBoolNullable(nameof(IsBigDataCluster));
+    public bool? IsBigDataCluster => GetBoolNullable(nameof(IsBigDataCluster));
 
     /// <summary>
     /// Server instance is configured in a failover cluster.
@@ -227,7 +227,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsClustered  => GetBoolNullable(nameof(IsClustered));
+    public bool? IsClustered => GetBoolNullable(nameof(IsClustered));
 
     /// <summary>
     /// Applies to: Azure SQL Database and Azure SQL Managed Instance.
@@ -236,7 +236,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = Azure AD-only authentication is disabled.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsExternalAuthenticationOnly  => GetBoolNullable(nameof(IsExternalAuthenticationOnly));
+    public bool? IsExternalAuthenticationOnly => GetBoolNullable(nameof(IsExternalAuthenticationOnly));
 
     /// <summary>
     /// Applies to: SQL Server 2022 (16.x) and later.
@@ -245,7 +245,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = External governance is disabled.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsExternalGovernanceEnabled  => GetBoolNullable(nameof(IsExternalGovernanceEnabled));
+    public bool? IsExternalGovernanceEnabled => GetBoolNullable(nameof(IsExternalGovernanceEnabled));
 
     /// <summary>
     /// The full-text and semantic indexing components are installed on the current instance of SQL Server.
@@ -254,7 +254,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsFullTextInstalled  => GetBoolNullable(nameof(IsFullTextInstalled));
+    public bool? IsFullTextInstalled => GetBoolNullable(nameof(IsFullTextInstalled));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) and later.
@@ -269,7 +269,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />Note: The IsHadrEnabled property pertains only to Always On availability groups. Other high availability or
     /// disaster recovery features, such as database mirroring or log shipping, are unaffected by this server property.
     /// </summary>
-    public bool? IsHadrEnabled  => GetBoolNullable(nameof(IsHadrEnabled));
+    public bool? IsHadrEnabled => GetBoolNullable(nameof(IsHadrEnabled));
 
     /// <summary>
     /// Server is in integrated security mode.
@@ -278,7 +278,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsIntegratedSecurityOnly  => GetBoolNullable(nameof(IsIntegratedSecurityOnly));
+    public bool? IsIntegratedSecurityOnly => GetBoolNullable(nameof(IsIntegratedSecurityOnly));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) and later.
@@ -286,7 +286,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsLocalDB  => GetBoolNullable(nameof(IsLocalDB));
+    public bool? IsLocalDB => GetBoolNullable(nameof(IsLocalDB));
 
     /// <summary>
     /// Applies to: SQL Server 2016 (13.x).
@@ -295,7 +295,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />1 = PolyBase is installed.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsPolyBaseInstalled  => GetBoolNullable(nameof(IsPolyBaseInstalled));
+    public bool? IsPolyBaseInstalled => GetBoolNullable(nameof(IsPolyBaseInstalled));
 
     /// <summary>
     /// Server is in suspend mode and requires server level thaw.
@@ -303,7 +303,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />0 = Not suspended
     /// <br />Base data type: int
     /// </summary>
-    public bool IsServerSuspendedForSnapshotBackup  => GetBool(nameof(IsServerSuspendedForSnapshotBackup));
+    public bool IsServerSuspendedForSnapshotBackup => GetBool(nameof(IsServerSuspendedForSnapshotBackup));
 
     /// <summary>
     /// Server is in single-user mode.
@@ -312,7 +312,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsSingleUser  => GetBoolNullable(nameof(IsSingleUser));
+    public bool? IsSingleUser => GetBoolNullable(nameof(IsSingleUser));
 
     /// <summary>
     /// Applies to: SQL Server 2019 (15.x) and later.
@@ -320,7 +320,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// disk-based tables for metadata. For more information, see tempdb Database.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsTempDbMetadataMemoryOptimized  => GetBoolNullable(nameof(IsTempDbMetadataMemoryOptimized));
+    public bool? IsTempDbMetadataMemoryOptimized => GetBoolNullable(nameof(IsTempDbMetadataMemoryOptimized));
 
     /// <summary>
     /// Applies to: SQL Server (SQL Server 2014 (12.x) and later), SQL Database.
@@ -330,19 +330,19 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public bool? IsXTPSupported  => GetBoolNullable(nameof(IsXTPSupported));
+    public bool? IsXTPSupported => GetBoolNullable(nameof(IsXTPSupported));
 
     /// <summary>
     /// Windows locale identifier (LCID) of the collation.
     /// <br />Base data type: int
     /// </summary>
-    public int LCID  => GetInt(nameof(LCID));
+    public int LCID => GetInt(nameof(LCID));
 
     /// <summary>
     /// Unused. License information isn't preserved or maintained by the SQL Server product. Always returns DISABLED.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string LicenseType  => GetString(nameof(LicenseType));
+    public string LicenseType => GetString(nameof(LicenseType));
 
     /// <summary>
     /// Windows computer name on which the server instance is running.
@@ -351,34 +351,34 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? MachineName  => GetStringNullable(nameof(MachineName));
+    public string? MachineName => GetStringNullable(nameof(MachineName));
 
     /// <summary>
     /// Unused. License information isn't preserved or maintained by the SQL Server product. Always returns NULL.
     /// <br />Base data type: int
     /// </summary>
-    public int? NumLicenses  => GetIntNullable(nameof(NumLicenses));
+    public int? NumLicenses => GetIntNullable(nameof(NumLicenses));
 
     /// <summary>
     /// Applies to: SQL Server 2017 (14.x) and later.
     /// <br />Returns \ on Windows and / on Linux
     /// <br />Base data type: nvarchar
     /// </summary>
-    public string? PathSeparator  => GetStringNullable(nameof(PathSeparator));
+    public string? PathSeparator => GetStringNullable(nameof(PathSeparator));
 
     /// <summary>
     /// Process ID of the SQL Server service. ProcessID is useful in identifying which Sqlservr.exe belongs to this instance.
     /// <br />NULL = Input isn't valid, an error, or not applicable.
     /// <br />Base data type: int
     /// </summary>
-    public int? ProcessID  => GetInt(nameof(ProcessID));
+    public int? ProcessID => GetInt(nameof(ProcessID));
 
     /// <summary>
     /// Applies to: SQL Server 2014 (12.x) beginning October 2015.
     /// <br />The build number.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductBuild  => GetStringNullable(nameof(ProductBuild));
+    public string? ProductBuild => GetStringNullable(nameof(ProductBuild));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
@@ -389,7 +389,7 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductBuildType  => GetStringNullable(nameof(ProductBuildType));
+    public string? ProductBuildType => GetStringNullable(nameof(ProductBuildType));
 
     /// <summary>
     /// Level of the version of the instance of SQL Server.
@@ -399,21 +399,21 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />'CTPn', = Community Technology Preview version
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string ProductLevel  => GetString(nameof(ProductLevel));
+    public string ProductLevel => GetString(nameof(ProductLevel));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
     /// <br />The major version.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductMajorVersion  => GetStringNullable(nameof(ProductMajorVersion));
+    public string? ProductMajorVersion => GetStringNullable(nameof(ProductMajorVersion));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
     /// <br />The minor version.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductMinorVersion  => GetStringNullable(nameof(ProductMinorVersion));
+    public string? ProductMinorVersion => GetStringNullable(nameof(ProductMinorVersion));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
@@ -423,69 +423,67 @@ public class MicrosoftSqlServerProperties : DatabaseServerProperties
     /// <br />NULL = Not applicable.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductUpdateLevel  => GetStringNullable(nameof(ProductUpdateLevel));
+    public string? ProductUpdateLevel => GetStringNullable(nameof(ProductUpdateLevel));
 
     /// <summary>
     /// Applies to: SQL Server 2012 (11.x) through current version in updates beginning in late 2015.
     /// <br />KB article for that release.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ProductUpdateReference  => GetStringNullable(nameof(ProductUpdateReference));
+    public string? ProductUpdateReference => GetStringNullable(nameof(ProductUpdateReference));
 
     /// <summary>
     /// Version of the instance of SQL Server, in the form of major.minor.build.revision.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string ProductVersion  => GetString(nameof(ProductVersion));
+    public string ProductVersion => GetString(nameof(ProductVersion));
 
     /// <summary>
     /// Returns the date and time that the Resource database was last updated.
     /// <br />Base data type: datetime
     /// </summary>
-    public DateTime ResourceLastUpdateDateTime  => GetDateTime(nameof(ResourceLastUpdateDateTime));
+    public DateTime ResourceLastUpdateDateTime => GetDateTime(nameof(ResourceLastUpdateDateTime));
 
     /// <summary>
     /// Returns the version Resource database.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string ResourceVersion  => GetString(nameof(ResourceVersion));
+    public string ResourceVersion => GetString(nameof(ResourceVersion));
 
     /// <summary>
     /// Both the Windows server and instance information associated with a specified instance of SQL Server.
     /// <br />NULL = Input isn't valid, or an error.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string? ServerName  => GetStringNullable(nameof(ServerName));
+    public string? ServerName => GetStringNullable(nameof(ServerName));
 
     /// <summary>
     /// The SQL character set ID from the collation ID.
     /// <br />Base data type: tinyint
     /// </summary>
-    public byte SqlCharSet  => GetByte(nameof(SqlCharSet));
+    public byte SqlCharSet => GetByte(nameof(SqlCharSet));
 
     /// <summary>
     /// The SQL character set name from the collation.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string SqlCharSetName  => GetString(nameof(SqlCharSetName));
+    public string SqlCharSetName => GetString(nameof(SqlCharSetName));
 
     /// <summary>
     /// The SQL sort order ID from the collation
     /// <br />Base data type: tinyint
     /// </summary>
-    public byte SqlSortOrder  => GetByte(nameof(SqlSortOrder));
+    public byte SqlSortOrder => GetByte(nameof(SqlSortOrder));
 
     /// <summary>
     /// The SQL sort order name from the collation.
     /// <br />Base data type: nvarchar(128)
     /// </summary>
-    public string SqlSortOrderName  => GetString(nameof(SqlSortOrderName));
+    public string SqlSortOrderName => GetString(nameof(SqlSortOrderName));
 
     /// <summary>
     /// The number of suspended databases on the server.
     /// <br />Base data type: int
     /// </summary>
-    public int SuspendedDatabaseCount  => GetInt(nameof(SuspendedDatabaseCount));
-
-
+    public int SuspendedDatabaseCount => GetInt(nameof(SuspendedDatabaseCount));
 }
