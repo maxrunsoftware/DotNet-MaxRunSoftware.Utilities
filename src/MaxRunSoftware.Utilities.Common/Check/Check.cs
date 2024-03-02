@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-// 
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -485,10 +485,7 @@ public class CheckMinException : CheckOutOfRangeException
 {
     public object Min { get; }
 
-    private CheckMinException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, object value, object min) : base(type, callerInfo, name, message, parent, value)
-    {
-        Min = min;
-    }
+    private CheckMinException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, object value, object min) : base(type, callerInfo, name, message, parent, value) => Min = min;
 
     internal static CheckMinException Create(CheckType? type, string? name, Type? parent, object value, object min, string? callerFilePath, int? callerLineNumber, string? callerMemberName, string? callerArgumentExpression)
     {
@@ -505,10 +502,7 @@ public class CheckMaxException : CheckOutOfRangeException
 {
     public object Max { get; }
 
-    private CheckMaxException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, object value, object max) : base(type, callerInfo, name, message, parent, value)
-    {
-        Max = max;
-    }
+    private CheckMaxException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, object value, object max) : base(type, callerInfo, name, message, parent, value) => Max = max;
 
     internal static CheckMaxException Create(CheckType? type, string? name, Type? parent, object value, object max, string? callerFilePath, int? callerLineNumber, string? callerMemberName, string? callerArgumentExpression)
     {
@@ -611,10 +605,7 @@ public class CheckIsEnumException : CheckTypeException
 public class CheckIsAssignableToException : CheckTypeException
 {
     public Type TargetType { get; }
-    private protected CheckIsAssignableToException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, Type value, Type targetType) : base(type, callerInfo, name, message, parent, value)
-    {
-        TargetType = targetType;
-    }
+    private protected CheckIsAssignableToException(CheckType type, CallerInfo callerInfo, string name, string message, Type? parent, Type value, Type targetType) : base(type, callerInfo, name, message, parent, value) => TargetType = targetType;
 
     internal static CheckIsAssignableToException Create(CheckType? type, string? name, Type? parent, Type value, Type targetType, string? callerFilePath, int? callerLineNumber, string? callerMemberName, string? callerArgumentExpression)
     {
