@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 
 namespace MaxRunSoftware.Utilities.Common;
@@ -29,10 +28,7 @@ public static class ExtensionsCollection
     /// <typeparam name="T">Type of the object.</typeparam>
     /// <param name="item">The instance that will be wrapped.</param>
     /// <returns>An IEnumerable&lt;T&gt; consisting of a single item.</returns>
-    public static IEnumerable<T> Yield<T>(this T item)
-    {
-        yield return item;
-    }
+    public static IEnumerable<T> Yield<T>(this T item) { yield return item; }
 
     /// <summary>
     /// Concatenates an item to the end of a sequence
@@ -459,8 +455,6 @@ public static class ExtensionsCollection
         for (var i = 0; i < itemsToRemove; i++) array = array.RemoveTail();
         return array;
     }
-
-
 
     #endregion Remove
 

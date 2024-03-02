@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public abstract class LoggerBase : ILogger
 {
-    protected LoggerBase(string categoryName)
-    {
-        CategoryName = categoryName;
-    }
+    protected LoggerBase(string categoryName) => CategoryName = categoryName;
 
     // ReSharper disable once InconsistentNaming
     private static readonly AsyncLocal<ConcurrentStack<LogScopeDisposable>> scopes = new();

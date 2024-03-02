@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ public sealed class Counter
 {
     private volatile int value;
     public Counter() : this(0) { }
-    public Counter(int startingValue)
-    {
-        value = startingValue;
-    }
+    public Counter(int startingValue) => value = startingValue;
     public int Current => value;
     public int Next() => Interlocked.Increment(ref value);
 }

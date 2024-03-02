@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,7 @@ public class ConsumerProducerThread<TConsume, TProduce> : ConsumerProducerThread
         BlockingCollection<TProduce> producerQueue,
         Func<TConsume, TProduce> func,
         ILoggerProvider loggerProvider
-    ) : base(consumerQueue, producerQueue, loggerProvider)
-    {
-        this.func = func.CheckNotNull(nameof(func));
-    }
+    ) : base(consumerQueue, producerQueue, loggerProvider) => this.func = func.CheckNotNull(nameof(func));
 
     protected override TProduce WorkConsumeProduce(TConsume item) => func(item);
 }

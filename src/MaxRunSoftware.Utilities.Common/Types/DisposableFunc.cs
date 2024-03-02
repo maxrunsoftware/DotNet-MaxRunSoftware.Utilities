@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ namespace MaxRunSoftware.Utilities.Common;
 public class DisposableFunc : IDisposable
 {
     private readonly Action onDispose;
-    public DisposableFunc(Action onDispose)
-    {
-        this.onDispose = onDispose;
-    }
+    public DisposableFunc(Action onDispose) => this.onDispose = onDispose;
     public void Dispose() => onDispose();
     public static IDisposable Create(Action onDispose) => new DisposableFunc(onDispose);
 }

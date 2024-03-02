@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ public static partial class Util
 {
     /*
     var example  = "public static Type[] GenericTypes<T1, T2, T3>() => new[] { typeof(T1), typeof(T2), typeof(T3) };";
-	var template = "public static Type[] GenericTypes<x1>() => new[] { x2 };";
-	for(int i=1; i<=64; i++) {
-		var x1 = string.Join(", ", Enumerable.Range(1, i).Select(i => $"T{i}"));
-		var x2 = string.Join(", ", Enumerable.Range(1, i).Select(i => $"typeof(T{i})"));
-		var s = template;
-		s = s.Replace("x1", x1);
-		s = s.Replace("x2", x2);
-		Console.WriteLine(s);
-	}
+    var template = "public static Type[] GenericTypes<x1>() => new[] { x2 };";
+    for(int i=1; i<=64; i++) {
+        var x1 = string.Join(", ", Enumerable.Range(1, i).Select(i => $"T{i}"));
+        var x2 = string.Join(", ", Enumerable.Range(1, i).Select(i => $"typeof(T{i})"));
+        var s = template;
+        s = s.Replace("x1", x1);
+        s = s.Replace("x2", x2);
+        Console.WriteLine(s);
+    }
     */
 
     public static Type[] GenericTypes<T1>() => new[] { typeof(T1) };

@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -123,12 +123,12 @@ public static partial class Util
         RandomNumberGenerator.Fill(bytes);
 
         // Set version bits -- 6th or 7th byte according to Endianness, big or little Endian respectively
-        bytes[versionByteIndex] = (byte)(bytes[versionByteIndex] & versionMask | versionShift);
+        bytes[versionByteIndex] = (byte)((bytes[versionByteIndex] & versionMask) | versionShift);
 
         // Set variant bits -- 8th byte
-        bytes[variantByteIndex] = (byte)(bytes[variantByteIndex] & variantMask | variantShift);
+        bytes[variantByteIndex] = (byte)((bytes[variantByteIndex] & variantMask) | variantShift);
 
         // Initialize Guid from the modified random bytes
-        return new Guid(bytes);
+        return new(bytes);
     }
 }

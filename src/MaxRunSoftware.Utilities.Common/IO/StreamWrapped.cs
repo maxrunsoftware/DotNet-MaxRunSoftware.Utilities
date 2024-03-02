@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ namespace MaxRunSoftware.Utilities.Common;
 public class StreamWrapped : Stream
 {
     protected readonly Stream stream;
-    public StreamWrapped(Stream stream)
-    {
-        this.stream = stream;
-    }
+    public StreamWrapped(Stream stream) => this.stream = stream;
 
     public override void Flush() => stream.Flush();
 

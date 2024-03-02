@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,10 +46,7 @@ public sealed class ExecutablePoolConfig : IExecutablePoolConfig
     public string? ThreadPoolName { get; set; }
     public ILoggerProvider LoggerProvider { get; set; } = Constant.LoggerProviderNull;
 
-    public ExecutablePoolConfig(IEnumerator<IExecutable> enumerator)
-    {
-        Enumerator = enumerator;
-    }
+    public ExecutablePoolConfig(IEnumerator<IExecutable> enumerator) => Enumerator = enumerator;
 
     public ExecutablePoolConfig(IExecutablePoolConfig config)
     {

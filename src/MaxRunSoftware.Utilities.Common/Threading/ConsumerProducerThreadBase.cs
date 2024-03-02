@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,7 @@ public abstract class ConsumerProducerThreadBase<TConsume, TProduce> : ConsumerT
     private readonly BlockingCollection<TProduce> producerQueue;
     private readonly CancellationTokenSource cancellation = new();
 
-    protected ConsumerProducerThreadBase(BlockingCollection<TConsume> consumerQueue, BlockingCollection<TProduce> producerQueue, ILoggerProvider loggerProvider) : base(consumerQueue, loggerProvider)
-    {
-        this.producerQueue = producerQueue.CheckNotNull(nameof(producerQueue));
-    }
+    protected ConsumerProducerThreadBase(BlockingCollection<TConsume> consumerQueue, BlockingCollection<TProduce> producerQueue, ILoggerProvider loggerProvider) : base(consumerQueue, loggerProvider) => this.producerQueue = producerQueue.CheckNotNull(nameof(producerQueue));
 
     protected override void WorkConsume(TConsume item)
     {

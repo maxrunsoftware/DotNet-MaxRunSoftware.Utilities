@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,10 +40,7 @@ public class LoggerProvider
         private sealed class LoggerDelegating : LoggerBase
         {
             private readonly LoggerProviderDelegating provider;
-            public LoggerDelegating(string categoryName, LoggerProviderDelegating provider) : base(categoryName)
-            {
-                this.provider = provider;
-            }
+            public LoggerDelegating(string categoryName, LoggerProviderDelegating provider) : base(categoryName) => this.provider = provider;
             public override bool IsEnabled(LogLevel logLevel) => provider.isEnabled(CategoryName, logLevel);
             protected override void Log(LogEvent logEvent) => provider.eventHandler(logEvent);
         }
@@ -52,10 +49,7 @@ public class LoggerProvider
     private sealed class LoggerProviderFunc : ILoggerProvider
     {
         private readonly LoggerProviderDelegate loggerFactory;
-        public LoggerProviderFunc(LoggerProviderDelegate loggerFactory)
-        {
-            this.loggerFactory = loggerFactory;
-        }
+        public LoggerProviderFunc(LoggerProviderDelegate loggerFactory) => this.loggerFactory = loggerFactory;
         public void Dispose() { }
         public ILogger CreateLogger(string categoryName) => loggerFactory(categoryName);
     }

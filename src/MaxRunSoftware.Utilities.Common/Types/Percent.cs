@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,10 +30,7 @@ public readonly struct Percent :
     IComparable, IComparable<Percent>, IComparable<Percent?>,
     IEquatable<Percent>, IEquatable<Percent?>
 {
-    static Percent()
-    {
-        valuesInt = Lzy.Create(() => Enumerable.Range(0, 101).Select(o => new Percent(o)).ToImmutableArray());
-    }
+    static Percent() => valuesInt = Lzy.Create(() => Enumerable.Range(0, 101).Select(o => new Percent(o)).ToImmutableArray());
 
     /// <summary>
     /// https://stackoverflow.com/a/33697376
@@ -55,15 +52,12 @@ public readonly struct Percent :
 
     public Percent() : this(MIN_VALUE_DOUBLE) { }
 
-    private Percent(double value)
+    private Percent(double value) => m_value = value switch
     {
-        m_value = value switch
-        {
-            < MIN_VALUE_DOUBLE => MIN_VALUE_DOUBLE,
-            > MAX_VALUE_DOUBLE => MAX_VALUE_DOUBLE,
-            _ => value,
-        };
-    }
+        < MIN_VALUE_DOUBLE => MIN_VALUE_DOUBLE,
+        > MAX_VALUE_DOUBLE => MAX_VALUE_DOUBLE,
+        _ => value,
+    };
 
     #region operator
 

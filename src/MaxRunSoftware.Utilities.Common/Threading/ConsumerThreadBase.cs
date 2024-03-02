@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,10 +31,7 @@ public abstract class ConsumerThreadBase<T> : ThreadBase
 
     public int ItemsCompleted => itemsCompleted;
 
-    protected ConsumerThreadBase(BlockingCollection<T> queue, ILoggerProvider loggerProvider) : base(loggerProvider)
-    {
-        this.queue = queue.CheckNotNull(nameof(queue));
-    }
+    protected ConsumerThreadBase(BlockingCollection<T> queue, ILoggerProvider loggerProvider) : base(loggerProvider) => this.queue = queue.CheckNotNull(nameof(queue));
 
     private bool ShouldExitWorkLoop()
     {

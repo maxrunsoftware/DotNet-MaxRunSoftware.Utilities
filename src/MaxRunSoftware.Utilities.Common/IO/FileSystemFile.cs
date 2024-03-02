@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,16 +24,13 @@ public sealed class FileSystemFile : FileSystemObject
     public override long Size => size.Value;
     public override bool IsDirectory => false;
 
-    internal FileSystemFile(string path) : base(path)
+    internal FileSystemFile(string path) : base(path) => size = new(() =>
     {
-        size = new(() =>
-        {
-            if (!IsReparsePoint) return FileInfo!.Length;
+        if (!IsReparsePoint) return FileInfo!.Length;
 
-            // https://stackoverflow.com/a/57454136
-            using (Stream fs = Util.FileOpenRead(Path)) { return fs.Length; }
-        }, LazyThreadSafetyMode.PublicationOnly);
-    }
+        // https://stackoverflow.com/a/57454136
+        using (Stream fs = Util.FileOpenRead(Path)) { return fs.Length; }
+    }, LazyThreadSafetyMode.PublicationOnly);
 
     public byte[] Read() => Util.FileRead(Path);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,7 @@ public class CachedValue<T>
     private T? value;
     private bool hasValue;
     private readonly object locker = new();
-    public CachedValue(Func<T> func)
-    {
-        this.func = func;
-    }
+    public CachedValue(Func<T> func) => this.func = func;
 
     private bool isEnabled = true;
 

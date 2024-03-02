@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -96,7 +96,7 @@ public class JavaProperties : Hashtable
     /// A Hashtable that holds a set of default key value pairs to
     /// return when the requested key has not been set.
     /// </param>
-    public JavaProperties(Hashtable defaults) { this.defaults = defaults; }
+    public JavaProperties(Hashtable defaults) => this.defaults = defaults;
 
     /// <summary>
     /// Load Java Properties from a stream expecting the format as described in <see cref="JavaPropertyReader" />.
@@ -358,7 +358,7 @@ public class JavaPropertyReader
     /// where the keys are to be stored.
     /// </summary>
     /// <param name="hashtable">A reference to a hashtable where the key-value pairs can be stored.</param>
-    public JavaPropertyReader(Hashtable hashtable) { this.hashtable = hashtable; }
+    public JavaPropertyReader(Hashtable hashtable) => this.hashtable = hashtable;
 
     private bool Matches(int match, int ch)
     {
@@ -699,7 +699,7 @@ public class JavaPropertyWriter
     /// The Hashtable (or JavaProperties) instance
     /// whose values are to be written.
     /// </param>
-    public JavaPropertyWriter(Hashtable hashtable) { this.hashtable = hashtable; }
+    public JavaPropertyWriter(Hashtable hashtable) => this.hashtable = hashtable;
 
     /// <summary>
     /// Escape the string as a Key with character set ISO-8859-1 -

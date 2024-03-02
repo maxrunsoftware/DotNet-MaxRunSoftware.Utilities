@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,10 +43,7 @@ public class ReflectionScanner
 
     public BindingFlags Flags { get; set; } = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-    private ReflectionScanner(AssemblySlim assembly)
-    {
-        Assembly = assembly;
-    }
+    private ReflectionScanner(AssemblySlim assembly) => Assembly = assembly;
 
 
     public static ReflectionScannerResult Scan(AssemblySlim assembly)

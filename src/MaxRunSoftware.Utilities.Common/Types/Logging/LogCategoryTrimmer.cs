@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,10 +40,7 @@ public class LogCategoryTrimmer
         return categoryClean;
     }
 
-    public LogCategoryTrimmer(string baseCategory)
-    {
-        baseCategoryPartsReversed = baseCategory.Split('.').Reverse().ToImmutableArray();
-    }
+    public LogCategoryTrimmer(string baseCategory) => baseCategoryPartsReversed = baseCategory.Split('.').Reverse().ToImmutableArray();
 
     public LogCategoryTrimmer(Type baseCategory) : this(LogTypeNameHelper.GetTypeDisplayName(
         baseCategory,

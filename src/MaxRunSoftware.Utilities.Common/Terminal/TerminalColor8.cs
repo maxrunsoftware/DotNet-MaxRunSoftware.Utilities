@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,16 +29,14 @@ public class TerminalColor8 : TerminalColor
                 var key = ToUInt(c);
                 d.TryAdd(key, c);
             }
+
             return d.ToImmutableDictionary();
         });
     }
 
     public byte Color8 { get; }
 
-    public TerminalColor8(Color color, string? colorName, byte color8, string? colorHex = null) : base(color, colorName, colorHex)
-    {
-        Color8 = color8;
-    }
+    public TerminalColor8(Color color, string? colorName, byte color8, string? colorHex = null) : base(color, colorName, colorHex) => Color8 = color8;
 
     public TerminalColor8(byte color8, byte red, byte green, byte blue, string? colorHex, string colorName) : this(Color.FromArgb(red, green, blue), colorName, color8, colorHex) { }
 
@@ -48,6 +46,7 @@ public class TerminalColor8 : TerminalColor
 
 
     public static ImmutableArray<TerminalColor8> Colors8 => colors8.Value;
+
     // ReSharper disable once InconsistentNaming
     private static readonly Lzy<ImmutableArray<TerminalColor8>> colors8;
 
@@ -76,7 +75,6 @@ public class TerminalColor8 : TerminalColor
             .WhereNotNull()
             .OrderBy(o => o.Color8)
             .ToImmutableArray();
-
 
     #endregion Helpers
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,7 @@ public sealed class SingleUse
     private volatile bool isUsed;
 
     public SingleUse() : this(new()) { }
-    public SingleUse(object locker)
-    {
-        this.locker = locker.CheckNotNull(nameof(locker));
-    }
+    public SingleUse(object locker) => this.locker = locker.CheckNotNull(nameof(locker));
 
     public bool TryUse()
     {

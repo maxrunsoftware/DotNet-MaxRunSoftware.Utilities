@@ -1,11 +1,11 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -250,7 +250,7 @@ public static class XmlElementExtensions
     public static string ToXml(this XmlElement element, XmlWriterSettings? settings = null)
     {
         using var stringWriter = new StringWriter();
-        ToXml(element, stringWriter, settings: settings);
+        ToXml(element, stringWriter, settings);
         stringWriter.Flush();
         return stringWriter.ToString();
     }
@@ -268,7 +268,7 @@ public static class XmlElementExtensions
     {
         encoding ??= settings?.Encoding ?? XmlElement.DefaultWriterSettings.Encoding;
         using var streamWriter = new StreamWriter(stream, encoding, bufferSize, true);
-        ToXml(element, streamWriter, settings: settings);
+        ToXml(element, streamWriter, settings);
         streamWriter.Flush();
         stream.Flush();
     }

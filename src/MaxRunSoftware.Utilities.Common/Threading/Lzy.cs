@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,10 +36,7 @@ public sealed class Lzy<T>
     // ReSharper disable once InconsistentNaming
     private static readonly Func<T> EMPTY_VALUE_FACTORY = () => default!;
 
-    public Lzy(Func<T> valueFactory)
-    {
-        this.valueFactory = valueFactory;
-    }
+    public Lzy(Func<T> valueFactory) => this.valueFactory = valueFactory;
 
     public bool IsValueCreated => initialized;
 

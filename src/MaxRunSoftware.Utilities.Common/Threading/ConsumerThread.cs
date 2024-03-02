@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+﻿// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,10 +24,7 @@ public class ConsumerThread<T> : ConsumerThreadBase<T>
 {
     private readonly Action<T> action;
 
-    public ConsumerThread(BlockingCollection<T> queue, Action<T> action, ILoggerProvider loggerProvider) : base(queue, loggerProvider)
-    {
-        this.action = action.CheckNotNull(nameof(action));
-    }
+    public ConsumerThread(BlockingCollection<T> queue, Action<T> action, ILoggerProvider loggerProvider) : base(queue, loggerProvider) => this.action = action.CheckNotNull(nameof(action));
 
     protected override void WorkConsume(T item) => action(item);
 }
