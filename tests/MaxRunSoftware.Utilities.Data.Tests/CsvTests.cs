@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,13 +21,40 @@ namespace MaxRunSoftware.Utilities.Data.Tests;
 
 #nullable enable
 
-public class CsvTests_String : CsvTests { public CsvTests_String(ITestOutputHelper testOutputHelper) : base(testOutputHelper, null) { } }
-public class CsvTests_UTF8 : CsvTests { public CsvTests_UTF8(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.UTF8) { } }
-public class CsvTests_UTF8_With_BOM : CsvTests { public CsvTests_UTF8_With_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_With_BOM) { } }
-public class CsvTests_UTF8_Without_BOM : CsvTests { public CsvTests_UTF8_Without_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_Without_BOM) { } }
-public class CsvTests_Unicode : CsvTests { public CsvTests_Unicode(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Unicode) { } }
-public class CsvTests_ASCII : CsvTests { public CsvTests_ASCII(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.ASCII) { } }
-public class CsvTests_Latin1 : CsvTests { public CsvTests_Latin1(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Latin1) { } }
+public class CsvTests_String : CsvTests
+{
+    public CsvTests_String(ITestOutputHelper testOutputHelper) : base(testOutputHelper, null) { }
+}
+
+public class CsvTests_UTF8 : CsvTests
+{
+    public CsvTests_UTF8(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.UTF8) { }
+}
+
+public class CsvTests_UTF8_With_BOM : CsvTests
+{
+    public CsvTests_UTF8_With_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_With_BOM) { }
+}
+
+public class CsvTests_UTF8_Without_BOM : CsvTests
+{
+    public CsvTests_UTF8_Without_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_Without_BOM) { }
+}
+
+public class CsvTests_Unicode : CsvTests
+{
+    public CsvTests_Unicode(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Unicode) { }
+}
+
+public class CsvTests_ASCII : CsvTests
+{
+    public CsvTests_ASCII(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.ASCII) { }
+}
+
+public class CsvTests_Latin1 : CsvTests
+{
+    public CsvTests_Latin1(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Latin1) { }
+}
 
 public abstract class CsvTests : TestBase
 {
@@ -91,10 +118,7 @@ public abstract class CsvTests : TestBase
     }
 
     [SkippableFact]
-    public void Write_Simple()
-    {
-        TestWrite(CreateTableMemory("c1,c2,c3\na,b,c\nd,e,f"), "c1,c2,c3\na,b,c\nd,e,f\n");
-    }
+    public void Write_Simple() => TestWrite(CreateTableMemory("c1,c2,c3\na,b,c\nd,e,f"), "c1,c2,c3\na,b,c\nd,e,f\n");
 
     [SkippableFact]
     public void Write_No_Header()
@@ -104,16 +128,10 @@ public abstract class CsvTests : TestBase
     }
 
     [SkippableFact]
-    public void Write_Includes_Blank_Lines_1()
-    {
-        TestWrite(CreateTableMemory("a\n\nc\nd"), "a\n\nc\nd\n");
-    }
+    public void Write_Includes_Blank_Lines_1() => TestWrite(CreateTableMemory("a\n\nc\nd"), "a\n\nc\nd\n");
 
     [SkippableFact]
-    public void Write_Includes_Blank_Lines_End()
-    {
-        TestWrite(CreateTableMemory("a\n\nc\nd\n"), "a\n\nc\nd\n\n");
-    }
+    public void Write_Includes_Blank_Lines_End() => TestWrite(CreateTableMemory("a\n\nc\nd\n"), "a\n\nc\nd\n\n");
 
 
     private void TestWrite(ITable table, string expected)
@@ -163,7 +181,6 @@ public abstract class CsvTests : TestBase
 
     private void TestRead(ITable table, string? columns, params string[] rows)
     {
-
         if (columns == null)
         {
             Assert.Null(table.Columns);
@@ -200,7 +217,5 @@ public abstract class CsvTests : TestBase
             Assert.Equal(rowParts, row);
             c++;
         }
-
     }
-
 }
