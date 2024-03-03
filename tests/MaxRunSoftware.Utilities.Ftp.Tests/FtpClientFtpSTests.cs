@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,8 @@
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
 
+using FluentFTP;
+
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
 public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
@@ -23,7 +25,7 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
     public FtpClientFtpSTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         var fluentFtpVersionBroken = "45.0.4";
-        var fluentFtpVersions = new[] { Util.GetAssemblyVersion<FluentFTP.FtpClient>(), Util.GetAssemblyFileVersion<FluentFTP.FtpClient>() };
+        var fluentFtpVersions = new[] { Util.GetAssemblyVersion<FtpClient>(), Util.GetAssemblyFileVersion<FtpClient>() };
         foreach (var version in fluentFtpVersions.TrimOrNull().WhereNotNull())
         {
             Skip.If(
@@ -48,5 +50,4 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
             ReadTimeout = 1000 * 10,
         },
     }, LoggerProvider);
-
 }
