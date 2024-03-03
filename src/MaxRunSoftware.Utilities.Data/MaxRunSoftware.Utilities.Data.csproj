@@ -13,6 +13,6 @@
         <PackageReference Include="Npgsql" Version="8.0.2" />
         <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.130" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-        <PackageReference Include="CsvHelper" Version="31.0.0" />
+        <PackageReference Include="CsvHelper" Version="31.0.2" />
     </ItemGroup>
 </Project>
