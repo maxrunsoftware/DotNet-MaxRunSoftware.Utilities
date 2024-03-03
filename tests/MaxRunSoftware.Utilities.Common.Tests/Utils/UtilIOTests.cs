@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,13 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 // ReSharper disable once InconsistentNaming
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
-
 public class UtilIOTests : TestBase
 {
     public UtilIOTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 
 
-
     [SkippableTheory]
-    [InlineData(nameof(Encoding.Unicode ))]
+    [InlineData(nameof(Encoding.Unicode))]
     [InlineData(nameof(Encoding.BigEndianUnicode))]
     [InlineData(nameof(Encoding.UTF32))]
     [InlineData(nameof(Encoding.UTF8))]
@@ -43,7 +41,7 @@ public class UtilIOTests : TestBase
             nameof(Encoding.Default) => Encoding.Default,
             nameof(Encoding.Latin1) => Encoding.Latin1,
             nameof(Encoding.ASCII) => Encoding.ASCII,
-            _ => throw new NotImplementedException(encoding)
+            _ => throw new NotImplementedException(encoding),
         };
 
         var enc = GetEncoding(encoding);

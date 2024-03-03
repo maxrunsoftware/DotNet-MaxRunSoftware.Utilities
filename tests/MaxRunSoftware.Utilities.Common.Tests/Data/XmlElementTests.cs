@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Data;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable PossibleNullReferenceException
-
 [SuppressMessage("Assertions", "xUnit2013:Do not use equality check to check for collection size.")]
 public class XmlElementTests : TestBase
 {
@@ -103,8 +102,7 @@ public class XmlElementTests : TestBase
         children = element.FindChildren("people", "students", "highSchool", null).ToList();
         Assert.Equal(5, children.Count);
         Assert.Equal(2, children.Select(o => o.Name).Distinct().ToArray().Length);
-        Assert.Equal(new[] {"DogB", "C", "DogC", "D", "DogD"}, children.Select(o => o.Value));
-
+        Assert.Equal(new[] { "DogB", "C", "DogC", "D", "DogD" }, children.Select(o => o.Value));
     }
 
     [SkippableFact]
@@ -116,9 +114,9 @@ public class XmlElementTests : TestBase
         {
             Children = new List<XmlElement>
             {
-                new("a") { Children = new List<XmlElement> { new("aa"), new("ab"), new("ac"), }, },
-                new("b") { Children = new List<XmlElement> { new("ba"), new("bb"), new("bc"), }, },
-                new("c") { Children = new List<XmlElement> { new("ca"), new("cb"), new("cc"), }, },
+                new("a") { Children = new List<XmlElement> { new("aa"), new("ab"), new("ac") } },
+                new("b") { Children = new List<XmlElement> { new("ba"), new("bb"), new("bc") } },
+                new("c") { Children = new List<XmlElement> { new("ca"), new("cb"), new("cc") } },
             },
         };
         var xml = element.ToXml(settings);
@@ -134,9 +132,9 @@ public class XmlElementTests : TestBase
         {
             Children = new List<XmlElement>
             {
-                new("a") { Children = new List<XmlElement> { new("aa", ""), new("ab", ""), new("ac", ""), }, },
-                new("b") { Children = new List<XmlElement> { new("ba", ""), new("bb", ""), new("bc", ""), }, },
-                new("c") { Children = new List<XmlElement> { new("ca", ""), new("cb", ""), new("cc", ""), }, },
+                new("a") { Children = new List<XmlElement> { new("aa", ""), new("ab", ""), new("ac", "") } },
+                new("b") { Children = new List<XmlElement> { new("ba", ""), new("bb", ""), new("bc", "") } },
+                new("c") { Children = new List<XmlElement> { new("ca", ""), new("cb", ""), new("cc", "") } },
             },
         };
         var xml = element.ToXml(settings);
@@ -199,8 +197,6 @@ public class XmlElementTests : TestBase
         Assert.Equal("aaa", element[0][0][0].Name);
         Assert.Equal("aab", element[0][0][1].Name);
         Assert.Equal("aaa", element[0][0][2].Name);
-
-
     }
 
     [SkippableFact]
@@ -210,18 +206,18 @@ public class XmlElementTests : TestBase
             <root>
               <a>
                 <a1><a11>a11</a11><a12>a12</a12><a13>a13</a13></a1>
-                <a2><a21>a21</a21><a22>a22</a22><a23>a23</a23></a2>    
-                <a3><a31>a31</a31><a32>a32</a32><a33>a33</a33></a3>    
+                <a2><a21>a21</a21><a22>a22</a22><a23>a23</a23></a2>
+                <a3><a31>a31</a31><a32>a32</a32><a33>a33</a33></a3>
               </a>
               <b>
                 <b1><b11>b11</b11><b12>b12</b12><b13>b13</b13></b1>
-                <b2><b21>b21</b21><b22>b22</b22><b23>b23</b23></b2>    
-                <b3><b31>b31</b31><b32>b32</b32><b33>b33</b33></b3>    
+                <b2><b21>b21</b21><b22>b22</b22><b23>b23</b23></b2>
+                <b3><b31>b31</b31><b32>b32</b32><b33>b33</b33></b3>
               </b>
               <c>
                 <c1><c11>c11</c11><c12>c12</c12><c13>c13</c13></c1>
-                <c2><c21>c21</c21><c22>c22</c22><c23>c23</c23></c2>    
-                <c3><c31>c31</c31><c32>c32</c32><c33>c33</c33></c3>    
+                <c2><c21>c21</c21><c22>c22</c22><c23>c23</c23></c2>
+                <c3><c31>c31</c31><c32>c32</c32><c33>c33</c33></c3>
               </c>
             </root>
         ";
@@ -230,7 +226,7 @@ public class XmlElementTests : TestBase
         Assert.Equal("root", element.Name);
         Assert.Equal(3, element.Children.Count);
         var childrenAll = element.GetChildrenAll().ToList();
-        Assert.Equal(3 + (3 * 3) + (3 * 3 * 3), childrenAll.Count);
+        Assert.Equal(3 + 3 * 3 + 3 * 3 * 3, childrenAll.Count);
 
         var names = "x,x1,x11,x12,x13,x2,x21,x22,x23,x3,x31,x32,x33";
         names = names.Replace('x', 'a') + "," + names.Replace('x', 'b') + "," + names.Replace('x', 'c');

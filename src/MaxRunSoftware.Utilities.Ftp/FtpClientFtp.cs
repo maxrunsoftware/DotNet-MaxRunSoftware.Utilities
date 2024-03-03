@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,7 @@ public class FtpClientFtp : FtpClientBase
             FtpTraceLevel.Info => LogLevel.Information,
             FtpTraceLevel.Warn => LogLevel.Warning,
             FtpTraceLevel.Error => LogLevel.Error,
-            _ => throw new ArgumentOutOfRangeException(nameof(ftpTraceLevel), ftpTraceLevel, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(ftpTraceLevel), ftpTraceLevel, null),
         };
 
         public void Log(FtpLogEntry entry) => log.Log(ParseLevel(entry.Severity), entry.Exception, "{Message}", entry.Message);
@@ -52,16 +52,16 @@ public class FtpClientFtp : FtpClientBase
             if (config.Password != null) throw new InvalidOperationException("Password specified but no Username specified");
 
             client = new(
-                host: host,
-                port: port,
-                config: config.FtpConfig,
-                logger: logger
+                host,
+                port,
+                config.FtpConfig,
+                logger
             );
         }
         else
         {
             client = new(
-                host: host,
+                host,
                 port: port,
                 user: config.Username,
                 pass: config.Password ?? string.Empty,
@@ -108,7 +108,7 @@ public class FtpClientFtp : FtpClientBase
         {
             // ReSharper disable once RedundantCast
             Progress = (Percent)progress.Progress,
-            BytesTransferred = progress.TransferredBytes
+            BytesTransferred = progress.TransferredBytes,
         }));
 
     protected override void PutFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
@@ -117,7 +117,7 @@ public class FtpClientFtp : FtpClientBase
         {
             // ReSharper disable once RedundantCast
             Progress = (Percent)progress.Progress,
-            BytesTransferred = progress.TransferredBytes
+            BytesTransferred = progress.TransferredBytes,
         });
 
         try
@@ -180,10 +180,10 @@ public class FtpClientFtp : FtpClientBase
             FtpObjectType.Directory => FtpClientRemoteFileSystemObjectType.Directory,
             FtpObjectType.File => FtpClientRemoteFileSystemObjectType.File,
             FtpObjectType.Link => FtpClientRemoteFileSystemObjectType.Link,
-            _ => FtpClientRemoteFileSystemObjectType.Unknown
+            _ => FtpClientRemoteFileSystemObjectType.Unknown,
         };
 
-       return CreateFileSystemObject(item.Name, item.FullName, type);
+        return CreateFileSystemObject(item.Name, item.FullName, type);
     }
     protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list) =>
         list.AddRange(Client.GetListing(remotePath).OrEmpty().Select(CreateFileSystemObject).WhereNotNull());
@@ -191,10 +191,7 @@ public class FtpClientFtp : FtpClientBase
     protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath) =>
         CreateFileSystemObject(Client.GetObjectInfo(remotePath));
 
-    protected override string GetAbsolutePathInternal(string remotePath)
-    {
-        throw new NotImplementedException();
-    }
+    protected override string GetAbsolutePathInternal(string remotePath) => throw new NotImplementedException();
 
 
     protected override void DeleteFileInternal(string remoteFile)

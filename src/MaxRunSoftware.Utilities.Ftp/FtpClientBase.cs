@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ public abstract class FtpClientBase : IFtpClient
     #region WorkingDirectory
 
     private string? workingDirectoryCached;
+
     public string WorkingDirectory
     {
         get
@@ -125,8 +126,9 @@ public abstract class FtpClientBase : IFtpClient
         }
         catch (NotSupportedException e)
         {
-            log.LogDebugMethod(new (remoteFile), e, "Could not determine {StreamType} length", stream.GetType().NameFormatted());
+            log.LogDebugMethod(new(remoteFile), e, "Could not determine {StreamType} length", stream.GetType().NameFormatted());
         }
+
         log.LogDebugMethod(new(remoteFile), LOG_ATTEMPT + " uploading {DataLength} bytes to {RemoteFile}", dataLength, remoteFile);
 
         var methodInfo = new CallerInfoMethod(remoteFile).OffsetLineNumber(1);
@@ -162,7 +164,7 @@ public abstract class FtpClientBase : IFtpClient
 
     public FtpClientRemoteFileSystemObject CreateDirectory(string remotePath)
     {
-        log.LogTraceMethod(new (remotePath), LOG_ATTEMPT);
+        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
         var o = GetObject(remotePath);
         if (o != null)
         {
@@ -178,7 +180,7 @@ public abstract class FtpClientBase : IFtpClient
             throw new ArgumentException($"Successfully created directory {remotePath} but could not retrieve directory object", nameof(remotePath));
         }
 
-        log.LogTraceMethod(new (remotePath), LOG_SUCCESS);
+        log.LogTraceMethod(new(remotePath), LOG_SUCCESS);
         return o;
     }
 
@@ -188,7 +190,7 @@ public abstract class FtpClientBase : IFtpClient
 
     public bool DeleteDirectory(string remotePath)
     {
-        log.LogTraceMethod(new (remotePath), LOG_ATTEMPT);
+        log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
         var obj = GetObject(remotePath);
         if (obj == null) return false;
 
@@ -211,10 +213,12 @@ public abstract class FtpClientBase : IFtpClient
                 {
                     DeleteFile(file.NameFull);
                 }
+
                 foreach (var dir in objsChildren.Where(o => o.Type == FtpClientRemoteFileSystemObjectType.Directory).OrderByDescending(o => o.NameFull.Length))
                 {
                     DeleteDirectoryInternal(dir.NameFull);
                 }
+
                 DeleteDirectoryInternal(remoteDirectory.NameFull);
                 success = true;
             }
@@ -348,8 +352,6 @@ public abstract class FtpClientBase : IFtpClient
         }
 
         log.LogDebugMethod(new(remotePath, handlerException), LOG_COMPLETE + ", found {CountObjects} items", countObjectsFound);
-
-
     }
 
     #endregion ListObjects
@@ -393,7 +395,8 @@ public abstract class FtpClientBase : IFtpClient
         {
             var remotePathAbsolute = GetAbsolutePathInternal(remotePath);
             if (remotePathAbsolute != null) return remotePathAbsolute;
-        } catch (NotImplementedException) { }
+        }
+        catch (NotImplementedException) { }
 
         if (!remotePath.StartsWith(DirectorySeparator))
         {
@@ -413,6 +416,7 @@ public abstract class FtpClientBase : IFtpClient
                 if (remotePathReassembled.Count > 0) remotePathReassembled.Pop();
                 continue;
             }
+
             remotePathReassembled.Push(remotePathPart);
         }
 
@@ -445,6 +449,7 @@ public abstract class FtpClientBase : IFtpClient
         if (nameFull != null)
         {
             while (nameFull.Length > 0 && nameFull.EndsWith(DirectorySeparator)) nameFull = nameFull.RemoveRight();
+
             if (!nameFull.StartsWith(DirectorySeparator)) nameFull = DirectorySeparator + nameFull;
         }
 
@@ -473,6 +478,7 @@ public abstract class FtpClientBase : IFtpClient
 
                 sb.Append(v);
             }
+
             sb.Append(')');
 
             throw new ArgumentException(sb.ToString(), name == null ? nameof(name) : nameof(nameFull));

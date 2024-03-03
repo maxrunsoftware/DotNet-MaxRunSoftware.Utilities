@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +50,7 @@ public class VersionTests : TestBase
     public void Value()
     {
         var v = new Version("1.2.3.4.5");
-        Assert.Equal(new[] { 1, 2, 3, 4, 5}.Select(o => o.ToString()).ToArray(), v.Select(o => o.Value).ToArray());
+        Assert.Equal(new[] { 1, 2, 3, 4, 5 }.Select(o => o.ToString()).ToArray(), v.Select(o => o.Value).ToArray());
     }
 
     [SkippableFact]
@@ -138,8 +138,6 @@ public class VersionTests : TestBase
         Assert.False(Version.Equals(v1, v2));
         Assert.False(Version.Equals(v2, v1));
     }
-
-
 }
 
 public class VersionPartTests : TestBase

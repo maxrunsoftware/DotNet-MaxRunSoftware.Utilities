@@ -1,11 +1,11 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,13 +41,13 @@ public class WebUrlPath : ComparerBaseClass<WebUrlPath>, IReadOnlyList<string>
         toString = "/" + pathParts.ToStringDelimited("/");
     }
 
-    public WebUrlPath(IEnumerable<string> pathParts) : this("/" + pathParts.ToStringDelimited('/')) {}
+    public WebUrlPath(IEnumerable<string> pathParts) : this("/" + pathParts.ToStringDelimited('/')) { }
 
-    public bool StartsWith(params string[] prefixParts) => StartsWith(new(prefixParts), isCaseSensitive: Default_Path_IsCaseSensitive);
+    public bool StartsWith(params string[] prefixParts) => StartsWith(new(prefixParts), Default_Path_IsCaseSensitive);
 
-    public bool StartsWith(bool isCaseSensitive, params string[] prefixParts) => StartsWith(new(prefixParts), isCaseSensitive: isCaseSensitive);
+    public bool StartsWith(bool isCaseSensitive, params string[] prefixParts) => StartsWith(new(prefixParts), isCaseSensitive);
 
-    public bool StartsWith(IEnumerable<string> prefixParts, bool isCaseSensitive = false) => StartsWith(new(prefixParts), isCaseSensitive: isCaseSensitive);
+    public bool StartsWith(IEnumerable<string> prefixParts, bool isCaseSensitive = false) => StartsWith(new(prefixParts), isCaseSensitive);
 
     public bool StartsWith(WebUrlPath prefix, bool isCaseSensitive = false)
     {
@@ -77,18 +77,17 @@ public class WebUrlPath : ComparerBaseClass<WebUrlPath>, IReadOnlyList<string>
 
     public override string ToString() => toString;
 
-    public static bool Equals(WebUrlPath? x, WebUrlPath? y, bool isCaseSensitive) => Compare(x, y, isCaseSensitive: isCaseSensitive) == 0;
+    public static bool Equals(WebUrlPath? x, WebUrlPath? y, bool isCaseSensitive) => Compare(x, y, isCaseSensitive) == 0;
     public static int GetHashCode(WebUrlPath obj, bool isCaseSensitive) => isCaseSensitive ? HashOrdinal(obj) : HashOrdinalIgnoreCase(obj);
     public static int Compare(WebUrlPath? x, WebUrlPath? y, bool isCaseSensitive) => CompareClassEnumerable(GetStringComparer(isCaseSensitive), x, y) ?? 0;
 
-    public virtual bool Equals(WebUrlPath? y, bool isCaseSensitive) => Equals(this, y, isCaseSensitive: isCaseSensitive);
-    public virtual int GetHashCode(bool isCaseSensitive) => GetHashCode(this, isCaseSensitive: isCaseSensitive);
-    public virtual int Compare(WebUrlPath? y, bool isCaseSensitive) => Compare(this, y, isCaseSensitive: isCaseSensitive);
+    public virtual bool Equals(WebUrlPath? y, bool isCaseSensitive) => Equals(this, y, isCaseSensitive);
+    public virtual int GetHashCode(bool isCaseSensitive) => GetHashCode(this, isCaseSensitive);
+    public virtual int Compare(WebUrlPath? y, bool isCaseSensitive) => Compare(this, y, isCaseSensitive);
 
-    protected override bool EqualsInternal(WebUrlPath x, WebUrlPath y) => Equals(x, y, isCaseSensitive: Default_Path_IsCaseSensitive);
-    protected override int GetHashCodeInternal(WebUrlPath obj) => GetHashCode(obj, isCaseSensitive: Default_Path_IsCaseSensitive);
-    protected override int CompareInternal(WebUrlPath x, WebUrlPath y) => Compare(x, y, isCaseSensitive: Default_Path_IsCaseSensitive);
+    protected override bool EqualsInternal(WebUrlPath x, WebUrlPath y) => Equals(x, y, Default_Path_IsCaseSensitive);
+    protected override int GetHashCodeInternal(WebUrlPath obj) => GetHashCode(obj, Default_Path_IsCaseSensitive);
+    protected override int CompareInternal(WebUrlPath x, WebUrlPath y) => Compare(x, y, Default_Path_IsCaseSensitive);
 
     #endregion Overrides
-
 }

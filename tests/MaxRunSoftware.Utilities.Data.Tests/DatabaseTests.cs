@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,19 +21,14 @@ namespace MaxRunSoftware.Utilities.Data.Tests;
 /// </summary>
 public abstract class DatabaseFixture : IDisposable
 {
-    protected DatabaseFixture()
-    {
+    protected DatabaseFixture() =>
         // ReSharper disable once VirtualMemberCallInConstructor
         Setup();
-    }
 
     protected abstract void Setup();
     protected abstract void Teardown();
 
-    public void Dispose()
-    {
-        Teardown();
-    }
+    public void Dispose() => Teardown();
 
     protected int ExecuteNonQuery(DatabaseAppType appType, string connectionString, string sql, int timeoutSeconds = 60 * 5)
     {
@@ -122,7 +117,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         Assert.NotNull(tables);
         Assert.NotEmpty(tables);
         var skipAmount = Math.Max(1, tables.Length / 100);
-        for (var i = 0; i < tables.Length; i+= skipAmount)
+        for (var i = 0; i < tables.Length; i += skipAmount)
         {
             var table = tables[i];
             var result = sql.GetTableExists(table);
@@ -131,10 +126,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         }
     }
 
-    protected void WriteLine(CallerInfoMethod info, object? outData)
-    {
-        log.LogInformationMethod(info, $"[{DatabaseAppType}] {ToStringParse(outData)}");
-    }
+    protected void WriteLine(CallerInfoMethod info, object? outData) => log.LogInformationMethod(info, $"[{DatabaseAppType}] {ToStringParse(outData)}");
 
     protected void WriteLine<TItem>(CallerInfoMethod info, TItem?[] outData)
     {

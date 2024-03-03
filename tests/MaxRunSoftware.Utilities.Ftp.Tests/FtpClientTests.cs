@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,11 +24,9 @@ namespace MaxRunSoftware.Utilities.Ftp.Tests;
 public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
 {
     protected T Client { get; private set; }
-    protected FtpClientTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-    {
+    protected FtpClientTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) =>
         // ReSharper disable once VirtualMemberCallInConstructor
         Client = CreateClient();
-    }
 
     public override void Dispose()
     {
@@ -41,7 +39,6 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
     }
 
     protected abstract T CreateClient();
-
 
 
     [SkippableFact]
@@ -116,6 +113,7 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
             Client.DeleteDirectory(dirName);
             dir = GetDirectory(dirName);
         }
+
         Assert.Null(dir);
 
         Client.PutFile(ConvertPath($"{dirName}/1/myfile1.txt"), ToBytes("My File 1"));
@@ -158,8 +156,6 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         var p = Client.GetAbsolutePath(v);
         log.LogInformationMethod(new(), "{Original} --> {Absolute}", v, p);
         Assert.Equal($"{dir.NameFull}/dir1/dir2", p);
-
-
     }
 
     [SkippableFact]
@@ -256,7 +252,6 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         Client.ListObjects(directoryName ?? Client.WorkingDirectory, true).Where(o => o.Type == FtpClientRemoteFileSystemObjectType.File).ToArray();
 
 
-
     //private string GetTestDirectoryName([CallerMemberName] string? directoryName = null) => directoryName.CheckNotNull();
     private string GetTestDirectoryNameFull([CallerMemberName] string? directoryName = null) => Client.GetAbsolutePath(directoryName.CheckNotNull());
     private FtpClientRemoteFileSystemObject CreateTestWorkingDirectory([CallerMemberName] string? directoryName = null)
@@ -278,9 +273,5 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         }
     }
 
-
-
     #endregion Helpers
-
-
 }

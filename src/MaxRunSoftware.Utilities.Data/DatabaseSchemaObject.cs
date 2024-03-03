@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@ namespace MaxRunSoftware.Utilities.Data;
 
 public abstract class DatabaseSchemaObject { }
 
-
 public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>, IComparable<DatabaseSchemaDatabase>
 {
     //public DatabaseSchemaDatabase(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0])) { }
-    public DatabaseSchemaDatabase(string databaseName)
-    {
-        DatabaseName = databaseName;
-    }
+    public DatabaseSchemaDatabase(string databaseName) => DatabaseName = databaseName;
 
     public string DatabaseName { get; }
 
@@ -72,7 +68,7 @@ public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSch
 
     #region Override
 
-    public override string ToString() => Database.DatabaseName + (SchemaName == null ? string.Empty : ("." + SchemaName));
+    public override string ToString() => Database.DatabaseName + (SchemaName == null ? string.Empty : "." + SchemaName);
 
     // ReSharper disable once RedundantCast
     public override int GetHashCode() => Util.Hash(Database, SchemaName == null ? (int?)null : StringComparer.OrdinalIgnoreCase.GetHashCode(SchemaName));
@@ -106,7 +102,7 @@ public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSch
 public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>, IComparable<DatabaseSchemaTable>
 {
     //public DatabaseSchemaTable(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0]), row[1].CheckNotNull(columns[1]), row[2].CheckNotNull(columns[2])) { }
-    public DatabaseSchemaTable(string databaseName, string? schemaName, string tableName) : this(new DatabaseSchemaSchema(databaseName, schemaName), tableName) { }
+    public DatabaseSchemaTable(string databaseName, string? schemaName, string tableName) : this(new(databaseName, schemaName), tableName) { }
     public DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName)
     {
         Schema = schema;
@@ -147,12 +143,6 @@ public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSche
     }
 
     #endregion Override
-
-
-
-
-
-
 }
 
 public class DatabaseSchemaColumn : DatabaseSchemaObject

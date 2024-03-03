@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,12 +70,12 @@ public class Ssh : IDisposable
             PrivateKeyFile pkf;
             if (pk.Password == null)
             {
-                pkf = new PrivateKeyFile(pk.FileName);
+                pkf = new(pk.FileName);
                 log.LogDebug("Using private key file {FileName}", pk.FileName);
             }
             else
             {
-                pkf = new PrivateKeyFile(pk.FileName, pk.Password);
+                pkf = new(pk.FileName, pk.Password);
                 log.LogDebug("Using (password protected) private key file {FileName}", pk.FileName);
             }
 
@@ -84,8 +84,8 @@ public class Ssh : IDisposable
 
         BaseClient? client = null;
         var clientType = typeof(T);
-        if (clientType == typeof(SshClient)) client = password == null ? new SshClient(host, port, username, privateKeyFiles.ToArray()) : new SshClient(host, port, username, password);
-        if (clientType == typeof(SftpClient)) client = password == null ? new SftpClient(host, port, username, privateKeyFiles.ToArray()) : new SftpClient(host, port, username, password);
+        if (clientType == typeof(SshClient)) client = password == null ? new(host, port, username, privateKeyFiles.ToArray()) : new SshClient(host, port, username, password);
+        if (clientType == typeof(SftpClient)) client = password == null ? new(host, port, username, privateKeyFiles.ToArray()) : new SftpClient(host, port, username, password);
         if (client == null) throw new NotImplementedException($"Cannot create SSH Client for type {clientType.FullNameFormatted()}");
 
         var ci = client.ConnectionInfo;

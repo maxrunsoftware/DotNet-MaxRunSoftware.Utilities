@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,15 +29,9 @@ public class SshConfig
     public int RetryAttempts { get; set; } = 10;
     public int MaxSessions { get; set; } = 10;
 
-    public void Load(IReadOnlyDictionary<string, string?> dictionary)
-    {
-        LoadCaseInsensitive(new Dictionary<string, string?>(dictionary, StringComparer.OrdinalIgnoreCase));
-    }
+    public void Load(IReadOnlyDictionary<string, string?> dictionary) => LoadCaseInsensitive(new(dictionary, StringComparer.OrdinalIgnoreCase));
 
-    public void Load(IDictionary<string, string?> dictionary)
-    {
-        LoadCaseInsensitive(new Dictionary<string, string?>(dictionary, StringComparer.OrdinalIgnoreCase));
-    }
+    public void Load(IDictionary<string, string?> dictionary) => LoadCaseInsensitive(new(dictionary, StringComparer.OrdinalIgnoreCase));
 
     protected virtual void LoadCaseInsensitive(Dictionary<string, string?> dictionary)
     {
@@ -52,8 +46,5 @@ public class SshConfig
         //if (dictionary.TryGetValue(nameof(Encoding), out var encoding)) Encoding = Util.ParseEncoding()
 
         if (dictionary.TryGetValue(nameof(RetryAttempts), out var retryAttempts)) RetryAttempts = retryAttempts.ToIntNullable() ?? new SshConfig().RetryAttempts;
-
-
-
     }
 }

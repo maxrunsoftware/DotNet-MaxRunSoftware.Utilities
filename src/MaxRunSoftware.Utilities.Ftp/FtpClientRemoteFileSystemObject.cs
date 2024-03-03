@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ public enum FtpClientRemoteFileSystemObjectType
     Unknown,
     Directory,
     File,
-    Link
+    Link,
 }
 
 public class FtpClientRemoteFileSystemObjectComparer : IComparer<FtpClientRemoteFileSystemObject>
@@ -62,7 +62,6 @@ public class FtpClientRemoteFileSystemObjectComparer : IComparer<FtpClientRemote
         if (c != 0) return c;
 
         return x.Type.CompareTo(y.Type);
-
     }
 }
 
@@ -111,8 +110,5 @@ public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSys
         return true;
     }
 
-    public override string ToString()
-    {
-        return $"[{Type.ToString()[0]}] {NameFull}";
-    }
+    public override string ToString() => $"[{Type.ToString()[0]}] {NameFull}";
 }

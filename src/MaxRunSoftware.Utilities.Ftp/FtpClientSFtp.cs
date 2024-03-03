@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,7 +79,7 @@ public class FtpClientSFtp : FtpClientBase
             handlerProgress(new()
             {
                 BytesTransferred = (long)bytes,
-                Progress = CalcProgress(remoteFileLength, bytes)
+                Progress = CalcProgress(remoteFileLength, bytes),
             });
         });
     }
@@ -100,8 +100,7 @@ public class FtpClientSFtp : FtpClientBase
         var remoteFileAbsolute = GetAbsolutePath(remoteFile);
 
 
-        void UploadFile()
-        {
+        void UploadFile() =>
             Client.UploadFile(localStream, remoteFileAbsolute, true, bytes =>
             {
                 handlerProgress(new()
@@ -110,7 +109,6 @@ public class FtpClientSFtp : FtpClientBase
                     Progress = CalcProgress(localStreamLength, bytes),
                 });
             });
-        }
 
 
         try
@@ -151,7 +149,6 @@ public class FtpClientSFtp : FtpClientBase
                 log.LogWarningMethod(new(remoteFile, localStream), eee, LOG_FAILED + " second attempt to upload file {File}", remoteFileAbsolute);
                 throw;
             }
-
         }
     }
 
@@ -232,6 +229,7 @@ public class FtpClientSFtp : FtpClientBase
                 log.LogTraceMethod(new(value), LOG_IGNORED + " because same as current buffer size");
                 return;
             }
+
             Client.BufferSize = value;
             log.LogDebugMethod(new(value), LOG_SUCCESS);
         }

@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.Mail;
+
 // ReSharper disable StringLiteralTypo
 // ReSharper disable IdentifierTypo
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
@@ -144,11 +145,8 @@ public class UtilChangeTypeTests : TestBase
 
     private class CastImplicit_String
     {
-        public CastImplicit_String(string value)
-        {
-            Value = value;
-        }
-        public string Value { get; set; }
+        public CastImplicit_String(string value) => Value = value;
+        public string Value { get; }
 
         public static implicit operator CastExplicit_Int(CastImplicit_String obj) => new(int.Parse(obj.Value));
         public static implicit operator CastImplicit_String(CastExplicit_Int obj) => new(obj.Value.ToString());
@@ -164,18 +162,14 @@ public class UtilChangeTypeTests : TestBase
 
     private class CastExplicit_Int
     {
-        public CastExplicit_Int(int value)
-        {
-            Value = value;
-        }
-        public int Value { get; set; }
+        public CastExplicit_Int(int value) => Value = value;
+        public int Value { get; }
 
         public static explicit operator CastExplicit_Int(CastImplicit_String obj) => new(int.Parse(obj.Value));
         public static explicit operator CastImplicit_String(CastExplicit_Int obj) => new(obj.Value.ToString());
 
         public static explicit operator CastExplicit_Int(IPAddress obj) => new(obj.GetAddressBytes().Select(o => (int)o).Sum());
-        public static explicit operator IPAddress(CastExplicit_Int obj) => new(new []{(byte)(obj.Value), (byte)(obj.Value-1), (byte)(obj.Value-2), (byte)(obj.Value-3)});
-
+        public static explicit operator IPAddress(CastExplicit_Int obj) => new(new[] { (byte)obj.Value, (byte)(obj.Value - 1), (byte)(obj.Value - 2), (byte)(obj.Value - 3) });
     }
 
     [SkippableFact]

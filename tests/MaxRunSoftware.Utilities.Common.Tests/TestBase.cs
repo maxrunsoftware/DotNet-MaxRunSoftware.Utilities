@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ public abstract class TestBase : IDisposable
 
             skippedTest.CheckSkip(TestClass, TestMethodName);
         }
+
         WriteLine($"{tcf}.{tm}");
         log.LogInformation("Running Test: {Class}.{Method}", tcf, tm);
     }
@@ -117,6 +118,7 @@ public abstract class TestBase : IDisposable
                 GuardInitialized();
                 Buffer.Append(output);
             }
+
             MessageBus.QueueMessage(new TestOutput(Test, output));
         }
 
@@ -133,11 +135,6 @@ public abstract class TestBase : IDisposable
         public void Write(string message) => WriteInternal(message.CheckNotNull());
 
         public void Write(string format, params object[] args) => WriteInternal(string.Format(format.CheckNotNull(), args.CheckNotNull()));
-
-
-
-
-
     }
 
     protected readonly TestOutputHelperWrapper testOutputHelperWrapper;
@@ -215,6 +212,7 @@ public abstract class TestBase : IDisposable
         {
             msg = LogMessageFormatColor(msg, logEvent.LogLevel);
         }
+
         return msg;
     }
 
@@ -246,6 +244,7 @@ public abstract class TestBase : IDisposable
     #region TestDirectory / TestFile
 
     private TempDirectory? testDirectory;
+
     protected string TestDirectory
     {
         get
@@ -258,7 +257,7 @@ public abstract class TestBase : IDisposable
     private readonly Stack<TempFile> tempFiles = new();
     protected string CreateTestFile(bool createEmptyFile = false)
     {
-        var f = Util.CreateTempFile(TestDirectory, createEmptyFile: createEmptyFile, loggerProvider: LoggerProvider);
+        var f = Util.CreateTempFile(TestDirectory, createEmptyFile, LoggerProvider);
         tempFiles.Push(f);
         return f.Path;
     }
@@ -325,5 +324,4 @@ public abstract class TestBase : IDisposable
     }
 
     #endregion Dispose
-
 }

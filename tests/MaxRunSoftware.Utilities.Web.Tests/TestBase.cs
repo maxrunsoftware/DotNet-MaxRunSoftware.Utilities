@@ -1,11 +1,11 @@
-// Copyright (c) 2022 Max Run Software (dev@maxrunsoftware.com)
-//
+// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,7 +14,6 @@
 
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using MaxRunSoftware.Utilities.Web.Server;
 
 // ReSharper disable PossibleNullReferenceException
@@ -28,7 +27,8 @@ public class TestBase : Common.Tests.TestBase
 
     protected readonly HttpIO httpIO = new();
 
-    protected WebServer CreateWebServer() {
+    protected WebServer CreateWebServer()
+    {
         var ws = new WebServer(LoggerProvider);
         ws.Port = Constants.DEFAULT_PORT;
         return ws;
@@ -51,7 +51,7 @@ public class TestBase : Common.Tests.TestBase
         public CookieContainer CookieContainer { get; }
         public HttpIO()
         {
-            CookieContainer = new CookieContainer();
+            CookieContainer = new();
             Client = new(new HttpClientHandler
             {
                 AutomaticDecompression = DecompressionMethods.All,
@@ -81,7 +81,7 @@ public class TestBase : Common.Tests.TestBase
             {
                 Content = content,
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(uri)
+                RequestUri = new(uri),
             };
 
             using var response = await Client.SendAsync(requestMessage);
