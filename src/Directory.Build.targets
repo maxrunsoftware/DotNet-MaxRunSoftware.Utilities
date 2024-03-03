@@ -2,6 +2,6 @@
 <Project>
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
     <ItemGroup>
-        <Compile Include="$(SolutionDir)src/common/**/*.cs"/>
+        <Compile Include="$(SolutionDir)src/common/**/*.cs" />
     </ItemGroup>
 </Project>
