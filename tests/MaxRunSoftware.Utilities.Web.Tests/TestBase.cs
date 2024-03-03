@@ -58,7 +58,12 @@ public class TestBase : Common.Tests.TestBase
                 CheckCertificateRevocationList = false,
                 ClientCertificateOptions = ClientCertificateOption.Manual,
                 MaxRequestContentBufferSize = 0,
-                ServerCertificateCustomValidationCallback = (message, certificate2, chain, sslPolicyErrors) => true,
+                ServerCertificateCustomValidationCallback = (
+                        /* message */ _,
+                        /* certificate2 */ _,
+                        /* chain */ _,
+                        /* sslPolicyErrors */ _)
+                    => true,
                 UseCookies = true,
                 AllowAutoRedirect = false,
                 CookieContainer = CookieContainer,
