@@ -69,8 +69,8 @@ public class TaskScheduler : IDisposable
 
         if (taskServiceTask.RegistrationInfo != null)
         {
-            taskServiceTask.RegistrationInfo.Description = task.Description.TrimOrNull();
-            taskServiceTask.RegistrationInfo.Documentation = task.Documentation.TrimOrNull();
+            taskServiceTask.RegistrationInfo.Description = task.Description.TrimOrNull() ?? string.Empty;
+            taskServiceTask.RegistrationInfo.Documentation = task.Documentation.TrimOrNull() ?? string.Empty;
         }
 
         var username = task.Username ??= Constant.Windows_User_System;
