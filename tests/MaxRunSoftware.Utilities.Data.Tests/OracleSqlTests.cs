@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Data.Tests;
-
 // ReSharper disable StringLiteralTypo
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
+// ReSharper disable RedundantTypeDeclarationBody
+
+namespace MaxRunSoftware.Utilities.Data.Tests;
+
 /// <summary>
 /// https://xunit.net/docs/shared-context
 /// </summary>

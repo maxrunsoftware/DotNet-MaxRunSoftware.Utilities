@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ReSharper disable RedundantTypeDeclarationBody
+
 namespace MaxRunSoftware.Utilities.Data;
 
 public abstract class DatabaseSchemaObject { }
