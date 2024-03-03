@@ -1,11 +1,11 @@
 // Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,40 +21,19 @@ namespace MaxRunSoftware.Utilities.Data.Tests;
 
 #nullable enable
 
-public class CsvTests_String : CsvTests
-{
-    public CsvTests_String(ITestOutputHelper testOutputHelper) : base(testOutputHelper, null) { }
-}
+public class CsvTests_String(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, null);
 
-public class CsvTests_UTF8 : CsvTests
-{
-    public CsvTests_UTF8(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.UTF8) { }
-}
+public class CsvTests_UTF8(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Encoding.UTF8);
 
-public class CsvTests_UTF8_With_BOM : CsvTests
-{
-    public CsvTests_UTF8_With_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_With_BOM) { }
-}
+public class CsvTests_UTF8_With_BOM(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Constant.Encoding_UTF8_With_BOM);
 
-public class CsvTests_UTF8_Without_BOM : CsvTests
-{
-    public CsvTests_UTF8_Without_BOM(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constant.Encoding_UTF8_Without_BOM) { }
-}
+public class CsvTests_UTF8_Without_BOM(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Constant.Encoding_UTF8_Without_BOM);
 
-public class CsvTests_Unicode : CsvTests
-{
-    public CsvTests_Unicode(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Unicode) { }
-}
+public class CsvTests_Unicode(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Encoding.Unicode);
 
-public class CsvTests_ASCII : CsvTests
-{
-    public CsvTests_ASCII(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.ASCII) { }
-}
+public class CsvTests_ASCII(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Encoding.ASCII);
 
-public class CsvTests_Latin1 : CsvTests
-{
-    public CsvTests_Latin1(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Encoding.Latin1) { }
-}
+public class CsvTests_Latin1(ITestOutputHelper testOutputHelper) : CsvTests(testOutputHelper, Encoding.Latin1);
 
 public abstract class CsvTests : TestBase
 {
