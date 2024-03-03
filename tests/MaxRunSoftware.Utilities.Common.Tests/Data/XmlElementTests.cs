@@ -1,11 +1,11 @@
 // Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,10 +19,8 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Data;
 // ReSharper disable InconsistentNaming
 // ReSharper disable PossibleNullReferenceException
 [SuppressMessage("Assertions", "xUnit2013:Do not use equality check to check for collection size.")]
-public class XmlElementTests : TestBase
+public class XmlElementTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
 {
-    public XmlElementTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
     [SkippableFact]
     public void FindChildren()
     {
