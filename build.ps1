@@ -4,12 +4,16 @@ param(
     [string]$buildAction,
 
     [Alias("btype", "build_type", "bt")]
-    [Parameter(Mandatory=$false, Position=1, ValueFromPipeline=$false, HelpMessage="Build Type to use (DEBUG or RELEASE)")]
-    [string]$buildType
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Build Type to use (DEBUG or RELEASE)")]
+    [string]$buildType,
+
+    [Alias("solution_file")]
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Solution File")]
+    [string]$slnFile
 )
 $VerbosePreference="Continue"
-
-
+$MAGICSTRING = (New-Guid).ToString()
+$SCRIPTDIR = (Resolve-Path $PSScriptRoot).Path
 
 # https://stackoverflow.com/questions/25915450/how-to-use-extension-methods-in-powershell
 # https://stackoverflow.com/a/77682793
@@ -48,69 +52,94 @@ function ParseArg {
         # [Parameter(ValueFromRemainingArguments=$true)][String[]]$Hosts
     )
 
-    $value = TrimOrNull($value)
+#    Write-Verbose ("$name" + ': $name=' + "$name")
+#    Write-Verbose ("$name" + ': $value=' + "$value")
+#    Write-Verbose ("$name" + ': $defaultValue=' + "$defaultValue")
+#    Write-Verbose ("$name" + ': $validValues=' + "$validValues")
+
+#    Write-Verbose "$name 1: $value"
+    $value = TrimOrNull $value
+#    Write-Verbose "$name 2: $value"
 
     if (!$value) {
-        if (!$defaultValue) {
+        if ($defaultValue) {
             $value = $defaultValue
         }
     }
+#    Write-Verbose "$name 3: $value"
 
     if (!$value) {
         throw [System.ArgumentNullException] "No value provided for $name"
     }
 
+#    Write-Verbose "$name 4: $value"
     if ($validValues) {
         if ($value -notin $validValues) {
             throw [System.ArgumentException] "Invalid value provided for $name '$value'  ->  $validValues"
         }
     }
+#    Write-Verbose "$name 5: $value"
 
-    
+    return $value
 }
 
 # Clear screen  https://superuser.com/a/1738611
 Write-Output "$([char]27)[2J"  # ESC[2J clears the screen, but leaves the scrollback
 Write-Output "$([char]27)[3J"  # ESC[3J clears the screen, including all scrollback
 
-Write-Verbose "Build Action Before: $buildAction"
-$buildAction = $buildAction.TrimOrNull()
-if (!$buildAction) {
-    $buildAction = "BUILD"
-}
+
+Write-Verbose "Script Directory: $SCRIPTDIR"
+Write-Verbose "Magic String: $MAGICSTRING"
+
+
+$buildAction = ParseArg -name "buildAction" -value $buildAction -defaultValue "BUILD" -validValues @("BUILD", "CLEAN", "NUGET", "NUGETPUSH")
 $buildAction = $buildAction.ToUpper()
-$buildActionValids = @("BUILD", "CLEAN", "NUGET", "NUGETPUSH")
-if ($buildAction -notin $buildActionValids) {
-    throw [System.ArgumentException] "Invalid value provided for buildAction '$buildAction'  ->  $buildActionValids"
-}
-Write-Verbose "Build Action: $buildAction"
+Write-Verbose "buildAction: $buildAction"
 
+$buildType = ParseArg "buildType" $buildType "DEBUG" @("DEBUG", "RELEASE")
+$buildType = $buildType.ToUpper()
+Write-Verbose "buildType: $buildType"
 
-$buildType = ($buildType.TrimOrNull() ?? "DEBUG").ToUpper()
-$buildTypeValids = @("DEBUG", "RELEASE")
-if ($buildType -notin $buildTypeValids) {
-    throw [System.ArgumentException] "Invalid value provided for buildType '$buildType'  ->  $buildTypeValids"
-}
-Write-Verbose "Build Type: $buildType"
-
-
-$slnDir = (Resolve-Path $PSScriptRoot).Path
-Write-Verbose "Solution Directory: $slnDir"
-
-$slnFiles = Get-ChildItem -Path $slnDir -Filter *.sln | Select-Object # -First 1
-
-if ($slnFiles.Count -lt 1) {
-    throw [System.IO.FileNotFoundException] "No solution files found"
+$slnFile = ParseArg "slnFile" $slnFile $MAGICSTRING $null
+$slnFile = TrimOrNull $slnFile
+if (!$slnFile -or $slnFile -eq $MAGICSTRING) {
+    $slnFile = $null
+    $slnFiles = Get-ChildItem -Path $SCRIPTDIR -Filter *.sln | Select-Object # -First 1
+    if ($slnFiles.Count -lt 1) {
+        throw [System.IO.FileNotFoundException] "No solution files found"
+    } elseif ($slnFiles.Count -gt 1) {
+        throw [System.IO.FileNotFoundException] "$($slnFiles.Count) solution files found but was expecting 1 -> $slnFiles"    
+    } else {
+        $slnFile = $slnFiles[0]
+    }
 }
 
-if ($slnFiles.Count -gt 1) {
-    throw [System.IO.FileNotFoundException] "$($slnFiles.Count) solution files found but was expecting 1 -> $slnFiles"    
+$slnFileInfo = [System.IO.FileInfo] $slnFile
+if(!$slnFileInfo.Exists){
+    throw [System.IO.FileNotFoundException] "Solution file .sln not found -> $slnFile"    
 }
+$slnFile = $slnFileInfo.FullName
+Write-Verbose "slnFile: $slnFile"
 
-$slnFile = $slnFiles[0]
-Write-Verbose "Solution File: $slnFile"
+$slnDirInfo = $slnFileInfo.Directory
+$slnDir = $slnDirInfo.FullName
+Write-Verbose "slnDir: $slnDir"
 
+Set-Location -Path $slnDir
 
+[System.IO.DirectoryInfo] ([IO.Path]::Combine($slnDir, 'Foo', 'Bar'))
 
+$gitId = git -C $slnDir rev-parse HEAD | Out-String
+$gitId = TrimOrNull $gitId
+Write-Verbose "gitId: $gitId"
 
+$gitBranch = git -C $slnDir branch --show-current | Out-String
+$gitBranch = TrimOrNull $gitBranch
+Write-Verbose "gitBranch: $gitBranch"
+
+$gitUrl = git -C $slnDir config --get remote.origin.url | Out-String
+$gitUrl = TrimOrNull $gitUrl
+Write-Verbose "gitUrl: $gitUrl"
+
+#$cmdOutput = <command> | Out-String
 
