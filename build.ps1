@@ -3,143 +3,208 @@ param(
     [Parameter(Mandatory=$false, Position=0, ValueFromPipeline=$false, HelpMessage="Build Action to execute")]
     [string]$buildAction,
 
-    [Alias("btype", "build_type", "bt")]
+    [Alias("btype", "build_type", "bt", "t")]
     [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Build Type to use (DEBUG or RELEASE)")]
     [string]$buildType,
 
-    [Alias("solution_file")]
+    [Alias("solution_file", "sln")]
     [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Solution File")]
-    [string]$slnFile
+    [string]$slnFile,
+
+    [Alias("v")]
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Enable extra log information")]
+    [switch]$logVerbose = $false,
+
+    [Alias("d", "vv")]
+    [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Enable lots of log information")]
+    [switch]$logDebug = $false
 )
-$VerbosePreference="Continue"
-$MAGICSTRING = (New-Guid).ToString()
+
+if ($logDebug) { $DebugPreference = "Continue" }
+if ($logVerbose) { $VerbosePreference = "Continue" }
+$InformationPreference = "Continue"
+$WarningPreference = "Continue"
+$ErrorActionPreference = "Stop"
+
+#$buildAction = "nugetpush"
+
 $SCRIPTDIR = (Resolve-Path $PSScriptRoot).Path
+Write-Verbose "Script Directory: $SCRIPTDIR"
+Write-Verbose "Working Directory: $PWD"
+
+Write-Verbose "START"
 
 # https://stackoverflow.com/questions/25915450/how-to-use-extension-methods-in-powershell
 # https://stackoverflow.com/a/77682793
-
 # https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.4
 # https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_return?view=powershell-7.4
+# https://stackoverflow.com/questions/24868273/run-a-c-sharp-cs-file-from-a-powershell-script
 
+$buildCsScriptFilePath = [IO.Path]::Combine($SCRIPTDIR, 'builder', 'Builder.cs')
+$buildCsScript = Get-Content -Raw -Path $buildCsScriptFilePath
 
+$CLASS_ID_SUFFIX = (New-Guid).ToString().Replace("-", "")
+$buildCsScript = $buildCsScript.Replace("class Builder", "class Builder_$CLASS_ID_SUFFIX")
+$buildCsScript = $buildCsScript.Replace("class Extensions", "class Extensions_$CLASS_ID_SUFFIX")
+Add-Type -TypeDefinition $buildCsScript
 
-function TrimOrNull {
-    [OutputType([string])]
-    param (
-        [Parameter(Position=0)] [object]$str
+$builderLog = [System.Action[string, object, System.Exception]]{
+    param(
+        [Parameter(Mandatory=$false, Position=0)] [string] $level, 
+        [Parameter(Mandatory=$false, Position=1)] [object] $msg, 
+        [Parameter(Mandatory=$false, Position=2)] [System.Exception] $e
     )
-    if (!$str) {
-        return $null
+    $ee = ""
+    if ($e) { $ee = "  --> [$($e.GetType().Name)] $($e.Message)" }
+    $msge = "$($msg)$($ee)"
+
+    switch ($level) {
+        "Debug" { Write-Debug $msge }
+        "Verbose" { Write-Verbose $msge }
+        "Information" { Write-Information $msge }
+        "Warning" { Write-Warning $msge }
+        "Error" { Write-Error -Message $msg -Exception $e }
+        default { throw [System.ApplicationException] "builderLog received invalid level '$level'" }
     }
-    $s = $str.ToString()
-    if (!$s) {
-        return $null
-    }
-    $s = $s.Trim()
-    if ($s.Length -eq 0) {
-        return $null
-    }
-    return $s
 }
 
-function ParseArg {
-    [OutputType([string])]
-    param (
-        [Parameter(Position=0)] [string]$name,
-        [Parameter(Position=1)] [object]$value,
-        [Parameter(Position=2)] [string]$defaultValue,
-        [Parameter(Position=3)] [string[]]$validValues
-        # [Parameter(ValueFromRemainingArguments=$true)][String[]]$Hosts
-    )
+#$buiderLog = [System.Action[string, object, System.Exception]]$buiderLogImpl
+#$builderLog = $builderLogImpl
 
-#    Write-Verbose ("$name" + ': $name=' + "$name")
-#    Write-Verbose ("$name" + ': $value=' + "$value")
-#    Write-Verbose ("$name" + ': $defaultValue=' + "$defaultValue")
-#    Write-Verbose ("$name" + ': $validValues=' + "$validValues")
-
-#    Write-Verbose "$name 1: $value"
-    $value = TrimOrNull $value
-#    Write-Verbose "$name 2: $value"
-
-    if (!$value) {
-        if ($defaultValue) {
-            $value = $defaultValue
-        }
-    }
-#    Write-Verbose "$name 3: $value"
-
-    if (!$value) {
-        throw [System.ArgumentNullException] "No value provided for $name"
-    }
-
-#    Write-Verbose "$name 4: $value"
-    if ($validValues) {
-        if ($value -notin $validValues) {
-            throw [System.ArgumentException] "Invalid value provided for $name '$value'  ->  $validValues"
-        }
-    }
-#    Write-Verbose "$name 5: $value"
-
-    return $value
+$parameters = @{
+    TypeName = "MaxRunSoftware.Builder_$CLASS_ID_SUFFIX"
+    # ArgumentList = ($buiderLog, $builderScriptDir)
 }
+$b = New-Object @parameters
+
+
 
 # Clear screen  https://superuser.com/a/1738611
-Write-Output "$([char]27)[2J"  # ESC[2J clears the screen, but leaves the scrollback
-Write-Output "$([char]27)[3J"  # ESC[3J clears the screen, including all scrollback
+#Write-Output "$([char]27)[2J"  # ESC[2J clears the screen, but leaves the scrollback
+#Write-Output "$([char]27)[3J"  # ESC[3J clears the screen, including all scrollback
+
+if (!$b.TrimOrNull($buildAction)) {
+    $title    = "Action"
+    $question = 'No build action specified' 
+    $choices  = '&clean', '&build', '&nuget', 'nuget&push'
+
+    $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
+    $buildAction = $choices[$decision].Replace('&', '')
+}
+
+$b.ScriptDir = $SCRIPTDIR
+$b.Log = $builderLog
+$b.BuildType = $buildType
+$b.BuildAction = $buildAction
+$b.BuildVersionType = "beta"
+$b.GitKeyPath = "~/Keys/MaxRunSoftware_NuGet.txt"
+
+$b.DebugDoNotDelete = $false
+
+$b.Init()
+Write-Debug $b
+
+function RunCmdString{
+    param(
+        [Parameter(Mandatory=$false, Position=0)] [string] $cmd, 
+        [Parameter(Mandatory=$false, Position=1)] [string[]] $cmdParams
+    )
+    $r = & $cmd $cmdParams | Out-String
+    Write-Verbose "$cmd $($cmdParams -join ' ')    -->   $r"   
+    return $r
+}
+
+#$b.GitId = git -C $($b.SlnDir) rev-parse HEAD | Out-String
+#$b.GitBranch = git -C $b.SlnDir branch --show-current | Out-String
+#$b.GitUrl = git -C $b.SlnDir config --get remote.origin.url | Out-String
+
+$b.GitId = RunCmdString 'git' @('-C', "$($b.SlnDir)", 'rev-parse', 'HEAD') 
+$b.GitBranch = RunCmdString 'git' @('-C', "$($b.SlnDir)/", 'branch', '--show-current') 
+$b.GitUrl = RunCmdString 'git' @('-C', "$($b.SlnDir)/", 'config', '--get', 'remote.origin.url') 
 
 
-Write-Verbose "Script Directory: $SCRIPTDIR"
-Write-Verbose "Magic String: $MAGICSTRING"
 
 
-$buildAction = ParseArg -name "buildAction" -value $buildAction -defaultValue "BUILD" -validValues @("BUILD", "CLEAN", "NUGET", "NUGETPUSH")
-$buildAction = $buildAction.ToUpper()
-Write-Verbose "buildAction: $buildAction"
 
-$buildType = ParseArg "buildType" $buildType "DEBUG" @("DEBUG", "RELEASE")
-$buildType = $buildType.ToUpper()
-Write-Verbose "buildType: $buildType"
+function ActionClean {
+    $b.CleanProjectDirs()
+}
 
-$slnFile = ParseArg "slnFile" $slnFile $MAGICSTRING $null
-$slnFile = TrimOrNull $slnFile
-if (!$slnFile -or $slnFile -eq $MAGICSTRING) {
-    $slnFile = $null
-    $slnFiles = Get-ChildItem -Path $SCRIPTDIR -Filter *.sln | Select-Object # -First 1
-    if ($slnFiles.Count -lt 1) {
-        throw [System.IO.FileNotFoundException] "No solution files found"
-    } elseif ($slnFiles.Count -gt 1) {
-        throw [System.IO.FileNotFoundException] "$($slnFiles.Count) solution files found but was expecting 1 -> $slnFiles"    
-    } else {
-        $slnFile = $slnFiles[0]
+function ActionBuild {
+    $b.LogI("Building Projects")
+
+    # $dotnetProps = "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl)`""  # https://stackoverflow.com/a/51485481    
+    # dotnet build "$($b.SlnFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "$($b.GetDotNetProperties())"
+    # dotnet build "$($b.SlnFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl)`""
+
+    [string]$cmd = 'dotnet'
+    [string[]]$cmdParams = @(
+        'build', "`"$($b.SlnFile)`""
+    ,   '--configuration', "`"$($b.BuildType)`""
+    ,   '--nologo'
+    ,   '--force'
+    ,   '--version-suffix', "`"$($b.BuildVersionSuffix)`""
+    ,   "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl);SymbolPackageFormat=snupkg`""
+    )
+
+    & $cmd $cmdParams
+}
+
+function ActionNuget {
+    $b.CopyNugetFiles("scheduler")
+}
+
+function ActionNugetPush {
+    # dotnet nuget push "$filename" --api-key $keyNuGet --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    foreach($file in $b.BuildDirNugetFiles) {
+        [string]$cmd = 'dotnet'
+        [string[]]$cmdParams = @(
+            'nuget', 
+        ,   'push', "`"$file`""
+        ,   '--source', 'https://api.nuget.org/v3/index.json'
+        ,   '--api-key', "$($b.ReadGitKey())"
+        ,   '--skip-duplicate'
+        )
+
+        $filename = [IO.Path]::GetFileName($file)
+        $title    = "Nuget.org:  $filename"
+        $question = 'Confirm upload to Nuget?' 
+        $choices  = '&Yes', '&No'
+
+        $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
+        if ($decision -eq 0) {
+            & $cmd $cmdParams
+        } else {
+            Write-Information "Skipping: $filename"
+        }
+        Write-Information ''
+        #Write-Information "$cmd $($cmdParams -join ' ')"
+        
+
+
     }
+    
 }
 
-$slnFileInfo = [System.IO.FileInfo] $slnFile
-if(!$slnFileInfo.Exists){
-    throw [System.IO.FileNotFoundException] "Solution file .sln not found -> $slnFile"    
+
+if ($buildAction -eq "clean") {
+    ActionClean
 }
-$slnFile = $slnFileInfo.FullName
-Write-Verbose "slnFile: $slnFile"
+elseif ($buildAction -eq "build") {
+    ActionClean
+    ActionBuild
+}
+elseif ($buildAction -eq "nuget") {
+    ActionClean
+    ActionBuild
+    ActionNuget
+}
+elseif ($buildAction -eq "nugetpush") {
+    ActionNugetPush
+}
 
-$slnDirInfo = $slnFileInfo.Directory
-$slnDir = $slnDirInfo.FullName
-Write-Verbose "slnDir: $slnDir"
-
-Set-Location -Path $slnDir
-
-[System.IO.DirectoryInfo] ([IO.Path]::Combine($slnDir, 'Foo', 'Bar'))
-
-$gitId = git -C $slnDir rev-parse HEAD | Out-String
-$gitId = TrimOrNull $gitId
-Write-Verbose "gitId: $gitId"
-
-$gitBranch = git -C $slnDir branch --show-current | Out-String
-$gitBranch = TrimOrNull $gitBranch
-Write-Verbose "gitBranch: $gitBranch"
-
-$gitUrl = git -C $slnDir config --get remote.origin.url | Out-String
-$gitUrl = TrimOrNull $gitUrl
-Write-Verbose "gitUrl: $gitUrl"
 
 #$cmdOutput = <command> | Out-String
+
 
