@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Title>Job Scheduling</Title>
+        <Description>Job Scheduler Engine and Utilities related to Job Scheduling</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
+    </ItemGroup>
+</Project>

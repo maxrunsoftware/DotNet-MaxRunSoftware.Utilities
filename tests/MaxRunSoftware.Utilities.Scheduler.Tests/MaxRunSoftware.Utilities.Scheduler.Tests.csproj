@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Title>Max Run Software Utilities</Title>
+        <Description>Various helper methods and functions</Description>
+        <Summary>Various tools and helper functions</Summary>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj" />
+        <ProjectReference Include="$(SolutionDir)src\MaxRunSoftware.Utilities.Scheduler\MaxRunSoftware.Utilities.Scheduler.csproj" />
+    </ItemGroup>
+</Project>
