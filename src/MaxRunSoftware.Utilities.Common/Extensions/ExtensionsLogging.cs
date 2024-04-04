@@ -133,12 +133,6 @@ public static class ExtensionsLogging
     public static ILogger CreateLogger<T>(this ILoggerProvider provider) => provider.CreateLogger(GetName(typeof(T)));
     public static ILogger CreateLogger(this ILoggerProvider provider, Type type) => provider.CreateLogger(GetName(type));
 
-    public static ILogger CreateLoggerNullable<T>(this ILoggerProvider? provider) => provider != null ? provider.CreateLogger(GetName(typeof(T))) : Constant.LoggerNull;
-    public static ILogger CreateLoggerNullable(this ILoggerProvider? provider, Type type) => provider != null ? provider.CreateLogger(GetName(type)) : Constant.LoggerNull;
-
-    public static ILogger CreateLoggerNullable<T>(this ILoggerFactory? factory) => factory != null ? factory.CreateLogger(GetName(typeof(T))) : Constant.LoggerNull;
-    public static ILogger CreateLoggerNullable(this ILoggerFactory? factory, Type type) => factory != null ? factory.CreateLogger(GetName(type)) : Constant.LoggerNull;
-
     public static bool IsActiveFor(this LogLevel level, LogLevel loggingLevel) => level switch
     {
         LogLevel.Trace => loggingLevel is LogLevel.Trace,

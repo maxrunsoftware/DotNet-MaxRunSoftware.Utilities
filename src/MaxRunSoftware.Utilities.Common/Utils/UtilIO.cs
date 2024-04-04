@@ -21,7 +21,7 @@ public sealed class TempDirectory : IDisposable
 
     internal TempDirectory(string path, ILoggerProvider? loggerProvider)
     {
-        log = loggerProvider.CreateLoggerNullable(GetType());
+        log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
         log.LogDebug("Creating temporary directory {Path}", path);
         Directory.CreateDirectory(path);
         Path = path;
@@ -49,7 +49,7 @@ public sealed class TempFile : IDisposable
 
     internal TempFile(string path, bool createEmptyFile, ILoggerProvider? loggerProvider)
     {
-        log = loggerProvider.CreateLoggerNullable(GetType());
+        log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
         log.LogDebug("Creating temporary file {Path}", path);
         if (createEmptyFile) File.WriteAllBytes(path, Array.Empty<byte>());
         Path = path;
