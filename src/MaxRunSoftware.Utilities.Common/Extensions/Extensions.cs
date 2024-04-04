@@ -42,20 +42,7 @@ public static class Extensions
     /// <param name="dbType">The DbType</param>
     /// <returns>The DotNet type</returns>
     public static Type GetDotNetType(this DbType dbType) => Constant.DbType_Type.TryGetValue(dbType, out var type) ? type : typeof(string);
-
-    /// <summary>
-    /// Gets a typed service from a IServiceProvider
-    /// </summary>
-    /// <typeparam name="T">The service type</typeparam>
-    /// <param name="serviceProvider">The service provider</param>
-    /// <returns>The typed service</returns>
-    public static T? GetService<T>(this IServiceProvider serviceProvider)
-    {
-        var o = serviceProvider.GetService(typeof(T));
-        if (o == null) return default;
-        return (T)o;
-    }
-
+    
     /// <summary>
     /// Gets a typed value from a serialized object
     /// </summary>
