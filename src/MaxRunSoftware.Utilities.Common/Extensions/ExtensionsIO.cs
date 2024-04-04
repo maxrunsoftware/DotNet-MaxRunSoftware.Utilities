@@ -64,7 +64,36 @@ public static class ExtensionsIO
     /// Checks whether a file is a Symbolic link.
     /// This is unreliable https://stackoverflow.com/a/26473940
     /// </summary>
-    /// <param name="file">File to check</param>
+    /// <param name="info">File to check</param>
     /// <returns>true if file is a symbolic link, otherwise false</returns>
-    public static bool IsSymbolic(this FileInfo? file) => file != null && file.Attributes.HasFlag(FileAttributes.ReparsePoint);
+    public static bool IsSymbolic(this FileSystemInfo? info)
+    {
+        if (info == null) return false;
+        var attr = info.Attributes;
+        return (attr & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+    }
+
+    public static bool IsFile(this FileSystemInfo info)
+    {
+        // https://stackoverflow.com/a/1395212
+        if (File.Exists(info.FullName)) return true;
+        if (Directory.Exists(info.FullName)) return false;
+        
+        // https://stackoverflow.com/a/1395226
+        var attr = info.Attributes;
+        if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return false;
+        return false;
+    }
+    
+    public static bool IsDirectory(this FileSystemInfo info)
+    {
+        // https://stackoverflow.com/a/1395212
+        if (File.Exists(info.FullName)) return false;
+        if (Directory.Exists(info.FullName)) return true;
+        
+        // https://stackoverflow.com/a/1395226
+        var attr = info.Attributes;
+        if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return true;
+        return false;
+    }
 }
