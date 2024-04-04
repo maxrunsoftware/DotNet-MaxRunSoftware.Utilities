@@ -316,13 +316,13 @@ public abstract class Sql : IDisposable
 
     #endregion Helpers
 
-    private readonly CachedValue<string?> currentDatabaseName;
-    public bool IsCachedCurrentDatabaseName { get => currentDatabaseName.IsEnabled; set => currentDatabaseName.IsEnabled = value; }
+    private readonly Lzy<string?> currentDatabaseName;
+    //public bool IsCachedCurrentDatabaseName { get => currentDatabaseName.IsEnabled; set => currentDatabaseName.IsEnabled = value; }
     public string? CurrentDatabaseName => currentDatabaseName.Value;
     protected abstract string? GetCurrentDatabaseName();
 
-    private readonly CachedValue<string?> currentSchemaName;
-    public bool IsCachedCurrentSchemaName { get => currentSchemaName.IsEnabled; set => currentSchemaName.IsEnabled = value; }
+    private readonly Lzy<string?> currentSchemaName;
+    //public bool IsCachedCurrentSchemaName { get => currentSchemaName.IsEnabled; set => currentSchemaName.IsEnabled = value; }
     public string? CurrentSchemaName => currentSchemaName.Value;
     protected abstract string? GetCurrentSchemaName();
 
