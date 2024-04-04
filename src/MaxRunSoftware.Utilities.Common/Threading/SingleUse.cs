@@ -23,6 +23,10 @@ public sealed class SingleUse
     public SingleUse() : this(new()) { }
     public SingleUse(object locker) => this.locker = locker.CheckNotNull(nameof(locker));
 
+    /// <summary>
+    /// Attempts to use, if it has not already been used.
+    /// </summary>
+    /// <returns>true if object has not already been used, otherwise false</returns>
     public bool TryUse()
     {
         if (isUsed) return false;
