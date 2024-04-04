@@ -124,11 +124,7 @@ public static class ExtensionsLogging
     }
 
 
-    private static string GetName(Type type) => LogTypeNameHelper.GetTypeDisplayName(
-        type,
-        includeGenericParameters: false,
-        nestedTypeDelimiter: '.'
-    );
+    private static string GetName(Type type) => type.FullNameFormatted(fullNameForGenericArguments: false);
 
     public static ILogger CreateLogger<T>(this ILoggerProvider provider) => provider.CreateLogger(GetName(typeof(T)));
     public static ILogger CreateLogger(this ILoggerProvider provider, Type type) => provider.CreateLogger(GetName(type));

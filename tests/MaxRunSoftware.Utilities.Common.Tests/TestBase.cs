@@ -21,6 +21,37 @@ namespace MaxRunSoftware.Utilities.Common.Tests;
 [PublicAPI]
 public abstract class TestBase : IDisposable
 {
+    private class LogCategoryTrimmer(string baseCategory)
+    {
+        private readonly ImmutableArray<string> baseCategoryPartsReversed = baseCategory.Split('.').Reverse().ToImmutableArray();
+
+        private readonly Dictionary<string, string> categoryCodes = new();
+
+        public string Trim(string category)
+        {
+            if (category.Length == 0) return category;
+
+            if (categoryCodes.TryGetValue(category, out var categoryClean)) return categoryClean;
+
+            var classNameParts = new Stack<string>(baseCategoryPartsReversed);
+            var categoryParts = new Stack<string>(category.Split('.').Reverse());
+            while (categoryParts.Count > 1 && classNameParts.Count > 0)
+            {
+                var classNamePart = classNameParts.Pop();
+                if (categoryParts.Peek() != classNamePart) break;
+                categoryParts.Pop();
+            }
+
+            categoryClean = categoryParts.ToStringDelimited(".");
+            categoryCodes[category] = categoryClean;
+            return categoryClean;
+        }
+
+        public LogCategoryTrimmer(Type baseCategory) : this(baseCategory.FullNameFormatted(false)) { }
+    }
+
+    private LogCategoryTrimmer logMessageFormatCategoryTrimmer;
+    
     // ReSharper disable once IntroduceOptionalParameters.Global
     protected TestBase(ITestOutputHelper? testOutputHelper) : this(testOutputHelper, null) { }
     protected TestBase(ITestOutputHelper? testOutputHelper, IEnumerable<SkippedTest>? skippedTests)
@@ -73,8 +104,7 @@ public abstract class TestBase : IDisposable
 
         public TestOutputHelperWrapper(ITestOutputHelper? helper)
         {
-            if (helper == null) throw new ArgumentNullException(nameof(helper));
-            TestOutputHelper = (TestOutputHelper)helper;
+            TestOutputHelper = (TestOutputHelper?)helper ?? throw new ArgumentNullException(nameof(helper));
 
             buffer = GetField<StringBuilder>(nameof(buffer));
             messageBus = GetField<IMessageBus>(nameof(messageBus));
@@ -144,9 +174,9 @@ public abstract class TestBase : IDisposable
     #region Logging
 
     protected virtual bool IsLogEnabledFor(string categoryName, LogLevel logLevel) =>
-        logLevel.IsActiveFor(LogLevels.TryGetValue(categoryName, out var logLevelCustom) ? logLevelCustom : LogLevel);
+        logLevel.IsActiveFor(LogLevels.GetValueOrDefault(categoryName, LogLevel));
 
-    private readonly LogCategoryTrimmer logMessageFormatCategoryTrimmer;
+    //private readonly LogCategoryTrimmer logMessageFormatCategoryTrimmer;
 
     protected bool IsColorEnabled { get; set; }
 
