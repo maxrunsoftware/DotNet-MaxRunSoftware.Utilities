@@ -18,7 +18,11 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public class TerminalColor4 : TerminalColor8
 {
-    static TerminalColor4() => colors4 = Lzy.Create(GetColors<TerminalColor4>);
+    static TerminalColor4()
+    {
+        colors4 = Lzy.Create(GetColors<TerminalColor4>);
+        consoleColor_TerminalColor = Lzy.Create(() => Enumerable.ToDictionary(Colors4, c => c.ConsoleColor).ToImmutableDictionary());
+    }
 
     public TerminalSGR Color4_Foreground { get; }
     public TerminalSGR Color4_Background { get; }
@@ -41,4 +45,7 @@ public class TerminalColor4 : TerminalColor8
 
     public static ImmutableArray<TerminalColor4> Colors4 => colors4.Value;
     private static readonly Lzy<ImmutableArray<TerminalColor4>> colors4;
+
+    internal static ImmutableDictionary<ConsoleColor, TerminalColor4> ConsoleColor_TerminalColor => consoleColor_TerminalColor.Value;
+    private static readonly Lzy<ImmutableDictionary<ConsoleColor, TerminalColor4>> consoleColor_TerminalColor;
 }

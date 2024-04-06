@@ -56,12 +56,12 @@ public class TerminalColor
 
     public static TerminalColor GetTerminalColor(byte red, byte green, byte blue) => GetTerminalColor(255, red, green, blue);
 
-    public static TerminalColor GetTerminalColor(byte alpha, byte red, byte green, byte blue)
-    {
-        var color = Color.FromArgb(alpha, red, green, blue);
-        return TerminalColor8.GetColor8(color) ?? new TerminalColor(color, null);
-    }
+    public static TerminalColor GetTerminalColor(byte alpha, byte red, byte green, byte blue) => GetTerminalColor(Color.FromArgb(alpha, red, green, blue));
 
+    public static TerminalColor GetTerminalColor(ConsoleColor color) => TerminalColor4.ConsoleColor_TerminalColor[color];
+
+    public static TerminalColor GetTerminalColor(Color color) => TerminalColor8.GetColor8(color) ?? new TerminalColor(color, null);
+    
     #region EnableOnWindows
 
     public static bool EnableOnWindows() => ColorsOnWindows.Enable();

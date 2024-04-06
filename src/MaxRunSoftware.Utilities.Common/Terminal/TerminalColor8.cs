@@ -43,8 +43,7 @@ public class TerminalColor8 : TerminalColor
     public override string ToStringAnsiForeground() => TerminalSGR.Color_Foreground.ToAnsi(Color8);
 
     public override string ToStringAnsiBackground() => TerminalSGR.Color_Background.ToAnsi(Color8);
-
-
+    
     public static ImmutableArray<TerminalColor8> Colors8 => colors8.Value;
 
     // ReSharper disable once InconsistentNaming
@@ -52,11 +51,7 @@ public class TerminalColor8 : TerminalColor
 
     // ReSharper disable once InconsistentNaming
     private static readonly Lzy<ImmutableDictionary<uint, TerminalColor8>> colors8RGB;
-    internal static TerminalColor8? GetColor8(Color color) =>
-        colors8RGB.Value.TryGetValue(ToUInt(color), out var terminalColor)
-            ? terminalColor
-            : null;
-
+    internal static TerminalColor8? GetColor8(Color color) => colors8RGB.Value.GetValueOrDefault(ToUInt(color));
 
     #region Helpers
 
