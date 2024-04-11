@@ -18,21 +18,23 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsColor
 {
-    public static string ToCss(this Color color)
+    public static List<Color> Shift(this Color startColor, Color endColor, int steps)
     {
-        var a = (color.A * (100d / 255d) / 100d).ToString(MidpointRounding.AwayFromZero, 1);
-        return $"rgba({color.R}, {color.G}, {color.B}, {a})";
-    }
-
-    public static string ToHex(this Color color)
-    {
-        var sb = new StringBuilder(9);
-        sb.Append('#');
-        sb.Append(color.R.ToString("X2"));
-        sb.Append(color.G.ToString("X2"));
-        sb.Append(color.B.ToString("X2"));
-        if (color.A < byte.MaxValue) sb.Append(color.A.ToString("X2"));
-        return sb.ToString().ToUpperInvariant();
+        steps.CheckMin(1);
+        
+        // https://stackoverflow.com/a/2011839
+        var colorList = new List<Color>();
+        for(var i=0; i<steps; i++)
+        {
+            var rAverage = startColor.R + (int)((endColor.R - startColor.R) * i / steps);
+            var gAverage = startColor.G + (int)((endColor.G - startColor.G) * i / steps);
+            var bAverage = startColor.B + (int)((endColor.B - startColor.B) * i / steps);
+            
+            colorList.Add(Color.FromArgb(ToByte(rAverage), ToByte(gAverage), ToByte(bAverage)));
+        }
+        return colorList;
+        
+        static byte ToByte(int value) => (byte)Math.Max(Math.Min(value, 255), 0);
     }
 
     public static Color Shift(this Color startColor, Color endColor, double percentShifted)

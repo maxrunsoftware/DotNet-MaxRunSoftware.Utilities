@@ -26,28 +26,40 @@ public static partial class Constant
         (LogLevel.Information, "info"),
         (LogLevel.Warning, "warn")
     );
-
-
+    
     private static ImmutableDictionary<string, LogLevel> String_LogLevel_Create(params (LogLevel level, string alias)[] aliases)
     {
         var d = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().Select(item => (Name: Enum.GetName(item)!, Level: item)))
         {
-            d.Add(item.Name, item.Level);
-            d.Add(item.Name[0].ToString(), item.Level);
+            d.TryAdd(item.Name, item.Level);
+            d.TryAdd(item.Name[0].ToString(), item.Level);
         }
 
         foreach (var item in aliases)
         {
-            d.Add(item.alias, item.level);
+            d.TryAdd(item.alias, item.level);
         }
 
         var b = ImmutableDictionary.CreateBuilder<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
         foreach (var kvp in d) b.Add(kvp.Key, kvp.Value);
         return b.ToImmutable();
     }
-
+    
+    public static readonly ImmutableDictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>> LogLevel_ConsoleColor = new Dictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>>
+    {
+        [LogLevel.None] = new(ConsoleColor.DarkMagenta, null),
+        [LogLevel.Trace] = new(ConsoleColor.DarkBlue, null),
+        [LogLevel.Debug] = new(ConsoleColor.Blue, null),
+        [LogLevel.Information] = new(ConsoleColor.White, null),
+        [LogLevel.Warning] = new(ConsoleColor.DarkYellow, null),
+        [LogLevel.Error] = new(ConsoleColor.Red, null),
+        [LogLevel.Critical] = new(ConsoleColor.White, ConsoleColor.Red),
+    }.ToImmutableDictionary();
 
     public static readonly ILogger LoggerNull = NullLogger.Instance;
     public static readonly ILoggerProvider LoggerProviderNull = NullLoggerProvider.Instance;
+    public static readonly ILoggerFactory LoggerFactoryNull = NullLoggerFactory.Instance;
+
+    
 }

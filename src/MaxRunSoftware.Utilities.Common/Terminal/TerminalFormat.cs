@@ -15,6 +15,8 @@
 // ReSharper disable CommentTypo
 // ReSharper disable InconsistentNaming
 
+using System.Drawing;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
@@ -28,13 +30,47 @@ namespace MaxRunSoftware.Utilities.Common;
 /// https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences
 /// https://www.ditig.com/256-colors-cheat-sheet
 /// https://rich.readthedocs.io/en/stable/appendix/colors.html
+/// https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
 /// </summary>
 [PublicAPI]
 public static class TerminalFormat
 {
-    public static string FormatTerminal(this string str, TerminalColor? foreground, TerminalColor? background, params TerminalSGR[] sgrs) => FormatTerminalInternal(str, foreground, background, sgrs);
+    public static bool IsDebugEnabled
+    {
+        get => TerminalSGRExtensions.IsDebugEnabled;
+        set => TerminalSGRExtensions.IsDebugEnabled = value;
+    }
+    
+    private static ImmutableDictionary<KnownColor, Color> SystemDrawingKnownColors { get; } =
+        Enum.GetValues<KnownColor>()
+            .Select(o => (k: o, v: Color.FromKnownColor(o)))
+            .ToImmutableDictionary(o=> o.k, o=> o.v);
 
-    private static string FormatTerminalInternal(string str, TerminalColor? foreground, TerminalColor? background, TerminalSGR[] sgrs)
+    public static string FormatTerminal(this string? str, ConsoleColor? foreground, ConsoleColor? background = null, TerminalSGR[]? sgrs = null) =>
+        FormatTerminal(
+            str,
+            foreground == null ? null : TerminalColor.Get(foreground.Value),
+            background == null ? null : TerminalColor.Get(background.Value),
+            sgrs
+        );
+
+    public static string FormatTerminal(this string? str, TerminalColor? foreground, TerminalColor? background = null, TerminalSGR[]? sgrs = null) => 
+        FormatTerminal(
+            str,
+            foreground?.Color,
+            background?.Color,
+            sgrs
+        );
+    
+    public static string FormatTerminal(this string? str, KnownColor? foreground, KnownColor? background = null, TerminalSGR[]? sgrs = null) =>
+        FormatTerminal(
+            str,
+            foreground == null ? null : SystemDrawingKnownColors[foreground.Value],
+            background == null ? null : SystemDrawingKnownColors[background.Value],
+            sgrs
+        );
+    
+    public static string FormatTerminal(this string? str, Color? foreground, Color? background = null, TerminalSGR[]? sgrs = null)
     {
         var sb = new StringBuilder();
 
@@ -42,11 +78,49 @@ public static class TerminalFormat
         sb.Append(TerminalSGR.Reset.ToAnsi());
 
         // modifiers like bold, blinking, etc
-        foreach (var sgr in sgrs) sb.Append(sgr.ToAnsi());
+        foreach (var sgr in sgrs.OrEmpty()) sb.Append(sgr.ToAnsi());
 
-        // colors
-        if (foreground != null) sb.Append(foreground.ToStringAnsiForeground());
-        if (background != null) sb.Append(background.ToStringAnsiBackground());
+        // foreground color
+        if (foreground != null)
+        {
+            var tc = TerminalColor.Get(foreground.Value);
+            if (tc != null)
+            {
+                if (tc.Color4Foreground != null)
+                {
+                    sb.Append(tc.Color4Foreground.Value.ToAnsi());
+                }
+                else
+                {
+                    sb.Append(TerminalSGR.Color_Foreground.ToAnsi(tc.Color8));
+                }
+            }
+            else
+            {
+                sb.Append(TerminalSGR.Color_Foreground.ToAnsi(foreground.Value));
+            }
+        }
+        
+        // background color
+        if (background != null)
+        {
+            var tc = TerminalColor.Get(background.Value);
+            if (tc != null)
+            {
+                if (tc.Color4Background != null)
+                {
+                    sb.Append(tc.Color4Background.Value.ToAnsi());
+                }
+                else
+                {
+                    sb.Append(TerminalSGR.Color_Background.ToAnsi(tc.Color8));
+                }
+            }
+            else
+            {
+                sb.Append(TerminalSGR.Color_Background.ToAnsi(background.Value));
+            }
+        }
 
         // actual text
         sb.Append(str);

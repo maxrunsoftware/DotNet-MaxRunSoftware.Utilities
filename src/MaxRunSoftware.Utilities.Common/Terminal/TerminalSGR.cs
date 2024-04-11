@@ -516,6 +516,14 @@ public enum TerminalSGR : byte
 
 public static class TerminalSGRExtensions
 {
+    private static volatile bool isDebugEnabled;
+
+    internal static bool IsDebugEnabled
+    {
+        get => isDebugEnabled;
+        set => isDebugEnabled = value;
+    }
+    
     private static TerminalSGR[] Range(params (int MinInclusive, int MaxInclusive)[] ranges)
     {
         var list = new List<int>();
@@ -555,8 +563,13 @@ public static class TerminalSGRExtensions
 
     public static string ToAnsi(this TerminalSGR sgr, Color color) => sgr.ToAnsi(color.R, color.G, color.B);
 
-    private static string ToAnsiInternal(this TerminalSGR sgr, params byte[] values) =>
-        "\u001b[" + (byte)sgr + (values.Length == 0 ? string.Empty : ";" + string.Join(";", values)) + "m";
-
+    private static string ToAnsiInternal(this TerminalSGR sgr, params byte[] values)
+    {
+        var suffix = (byte)sgr + (values.Length == 0 ? string.Empty : ";" + string.Join(";", values)) + "m";
+        var ansi = "\u001b[" + suffix;
+        if (IsDebugEnabled) ansi += "\\u001b[" + suffix;
+        return ansi;
+    }
+    
     public static string ToAnsi(this TerminalSGR[] sgrs) => sgrs.OrEmpty().Select(ToAnsi).ToStringDelimited("");
 }

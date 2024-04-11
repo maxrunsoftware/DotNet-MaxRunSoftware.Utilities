@@ -2,7 +2,7 @@
   <code_scheme name="Project" version="173">
     <option name="AUTODETECT_INDENTS" value="false" />
     <option name="LINE_SEPARATOR" value="&#10;" />
-    <SqlCodeStyleSettings version="6">
+    <SqlCodeStyleSettings version="7">
       <option name="DISABLE_FORMATTING" value="true" />
     </SqlCodeStyleSettings>
     <XML>

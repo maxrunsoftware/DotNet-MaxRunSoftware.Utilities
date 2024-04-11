@@ -185,17 +185,8 @@ public abstract class TestBase : IDisposable
 
     protected virtual string LogMessageFormatColor(string text, LogLevel logLevel)
     {
-        switch (logLevel)
-        {
-            case LogLevel.Trace: return text.FormatTerminal(TerminalColors.Blue, null);
-            case LogLevel.Debug: return text.FormatTerminal(TerminalColors.BrightBlue, null);
-            case LogLevel.Information: return text; //.FormatTerminal4(TerminalColor.BrightWhite, null);
-            case LogLevel.Warning: return text.FormatTerminal(TerminalColors.BrightYellow, null);
-            case LogLevel.Error: return text.FormatTerminal(TerminalColors.BrightRed, null);
-            case LogLevel.Critical: return text.FormatTerminal(null, TerminalColors.Red); //.FormatTerminal4(white, TerminalColor.BrightRed);
-            case LogLevel.None: return text.FormatTerminal(TerminalColors.Magenta, null);
-            default: throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null);
-        }
+        var (fg, bg) = Constant.LogLevel_ConsoleColor[logLevel];
+        return text.FormatTerminal(fg, bg);
     }
 
     protected virtual void LogMessage(LogEvent logEvent)
