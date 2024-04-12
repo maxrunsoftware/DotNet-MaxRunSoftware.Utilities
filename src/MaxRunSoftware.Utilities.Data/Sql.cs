@@ -39,7 +39,7 @@ public abstract class Sql : IDisposable
         }
     }
 
-    protected Sql(IDbConnection connection, ILoggerProvider loggerProvider)
+    protected Sql(IDbConnection connection, ILoggerFactory loggerProvider)
     {
         log = loggerProvider.CreateLogger(GetType());
         this.connection = connection;

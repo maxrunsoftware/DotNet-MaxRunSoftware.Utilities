@@ -40,7 +40,7 @@ public class FtpClientFtpRemoteCertificateInfo
     public X509Chain Chain { get; }
     public SslPolicyErrors PolicyErrors { get; }
 
-    public void Log(ILoggerProvider loggerProvider, string host, ushort port)
+    public void Log(ILoggerFactory loggerProvider, string host, ushort port)
     {
         var log = loggerProvider.CreateLogger<FtpClientFtpRemoteCertificateInfo>();
 

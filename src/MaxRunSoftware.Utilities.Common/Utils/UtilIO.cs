@@ -19,7 +19,7 @@ public sealed class TempDirectory : IDisposable
     private readonly ILogger log;
     public string Path { get; }
 
-    internal TempDirectory(string path, ILoggerProvider? loggerProvider)
+    internal TempDirectory(string path, ILoggerFactory? loggerProvider)
     {
         log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
         log.LogDebug("Creating temporary directory {Path}", path);
@@ -47,7 +47,7 @@ public sealed class TempFile : IDisposable
     private readonly ILogger log;
     public string Path { get; }
 
-    internal TempFile(string path, bool createEmptyFile, ILoggerProvider? loggerProvider)
+    internal TempFile(string path, bool createEmptyFile, ILoggerFactory? loggerProvider)
     {
         log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
         log.LogDebug("Creating temporary file {Path}", path);
@@ -375,7 +375,7 @@ public static partial class Util
 
     private static readonly object lockTemp = new();
 
-    public static TempDirectory CreateTempDirectory(string basePath, ILoggerProvider? loggerProvider = null)
+    public static TempDirectory CreateTempDirectory(string basePath, ILoggerFactory? loggerProvider = null)
     {
         lock (lockTemp)
         {
@@ -389,11 +389,11 @@ public static partial class Util
         }
     }
 
-    public static TempDirectory CreateTempDirectory(ILoggerProvider? loggerProvider = null) =>
+    public static TempDirectory CreateTempDirectory(ILoggerFactory? loggerProvider = null) =>
         CreateTempDirectory(Path.GetTempPath(), loggerProvider);
 
 
-    public static TempFile CreateTempFile(string basePath, bool createEmptyFile = false, ILoggerProvider? loggerProvider = null)
+    public static TempFile CreateTempFile(string basePath, bool createEmptyFile = false, ILoggerFactory? loggerProvider = null)
     {
         lock (lockTemp)
         {
@@ -407,7 +407,7 @@ public static partial class Util
         }
     }
 
-    public static TempFile CreateTempFile(bool createEmptyFile = false, ILoggerProvider? loggerProvider = null) =>
+    public static TempFile CreateTempFile(bool createEmptyFile = false, ILoggerFactory? loggerProvider = null) =>
         CreateTempFile(Path.GetTempPath(), createEmptyFile, loggerProvider);
 
     #endregion Temp

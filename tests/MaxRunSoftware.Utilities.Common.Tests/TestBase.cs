@@ -49,8 +49,26 @@ public abstract class TestBase : IDisposable
 
         public LogCategoryTrimmer(Type baseCategory) : this(baseCategory.FullNameFormatted(false)) { }
     }
+    
+    private readonly LogCategoryTrimmer logMessageFormatCategoryTrimmer;
+    
+    protected sealed class LoggerProviderDelegating(LoggerDelegateIsEnabled isEnabled, LoggerDelegateEvent eventHandler) : ILoggerProvider, ILoggerFactory
+    {
+        private readonly LoggerDelegateIsEnabled isEnabled = isEnabled;
+        private readonly LoggerDelegateEvent eventHandler = eventHandler;
+        public ILogger CreateLogger(string categoryName) => new LoggerDelegating(categoryName, this);
+        
+        private sealed class LoggerDelegating(string categoryName, LoggerProviderDelegating provider) : LoggerBase(categoryName)
+        {
+            public override bool IsEnabled(LogLevel logLevel) => provider.isEnabled(CategoryName, logLevel);
+            protected override void Log(LogEvent logEvent) => provider.eventHandler(logEvent);
+        }
+        
+        public void Dispose() { }
+        public void AddProvider(ILoggerProvider provider) => throw new NotImplementedException();
 
-    private LogCategoryTrimmer logMessageFormatCategoryTrimmer;
+    }
+
     
     // ReSharper disable once IntroduceOptionalParameters.Global
     protected TestBase(ITestOutputHelper? testOutputHelper) : this(testOutputHelper, null) { }
@@ -61,7 +79,7 @@ public abstract class TestBase : IDisposable
         IsColorEnabled = true;
         logMessageFormatCategoryTrimmer = new(GetType());
 
-        LoggerProvider = Common.LoggerProvider.Create(IsLogEnabledFor, LogMessage);
+        LoggerProvider = new LoggerProviderDelegating(IsLogEnabledFor, LogMessage);
         log = LoggerProvider.CreateLogger(GetType());
 
         var tc = TestClassName ?? "UNKNOWN";
@@ -257,7 +275,7 @@ public abstract class TestBase : IDisposable
     private volatile int logEnableForce;
     protected virtual void LogEnableForce() => Interlocked.Increment(ref logEnableForce);
 
-    protected ILoggerProvider LoggerProvider { get; }
+    protected ILoggerFactory LoggerProvider { get; }
     protected readonly ILogger log;
 
     #endregion Logging

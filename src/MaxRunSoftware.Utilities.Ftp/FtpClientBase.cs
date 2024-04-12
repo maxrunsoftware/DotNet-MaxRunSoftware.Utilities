@@ -18,7 +18,7 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public abstract class FtpClientBase : IFtpClient
 {
-    protected FtpClientBase(ILoggerProvider loggerProvider)
+    protected FtpClientBase(ILoggerFactory loggerProvider)
     {
         log = loggerProvider.CreateLogger<FtpClientBase>();
         serverInfo = Lzy.Create(GetServerInfoInternal);

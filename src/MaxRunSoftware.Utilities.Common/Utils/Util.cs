@@ -144,12 +144,24 @@ public static partial class Util
         }
     }
 
-    private sealed class CreateDisposableClass : IDisposable
+    #region CreateDisposable
+    
+    private sealed class CreateDisposable_Action(Action action) : IDisposable
     {
-        private readonly Action action;
-        public CreateDisposableClass(Action action) => this.action = action;
         public void Dispose() => action();
     }
-
-    public static IDisposable CreateDisposable(Action action) => new CreateDisposableClass(action);
+    
+    private sealed class CreateDisposable_Noop() : IDisposable
+    {
+        public void Dispose() {}
+    }
+    
+    private static readonly CreateDisposable_Noop CreateDisposable_Noop_Instance = new CreateDisposable_Noop();
+    
+    public static IDisposable CreateDisposable(Action? action = null) =>
+        action == null
+            ? CreateDisposable_Noop_Instance
+            : new CreateDisposable_Action(action);
+    
+    #endregion CreateDisposable
 }

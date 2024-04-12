@@ -84,7 +84,7 @@ public class WebServer : IDisposable
         }
     }
 
-    private readonly ILoggerProvider loggerProvider;
+    private readonly ILoggerFactory loggerProvider;
     private readonly ILogger log;
     private readonly object locker = new();
     private readonly SingleUse disposable;
@@ -131,7 +131,7 @@ public class WebServer : IDisposable
         return hostnames2;
     }
 
-    public WebServer(ILoggerProvider loggerProvider)
+    public WebServer(ILoggerFactory loggerProvider)
     {
         disposable = new(locker);
         this.loggerProvider = loggerProvider;

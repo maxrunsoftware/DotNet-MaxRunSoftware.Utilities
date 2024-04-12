@@ -23,7 +23,7 @@ public class FtpClientFtp : FtpClientBase
     private class FtpClientLogger : IFtpLogger
     {
         private readonly ILogger log;
-        public FtpClientLogger(ILoggerProvider loggerProvider) => log = loggerProvider.CreateLogger<FtpClient>();
+        public FtpClientLogger(ILoggerFactory loggerProvider) => log = loggerProvider.CreateLogger<FtpClient>();
 
         private static LogLevel ParseLevel(FtpTraceLevel ftpTraceLevel) => ftpTraceLevel switch
         {
@@ -38,7 +38,7 @@ public class FtpClientFtp : FtpClientBase
     }
 
     private readonly Func<FtpClientFtpRemoteCertificateInfo, bool> validateCertificate;
-    public FtpClientFtp(FtpClientFtpConfig config, ILoggerProvider loggerProvider) : base(loggerProvider)
+    public FtpClientFtp(FtpClientFtpConfig config, ILoggerFactory loggerProvider) : base(loggerProvider)
     {
         log = loggerProvider.CreateLogger<FtpClientFtp>();
 

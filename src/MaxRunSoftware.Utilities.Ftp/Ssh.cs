@@ -18,7 +18,7 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public class Ssh : IDisposable
 {
-    public Ssh(SshConfig config, ILoggerProvider loggerProvider)
+    public Ssh(SshConfig config, ILoggerFactory loggerProvider)
     {
         log = loggerProvider.CreateLogger<Ssh>();
         client = CreateClient<SshClient>(config, log);
@@ -48,7 +48,7 @@ public class Ssh : IDisposable
 
     #region Create Clients
 
-    public static T CreateClient<T>(SshConfig config, ILoggerProvider loggerProvider) where T : BaseClient =>
+    public static T CreateClient<T>(SshConfig config, ILoggerFactory loggerProvider) where T : BaseClient =>
         CreateClient<T>(config, loggerProvider.CreateLogger<Ssh>());
 
     public static T CreateClient<T>(SshConfig config, ILogger log) where T : BaseClient

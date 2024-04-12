@@ -24,7 +24,7 @@ public class WebServerAuthenticationBasicModule : WebModuleBase
     public override bool IsFinalHandler => false;
 
     public WebServerAuthenticationBasicModule(
-        ILoggerProvider loggerProvider,
+        ILoggerFactory loggerProvider,
         Func<IWebServerAuthenticationBasicHandler?> getAuthenticationHandler,
         string baseRoute = "/"
     ) : base(baseRoute)

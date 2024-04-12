@@ -36,7 +36,7 @@ public class TaskScheduler : IDisposable
         }
     }
 
-    public TaskScheduler(ILoggerProvider loggerProvider, string host, string? username, string? password, bool forceV1 = false)
+    public TaskScheduler(ILoggerFactory loggerProvider, string host, string? username, string? password, bool forceV1 = false)
     {
         log = loggerProvider.CreateLogger<TaskScheduler>();
         string? accountDomain = null;

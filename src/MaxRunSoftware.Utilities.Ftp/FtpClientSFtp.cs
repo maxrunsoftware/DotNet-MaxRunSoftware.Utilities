@@ -20,7 +20,7 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public class FtpClientSFtp : FtpClientBase
 {
-    public FtpClientSFtp(FtpClientSftpConfig config, ILoggerProvider loggerProvider) : base(loggerProvider)
+    public FtpClientSFtp(FtpClientSftpConfig config, ILoggerFactory loggerProvider) : base(loggerProvider)
     {
         log = loggerProvider.CreateLogger<FtpClientSFtp>();
         client = Ssh.CreateClient<SftpClient>(config, loggerProvider);

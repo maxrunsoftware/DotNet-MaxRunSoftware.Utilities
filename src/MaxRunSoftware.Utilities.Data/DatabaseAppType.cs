@@ -56,7 +56,7 @@ public static class DatabaseAppTypeExtensions
         [DatabaseAppType.PostgreSql] = PostgreSql.CreateConnection,
     }.ToImmutableDictionary();
 
-    public static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, ILoggerProvider, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, ILoggerProvider, Sql>>
+    public static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, ILoggerFactory, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, ILoggerFactory, Sql>>
     {
         [DatabaseAppType.MicrosoftSql] = (connection, loggerProvider) => new MicrosoftSql(connection, loggerProvider),
         [DatabaseAppType.OracleSql] = (connection, loggerProvider) => new OracleSql(connection, loggerProvider),
@@ -67,6 +67,6 @@ public static class DatabaseAppTypeExtensions
     public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
         ConnectionFactories[connectionType](connectionString);
 
-    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerProvider loggerProvider) =>
+    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerFactory loggerProvider) =>
         SqlFactories[connectionType](CreateConnection(connectionType, connectionString), loggerProvider);
 }

@@ -22,8 +22,8 @@ public class MicrosoftSql : Sql
 {
     public static SqlConnection CreateConnection(string connectionString) => new(connectionString);
 
-    public MicrosoftSql(string connectionString, ILoggerProvider loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
-    public MicrosoftSql(IDbConnection connection, ILoggerProvider loggerProvider) : base(connection, loggerProvider)
+    public MicrosoftSql(string connectionString, ILoggerFactory loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
+    public MicrosoftSql(IDbConnection connection, ILoggerFactory loggerProvider) : base(connection, loggerProvider)
     {
         DefaultDataTypeString = DatabaseTypes.Get(MicrosoftSqlType.NVarChar).TypeName + "(MAX)";
         DefaultDataTypeInteger = DatabaseTypes.Get(MicrosoftSqlType.Int).TypeName;

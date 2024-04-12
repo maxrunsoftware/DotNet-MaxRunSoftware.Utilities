@@ -59,7 +59,7 @@ public static class Extensions
 
     #region IDisposable
 
-    public static void DisposeSafely(this IDisposable? disposable, ILoggerProvider loggerProvider) => disposable.DisposeSafely(loggerProvider.CreateLogger(typeof(Extensions)));
+    public static void DisposeSafely(this IDisposable? disposable, ILoggerFactory loggerProvider) => disposable.DisposeSafely(loggerProvider.CreateLogger(typeof(Extensions)));
 
     public static void DisposeSafely(this IDisposable? disposable, ILogger logger, LogLevel logLevel = LogLevel.Warning)
     {

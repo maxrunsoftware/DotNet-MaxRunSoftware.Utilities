@@ -122,13 +122,7 @@ public static class ExtensionsLogging
 #pragma warning restore CA2254
         // ReSharper restore TemplateIsNotCompileTimeConstantProblem
     }
-
-
-    private static string GetName(Type type) => type.FullNameFormatted(fullNameForGenericArguments: false);
-
-    public static ILogger CreateLogger<T>(this ILoggerProvider provider) => provider.CreateLogger(GetName(typeof(T)));
-    public static ILogger CreateLogger(this ILoggerProvider provider, Type type) => provider.CreateLogger(GetName(type));
-
+    
     public static bool IsActiveFor(this LogLevel level, LogLevel loggingLevel) => level switch
     {
         LogLevel.Trace => loggingLevel is LogLevel.Trace,

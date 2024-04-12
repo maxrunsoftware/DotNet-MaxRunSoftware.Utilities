@@ -21,8 +21,8 @@ public class OracleSql : Sql
 {
     public static OracleConnection CreateConnection(string connectionString) => new(connectionString);
 
-    public OracleSql(string connectionString, ILoggerProvider loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
-    public OracleSql(IDbConnection connection, ILoggerProvider loggerProvider) : base(connection, loggerProvider)
+    public OracleSql(string connectionString, ILoggerFactory loggerProvider) : this(CreateConnection(connectionString), loggerProvider) { }
+    public OracleSql(IDbConnection connection, ILoggerFactory loggerProvider) : base(connection, loggerProvider)
     {
         DefaultDataTypeString = DatabaseTypes.Get(OracleSqlType.NClob).TypeName;
         DefaultDataTypeInteger = DatabaseTypes.Get(OracleSqlType.Int32).TypeName;
