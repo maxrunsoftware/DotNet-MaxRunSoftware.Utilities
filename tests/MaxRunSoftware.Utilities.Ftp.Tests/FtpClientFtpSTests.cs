@@ -37,11 +37,11 @@ public class FtpClientFtpSTests : FtpClientTests<FtpClientFtp>
 
     protected override FtpClientFtp CreateClient() => new(new()
     {
-        Host = Constants.FTPS_HOST,
-        Port = Constants.FTPS_PORT,
-        Username = Constants.FTPS_USERNAME,
-        Password = Constants.FTPS_PASSWORD,
-        WorkingDirectory = Constants.FTPS_DIRECTORY,
+        Host = TestConfig.FTPS_HOST,
+        Port = TestConfig.FTPS_PORT,
+        Username = TestConfig.FTPS_USERNAME,
+        Password = TestConfig.FTPS_PASSWORD,
+        WorkingDirectory = TestConfig.FTPS_DIRECTORY,
         ValidateCertificate = _ => true,
         FtpConfig =
         {

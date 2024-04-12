@@ -18,7 +18,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
-public class ExtensionsStringTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ExtensionsStringTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableTheory]
     [InlineData("Hello World", ' ', StringSplitOptions.None)]

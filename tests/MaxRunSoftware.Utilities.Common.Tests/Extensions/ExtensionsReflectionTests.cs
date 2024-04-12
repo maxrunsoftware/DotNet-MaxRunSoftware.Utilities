@@ -19,7 +19,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
 #nullable enable
 
-public class ExtensionsReflectionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ExtensionsReflectionTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     public interface IText
     {

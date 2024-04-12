@@ -16,7 +16,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
-public class ExtensionsCollectionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ExtensionsCollectionTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void Permutate()

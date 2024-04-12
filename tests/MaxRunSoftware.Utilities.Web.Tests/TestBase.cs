@@ -21,16 +21,14 @@ using MaxRunSoftware.Utilities.Web.Server;
 
 namespace MaxRunSoftware.Utilities.Web.Tests;
 
-public class TestBase : Common.Tests.TestBase
+public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS)
 {
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constants.IGNORED_TESTS) { }
-
     protected readonly HttpIO httpIO = new();
 
     protected WebServer CreateWebServer()
     {
         var ws = new WebServer(LoggerProvider);
-        ws.Port = Constants.DEFAULT_PORT;
+        ws.Port = TestConfig.DEFAULT_PORT;
         return ws;
     }
 

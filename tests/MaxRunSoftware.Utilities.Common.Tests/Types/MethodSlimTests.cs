@@ -16,7 +16,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
-public class MethodSlimTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class MethodSlimTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     public class TestClassA
     {

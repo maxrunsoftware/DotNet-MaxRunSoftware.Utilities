@@ -12,21 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Common.Tests;
+namespace MaxRunSoftware.Utilities.Scheduler.Tests;
 
-public class TestBaseTests : TestBase
-{
-    public TestBaseTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-
-    [SkippableFact]
-    public void Log_Colors()
-    {
-        IsColorEnabled = true;
-        LogLevel = LogLevel.Trace;
-        var logLevels = Util.GetEnumValues<LogLevel>().OrderBy(o => (int)o).ToArray();
-        foreach (var logLevel in logLevels)
-        {
-            log.Log(logLevel, "My [{LogLevel}] Message", logLevel.ToString());
-        }
-    }
-}
+public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS);

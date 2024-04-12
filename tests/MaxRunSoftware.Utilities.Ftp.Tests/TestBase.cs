@@ -14,7 +14,4 @@
 
 namespace MaxRunSoftware.Utilities.Ftp.Tests;
 
-public class TestBase : Common.Tests.TestBase
-{
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper, Constants.IGNORED_TESTS) { }
-}
+public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS);

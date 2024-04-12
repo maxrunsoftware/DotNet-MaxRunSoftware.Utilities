@@ -18,7 +18,7 @@ namespace MaxRunSoftware.Utilities.Ftp.Tests;
 // ReSharper disable StringLiteralTypo
 #nullable enable
 
-public static class Constants
+public static class TestConfig
 {
     public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new[]
     {

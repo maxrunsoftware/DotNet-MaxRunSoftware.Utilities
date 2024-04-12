@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Title>Unit Testing Helpers</Title>
+        <Description>Helpers and Utilities related to Unit Testing</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="xunit" Version="2.7.0" />
+        <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+    </ItemGroup>
+    
+</Project>

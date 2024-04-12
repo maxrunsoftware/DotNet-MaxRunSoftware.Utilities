@@ -32,7 +32,7 @@ public class MySqlFixture : DatabaseFixture
 public class MySqlFixtureCollection : DatabaseFixtureCollection<MySqlFixture> { }
 
 [Collection(nameof(MySql))]
-public class MySqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<MySql>(testOutputHelper, DatabaseAppType.MySql, Constants.MySql_ConnectionString_Test)
+public class MySqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<MySql>(testOutputHelper, DatabaseAppType.MySql, TestConfig.MySql_ConnectionString_Test)
 {
     [SkippableFact]
     public void Show_Session_Variables()

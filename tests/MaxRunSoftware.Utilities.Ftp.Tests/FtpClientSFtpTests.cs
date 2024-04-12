@@ -20,10 +20,10 @@ public class FtpClientSFtpTests(ITestOutputHelper testOutputHelper) : FtpClientT
 {
     protected override FtpClientSFtp CreateClient() => new(new()
     {
-        Host = Constants.SFTP_HOST,
-        Port = Constants.SFTP_PORT,
-        Username = Constants.SFTP_USERNAME,
-        Password = Constants.SFTP_PASSWORD,
-        WorkingDirectory = Constants.SFTP_DIRECTORY,
+        Host = TestConfig.SFTP_HOST,
+        Port = TestConfig.SFTP_PORT,
+        Username = TestConfig.SFTP_USERNAME,
+        Password = TestConfig.SFTP_PASSWORD,
+        WorkingDirectory = TestConfig.SFTP_DIRECTORY,
     }, LoggerProvider);
 }

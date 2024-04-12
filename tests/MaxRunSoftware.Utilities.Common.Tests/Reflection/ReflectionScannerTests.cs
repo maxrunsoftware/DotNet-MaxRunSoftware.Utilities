@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Reflection;
 
-public class ReflectionScannerTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ReflectionScannerTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void EqualsWork()

@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 
-public class UtilHashTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class UtilHashTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void HashString()

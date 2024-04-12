@@ -17,7 +17,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 // ReSharper disable once InconsistentNaming
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
-public class UtilIOTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class UtilIOTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableTheory]
     [InlineData(nameof(Encoding.Unicode))]

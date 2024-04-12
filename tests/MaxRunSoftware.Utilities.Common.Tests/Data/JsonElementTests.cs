@@ -21,7 +21,7 @@ using System.Text.Json;
 namespace MaxRunSoftware.Utilities.Common.Tests.Data;
 
 [SuppressMessage("Assertions", "xUnit2013:Do not use equality check to check for collection size.")]
-public class JsonElementTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class JsonElementTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void ToJson()

@@ -32,7 +32,7 @@ public class MicrosoftSqlFixture : DatabaseFixture
 public class MicrosoftSqlFixtureCollection : DatabaseFixtureCollection<MicrosoftSqlFixture> { }
 
 [Collection(nameof(MicrosoftSql))]
-public class MicrosoftSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<MicrosoftSql>(testOutputHelper, DatabaseAppType.MicrosoftSql, Constants.MicrosoftSql_ConnectionString_Master)
+public class MicrosoftSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<MicrosoftSql>(testOutputHelper, DatabaseAppType.MicrosoftSql, TestConfig.MicrosoftSql_ConnectionString_Master)
 {
     [SkippableFact]
     public void GetServerProperties()

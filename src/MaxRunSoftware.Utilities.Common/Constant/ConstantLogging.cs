@@ -52,9 +52,9 @@ public static partial class Constant
         [LogLevel.Trace] = new(ConsoleColor.DarkBlue, null),
         [LogLevel.Debug] = new(ConsoleColor.Blue, null),
         [LogLevel.Information] = new(ConsoleColor.White, null),
-        [LogLevel.Warning] = new(ConsoleColor.DarkYellow, null),
+        [LogLevel.Warning] = new(ConsoleColor.Yellow, null),
         [LogLevel.Error] = new(ConsoleColor.Red, null),
-        [LogLevel.Critical] = new(ConsoleColor.White, ConsoleColor.Red),
+        [LogLevel.Critical] = new(ConsoleColor.White, ConsoleColor.DarkRed),
     }.ToImmutableDictionary();
 
     public static readonly ILogger LoggerNull = NullLogger.Instance;

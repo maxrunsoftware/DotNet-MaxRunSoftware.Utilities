@@ -28,7 +28,7 @@ public class WebServerHttpContextTests(ITestOutputHelper testOutputHelper) : Tes
 
         Assert.Empty(list);
 
-        _ = httpIO.GetAsync(Constants.URL_BASE).Result;
+        _ = httpIO.GetAsync(TestConfig.URL_BASE).Result;
 
         Assert.NotEmpty(list);
 
@@ -48,19 +48,19 @@ public class WebServerHttpContextTests(ITestOutputHelper testOutputHelper) : Tes
 
         list.Clear();
         Assert.Empty(list);
-        _ = httpIO.GetAsync(Constants.URL_BASE + "").Result;
+        _ = httpIO.GetAsync(TestConfig.URL_BASE + "").Result;
         Assert.NotEmpty(list);
         Assert.Contains(list, o => o.RequestPath.StartsWith("/"));
 
         list.Clear();
         Assert.Empty(list);
-        _ = httpIO.GetAsync(Constants.URL_BASE + "/hello/world").Result;
+        _ = httpIO.GetAsync(TestConfig.URL_BASE + "/hello/world").Result;
         Assert.NotEmpty(list);
         Assert.Contains(list, o => o.RequestPath.StartsWith("hello", "world"));
 
         list.Clear();
         Assert.Empty(list);
-        _ = httpIO.GetAsync(Constants.URL_BASE + "/hello/world?a=b").Result;
+        _ = httpIO.GetAsync(TestConfig.URL_BASE + "/hello/world?a=b").Result;
         Assert.NotEmpty(list);
         Assert.Contains(list, o => o.RequestPath.StartsWith("hello", "world"));
 

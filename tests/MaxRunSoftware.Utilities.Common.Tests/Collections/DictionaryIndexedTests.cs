@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Collections;
 
-public class DictionaryIndexedTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class DictionaryIndexedTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void Order_Of_Items()

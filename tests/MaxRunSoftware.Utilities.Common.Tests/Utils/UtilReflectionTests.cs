@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 
-public class UtilReflectionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class UtilReflectionTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void CreateInstance()

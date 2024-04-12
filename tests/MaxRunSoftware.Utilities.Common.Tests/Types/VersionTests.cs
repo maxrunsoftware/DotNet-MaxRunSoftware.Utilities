@@ -16,7 +16,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
 #nullable enable
 
-public class VersionTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class VersionTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     private const string LARGE_INT = "9999999999999999999999999999999999";
     [SkippableTheory]
@@ -138,7 +138,7 @@ public class VersionTests(ITestOutputHelper testOutputHelper) : TestBase(testOut
     }
 }
 
-public class VersionPartTests : TestBase
+public class VersionPartTests : TestBaseBase
 {
     public VersionPartTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
 

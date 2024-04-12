@@ -16,7 +16,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Extensions;
 
-public class ExtensionsTypeTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ExtensionsTypeTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void Name_Primitive()

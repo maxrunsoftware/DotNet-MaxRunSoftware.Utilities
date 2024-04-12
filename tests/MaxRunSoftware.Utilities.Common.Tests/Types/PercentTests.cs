@@ -17,7 +17,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
-public class PercentTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class PercentTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void Default_Value()

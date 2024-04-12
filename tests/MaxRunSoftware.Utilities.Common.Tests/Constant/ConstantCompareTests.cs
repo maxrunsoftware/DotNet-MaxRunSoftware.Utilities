@@ -15,7 +15,7 @@
 namespace MaxRunSoftware.Utilities.Common.Tests;
 
 // ReSharper disable StringLiteralTypo
-public class ConstantCompareTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ConstantCompareTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void StringComparer_OrdinalIgnoreCase_Ordinal_Sort_Correctly()

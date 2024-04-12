@@ -16,7 +16,7 @@ namespace MaxRunSoftware.Utilities.Data.Tests;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable StringLiteralTypo
-public static class Constants
+public static class TestConfig
 {
     public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new[]
     {

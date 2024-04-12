@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Common.Tests;
+using Xunit;
 
-#nullable enable
+namespace MaxRunSoftware.Utilities.Testing;
 
-[PublicAPI]
 public class SkippedTest
 {
     public Type Clazz { get; }

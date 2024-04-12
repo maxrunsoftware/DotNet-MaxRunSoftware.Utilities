@@ -26,7 +26,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 #nullable enable
 
 [SuppressMessage("Assertions", "xUnit2002:Do not use null check on value type")]
-public class UtilChangeTypeTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class UtilChangeTypeTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     private void TestItem<T>(object actual, T expected, Action<T, T>? equal = null)
     {

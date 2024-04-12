@@ -32,7 +32,7 @@ public class OracleSqlFixture : DatabaseFixture
 public class OracleSqlFixtureCollection : DatabaseFixtureCollection<OracleSqlFixture> { }
 
 [Collection(nameof(Oracle))]
-public class OracleSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<OracleSql>(testOutputHelper, DatabaseAppType.OracleSql, Constants.OracleSql_ConnectionString_Test)
+public class OracleSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<OracleSql>(testOutputHelper, DatabaseAppType.OracleSql, TestConfig.OracleSql_ConnectionString_Test)
 {
     [SkippableFact]
     public void GetServerProperties()

@@ -29,7 +29,7 @@ public class PostgreSqlFixture : DatabaseFixture
 public class PostgreSqlFixtureCollection : DatabaseFixtureCollection<PostgreSqlFixture> { }
 
 [Collection(nameof(PostgreSql))]
-public class PostgreSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<PostgreSql>(testOutputHelper, DatabaseAppType.PostgreSql, Constants.PostgreSql_ConnectionString_Test)
+public class PostgreSqlTests(ITestOutputHelper testOutputHelper) : DatabaseTests<PostgreSql>(testOutputHelper, DatabaseAppType.PostgreSql, TestConfig.PostgreSql_ConnectionString_Test)
 {
     [SkippableFact]
     public void GetServerProperties()

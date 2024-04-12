@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Terminal;
 
-public class TerminalFormatTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class TerminalFormatTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     
     public static TheoryData<ConsoleColor?> ConsoleColorsData => new(Enum.GetValues<ConsoleColor>().Select(o => (ConsoleColor?)o).Prepend(null));

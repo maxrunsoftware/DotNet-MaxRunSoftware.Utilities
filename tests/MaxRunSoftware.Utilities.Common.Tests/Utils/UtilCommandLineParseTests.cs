@@ -16,7 +16,7 @@ namespace MaxRunSoftware.Utilities.Common.Tests.Utils;
 
 #nullable enable
 
-public class CommandLineArgumentParserTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class CommandLineArgumentParserTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     private CommandLineParseResult Parse(char optId, char optDelim, bool caseSensitive, params string?[]? args) =>
         Util.CommandLineParse(

@@ -14,7 +14,4 @@
 
 namespace MaxRunSoftware.Utilities.Windows.Tests;
 
-public class TestBase : Common.Tests.TestBase
-{
-    public TestBase(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
-}
+public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS);

@@ -17,7 +17,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests;
 
-public class ConstantLoggingTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ConstantLoggingTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [Theory]
     [InlineData("n")]

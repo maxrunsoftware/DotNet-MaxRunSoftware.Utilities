@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Data.Tests;
+namespace MaxRunSoftware.Utilities.Scheduler.Tests;
 
-public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS);
+// ReSharper disable InconsistentNaming
+// ReSharper disable StringLiteralTypo
+#nullable enable
+
+public static class TestConfig
+{
+    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new SkippedTest[]
+    {
+        
+    }.ToImmutableArray();
+}

@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Threading;
 
-public class SingleUseTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class SingleUseTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void SingleThreaded()

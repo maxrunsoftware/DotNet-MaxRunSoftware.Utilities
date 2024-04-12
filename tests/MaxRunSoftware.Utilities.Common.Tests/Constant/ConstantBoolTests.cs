@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Common.Tests;
 
-public class ConstantBoolTests(ITestOutputHelper testOutputHelper) : TestBase(testOutputHelper)
+public class ConstantBoolTests(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper)
 {
     [SkippableFact]
     public void TestTrue()

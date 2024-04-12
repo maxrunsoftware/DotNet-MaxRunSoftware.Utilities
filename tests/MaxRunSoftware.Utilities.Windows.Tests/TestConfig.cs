@@ -12,23 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Web.Tests;
+namespace MaxRunSoftware.Utilities.Windows.Tests;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable StringLiteralTypo
-public static class Constants
+public static class TestConfig
 {
-    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new[]
+    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new SkippedTest[]
     {
-        SkippedTest.Create<WebServerTests>(nameof(WebServerTests.WebServer_Run), "just runs the web server"),
+       
     }.ToImmutableArray();
-
-
-    public static readonly string DEFAULT_HOST = "localhost";
-    public static readonly ushort DEFAULT_PORT = 32913;
-
-    public static readonly string DEFAULT_USERNAME = "test";
-    public static readonly string DEFAULT_PASSWORD = "testPass1!";
-
-    public static readonly string URL_BASE = $"http://{DEFAULT_HOST}:{DEFAULT_PORT}";
 }
