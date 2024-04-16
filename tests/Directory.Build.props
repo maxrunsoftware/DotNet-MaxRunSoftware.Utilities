@@ -17,8 +17,20 @@
         <NoWarn>1701;1702;1591</NoWarn>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <xProjectSourceNameLastIndex>$(MSBuildProjectName.LastIndexOf('.'))</xProjectSourceNameLastIndex>
+        <xProjectSourceName>$(MSBuildProjectName.Substring(0, $(xProjectSourceNameLastIndex) ))</xProjectSourceName>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Title>Max Run Software Utilities Unit Tests</Title>
+        <Description>Unit tests for project $(xProjectSourceName)</Description>
+        <Summary>Unit tests for project $(xProjectSourceName)</Summary>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="$(SolutionDir)src\MaxRunSoftware.Utilities.Testing\MaxRunSoftware.Utilities.Testing.csproj" />
+        <ProjectReference Include="$(SolutionDir)src\$(xProjectSourceName)\$(xProjectSourceName).csproj" />
     </ItemGroup>
 
     <ItemGroup>
