@@ -265,7 +265,7 @@ public abstract class TestBaseBase : IDisposable
 
     protected virtual IDisposable LogDisable()
     {
-        var d = DisposableFunc.Create(() => logDisableCounter.Decrement());
+        var d = Util.CreateDisposable(() => logDisableCounter.Decrement());
         logDisableCounter.Increment();
         return d;
     }
