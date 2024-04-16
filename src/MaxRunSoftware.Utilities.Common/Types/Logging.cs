@@ -20,6 +20,7 @@ public record LogScope(
 public record LogEvent(
     string CategoryName,
     LogLevel LogLevel,
+    DateTimeOffset Timestamp,
     EventId EventId,
     Type StateType,
     object? StateObject,
@@ -104,7 +105,9 @@ public abstract class LoggerBase(string categoryName) : ILogger
         
         var logEvent = new LogEvent(
             CategoryName,
-            logLevel, eventId,
+            logLevel, 
+            DateTimeOffset.Now, 
+            eventId,
             typeof(TState),
             state,
             stateObj,
