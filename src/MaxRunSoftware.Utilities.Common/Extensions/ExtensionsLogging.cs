@@ -14,10 +14,42 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Collections.Concurrent;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsLogging
 {
+    #region LogMethodTypeConverters
+    
+    private static readonly ConcurrentDictionary<Type, Func<object, string>> logMethodTypeConverters = new();
+    
+    public static void SetLogMethodTypeConverter(Type type, Func<object, string>? converter)
+    {
+        if (converter == null)
+        {
+            logMethodTypeConverters.Remove(type, out _);
+        }
+        else
+        {
+            logMethodTypeConverters[type] = converter;
+        }
+    }
+    
+    public static void SetLogMethodTypeConverter<T>(Func<T, string>? converter)
+    {
+        if (converter == null)
+        {
+            SetLogMethodTypeConverter(typeof(T), null);
+        }
+        else
+        {
+            logMethodTypeConverters[typeof(T)] = (object o) => converter((T)o);
+        }
+    }
+    
+    #endregion LogMethodTypeConverters
+
     #region LogMethod Overloads
 
     // @formatter:off
@@ -114,7 +146,44 @@ public static class ExtensionsLogging
 
         messageFinal.Append("  ");
         messageFinal.Append(message);
-        argsFinal.AddRange(args);
+        
+        if (logMethodTypeConverters.Count == 0)
+        {
+            argsFinal.AddRange(args);
+        }
+        else
+        {
+            foreach (var arg in args)
+            {
+                if (arg == null)
+                {
+                    argsFinal.Add(arg);
+                }
+                else
+                {
+                    var argType = arg.GetType();
+                    if (logMethodTypeConverters.TryGetValue(argType, out var argConverter))
+                    {
+                        try
+                        {
+                            var s = argConverter(arg);
+                            argsFinal.Add(s);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.Error.WriteLine("Argument converter for type " + argType.FullNameFormatted() + " failed for value: " + arg);
+                            Console.Error.WriteLine(e);
+                            argsFinal.Add(arg);
+                        }
+                    }
+                    else
+                    {
+                        argsFinal.Add(arg);
+                    }
+                }
+            }
+        }
+        
 
         // ReSharper disable TemplateIsNotCompileTimeConstantProblem
 #pragma warning disable CA2254
@@ -134,4 +203,6 @@ public static class ExtensionsLogging
         LogLevel.None => false,
         _ => throw new ArgumentOutOfRangeException(nameof(loggingLevel), loggingLevel, null),
     };
+    
+
 }
