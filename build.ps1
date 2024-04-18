@@ -151,7 +151,7 @@ function ActionBuild {
 }
 
 function ActionNuget {
-    $b.CopyNugetFiles("scheduler")
+    $b.CopyNugetFiles("scheduler", "microsoft")
 }
 
 function ActionNugetPush {
@@ -168,8 +168,8 @@ function ActionNugetPush {
         )
 
         $filename = [IO.Path]::GetFileName($file)
-        $title    = "Nuget.org:  $filename"
-        $question = 'Confirm upload to Nuget?' 
+        $title    = "Nuget.org:  $file"
+        $question = "Confirm upload to Nuget?  $filename" 
         $choices  = '&Yes', '&No'
 
         $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
