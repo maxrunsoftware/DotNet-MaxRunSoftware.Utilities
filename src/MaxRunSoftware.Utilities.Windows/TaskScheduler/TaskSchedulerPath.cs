@@ -36,13 +36,16 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
                 if (ds != null) delim = ds;
             }
         }
-        catch (Exception) { }
-
+        catch (Exception)
+        {
+            // ignored
+        }
+        
         return delim;
     }
 
     public static readonly char PATH_DELIMITER = '/';
-    private static readonly ImmutableArray<char> PATH_DELIMITERS = ImmutableArray.Create('/', '\\');
+    private static readonly ImmutableArray<char> PATH_DELIMITERS = ['/', '\\'];
 
     public static readonly TaskSchedulerPath ROOT = new(string.Empty);
     public IReadOnlyList<string> PathParts { get; }
@@ -55,24 +58,6 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
     public TaskSchedulerPath(TaskFolder folder) : this(folder.Path) { }
     public TaskSchedulerPath(string? path) : base(Comparer.Instance)
     {
-        static List<string> PathParse(string? path)
-        {
-            if (path == null || string.IsNullOrWhiteSpace(path)) return new();
-            var pathDelimiterCorrect = PATH_DELIMITER.ToString();
-            foreach (var pathDelimiter in PATH_DELIMITERS.Select(o => o.ToString()))
-            {
-                var doublePathDelimiter = pathDelimiter + pathDelimiter;
-                while (path.Contains(doublePathDelimiter))
-                {
-                    path = path.Replace(doublePathDelimiter, pathDelimiter);
-                }
-
-                if (pathDelimiter != pathDelimiterCorrect) path = path.Replace(pathDelimiter, pathDelimiterCorrect);
-            }
-
-            return path.Split(pathDelimiterCorrect).WhereNotNull().Where(o => !string.IsNullOrWhiteSpace(o)).ToList();
-        }
-
         var pathParts = PathParse(path);
         if (pathParts.Count == 0)
         {
@@ -87,6 +72,26 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
             Name = pathParts.PopTail();
             Parent = pathParts.Count == 0 ? ROOT : new(pathParts.ToStringDelimited(PATH_DELIMITER));
             Path = PATH_DELIMITER + PathParts.ToStringDelimited(PATH_DELIMITER);
+        }
+        
+        return;
+        
+        static List<string> PathParse(string? path)
+        {
+            if (path == null || string.IsNullOrWhiteSpace(path)) return new();
+            var pathDelimiterCorrect = PATH_DELIMITER.ToString();
+            foreach (var pathDelimiter in PATH_DELIMITERS.Select(o => o.ToString()))
+            {
+                var doublePathDelimiter = pathDelimiter + pathDelimiter;
+                while (path.Contains(doublePathDelimiter))
+                {
+                    path = path.Replace(doublePathDelimiter, pathDelimiter);
+                }
+                
+                if (pathDelimiter != pathDelimiterCorrect) path = path.Replace(pathDelimiter, pathDelimiterCorrect);
+            }
+            
+            return path.Split(pathDelimiterCorrect).WhereNotNull().Where(o => !string.IsNullOrWhiteSpace(o)).ToList();
         }
     }
 

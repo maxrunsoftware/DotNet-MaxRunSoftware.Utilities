@@ -17,6 +17,7 @@ using Task = Microsoft.Win32.TaskScheduler.Task;
 
 namespace MaxRunSoftware.Utilities.Windows;
 
+[PublicAPI]
 public class TaskScheduler : IDisposable
 {
     private readonly ILogger log;
@@ -30,12 +31,13 @@ public class TaskScheduler : IDisposable
             lock (locker)
             {
                 if (taskService != null) return taskService;
-
                 throw new ObjectDisposedException(GetType().FullNameFormatted());
             }
         }
     }
 
+    #region Constructor
+    
     public TaskScheduler(ILoggerFactory loggerProvider, string host, string? username, string? password, bool forceV1 = false)
     {
         log = loggerProvider.CreateLogger<TaskScheduler>();
@@ -55,64 +57,82 @@ public class TaskScheduler : IDisposable
         log.LogDebugMethod(new(host, username, forceV1, accountDomain), "Creating new {Type}", typeof(TaskService).FullNameFormatted());
         taskService = new(host, username!, accountDomain, password!, forceV1);
     }
+    
+    #endregion Constructor
 
+    #region Task
 
-    public Task TaskAdd(TaskSchedulerTask task)
+    public Task TaskAdd(TaskSchedulerTask taskSchedulerTask)
     {
-        var path = task.Path.CheckNotNull();
+        var path = taskSchedulerTask.Path.CheckNotNull();
         var pathParent = path.Parent.CheckNotNull();
         var taskName = path.Name.CheckNotNullTrimmed();
 
         var dir = CreateTaskFolder(pathParent);
 
-        var taskServiceTask = TaskService.NewTask().CheckNotNull();
+        var task = TaskService.NewTask().CheckNotNull();
 
-        if (taskServiceTask.RegistrationInfo != null)
+        if (task.RegistrationInfo != null)
         {
-            taskServiceTask.RegistrationInfo.Description = task.Description.TrimOrNull() ?? string.Empty;
-            taskServiceTask.RegistrationInfo.Documentation = task.Documentation.TrimOrNull() ?? string.Empty;
+            task.RegistrationInfo.Description = taskSchedulerTask.Description.TrimOrNull() ?? string.Empty;
+            task.RegistrationInfo.Documentation = taskSchedulerTask.Documentation.TrimOrNull() ?? string.Empty;
         }
 
-        var username = task.Username ??= Constant.Windows_User_System;
-        var password = task.Password;
+        var username = taskSchedulerTask.Username ??= Constant.Windows_User_System;
+        var password = taskSchedulerTask.Password;
 
         var taskLogonType = TaskLogonType.Password;
-        foreach (var sc in Constant.StringComparers)
+        if (IsServiceAccount(username))
         {
-            if (username.In(sc, Constant.Windows_User_System, Constant.Windows_User_LocalService, Constant.Windows_User_NetworkService))
-            {
-                taskLogonType = TaskLogonType.ServiceAccount;
-                username = username.ToUpper();
-                password = null;
-                break;
-            }
+            taskLogonType = TaskLogonType.ServiceAccount;
+            username = username.ToUpper();
+            password = null;
+        }
+        
+        task.Principal.LogonType = taskLogonType;
+        task.Principal.UserId = username;
+        task.Settings.Hidden = false;
+        
+        foreach (var trigger in taskSchedulerTask.Triggers)
+        {
+            log.LogTraceMethod(new(taskSchedulerTask), "Created trigger: {Trigger}", trigger);
+            task.Triggers.Add(trigger);
         }
 
-        taskServiceTask.Principal.LogonType = taskLogonType;
-        taskServiceTask.Principal.UserId = username;
-        taskServiceTask.Settings.Hidden = false;
-        foreach (var trigger in task.Triggers)
+        foreach (var filePath in taskSchedulerTask.FilePaths)
         {
-            log.LogTraceMethod(new(task), "Created trigger: {Trigger}", trigger);
-            taskServiceTask.Triggers.Add(trigger);
-        }
-
-        foreach (var filePath in task.FilePaths)
-        {
-            var execAction = new ExecAction(filePath, task.Arguments!, task.WorkingDirectory!);
-            taskServiceTask.Actions.Add(execAction);
+            log.LogTraceMethod(new(taskSchedulerTask), "Created action: {Action}", filePath);
+            var execAction = new ExecAction(
+                filePath, 
+                taskSchedulerTask.Arguments, 
+                taskSchedulerTask.WorkingDirectory
+                );
+            task.Actions.Add(execAction);
         }
 
         var t = dir.RegisterTaskDefinition(
             taskName,
-            taskServiceTask,
+            task,
             TaskCreation.CreateOrUpdate,
             username,
             password!,
             taskLogonType
         );
 
-        return t!;
+        return t.CheckNotNull();
+        
+        static bool IsServiceAccount(string username)
+        {
+            return Enumerable.Any(
+                Constant.StringComparers,
+                sc => username.In(
+                    sc,
+                    Constant.Windows_User_System,
+                    Constant.Windows_User_LocalService,
+                    Constant.Windows_User_NetworkService
+                )
+            );
+        }
     }
 
     public RunningTask? TaskStart(Task task, bool force = false)
@@ -219,7 +239,18 @@ public class TaskScheduler : IDisposable
             }
         }
     }
+    
+    public Task? GetTask(TaskSchedulerPath path)
+    {
+        log.LogDebugMethod(new(path), "Getting Task: {Path}", path);
+        return GetTasks().FirstOrDefault(task => path.Equals(task.GetPath()));
+    }
+    
+    #endregion Task
 
+    
+    #region TaskFolder
+    
     public IEnumerable<TaskFolder> GetTaskFolders()
     {
         log.LogTraceMethod(new(), "Getting task folders");
@@ -244,21 +275,7 @@ public class TaskScheduler : IDisposable
             yield return currentFolder;
         }
     }
-
-    public Task? GetTask(TaskSchedulerPath path)
-    {
-        log.LogDebugMethod(new(path), "Getting Task: {Path}", path);
-        foreach (var task in GetTasks())
-        {
-            if (path.Equals(task.GetPath()))
-            {
-                return task;
-            }
-        }
-
-        return null;
-    }
-
+    
     public TaskFolder? GetTaskFolder(TaskSchedulerPath path)
     {
         log.LogDebugMethod(new(path), "Getting TaskFolder: {Path}", path);
@@ -296,7 +313,12 @@ public class TaskScheduler : IDisposable
         log.LogDebugMethod(new(path), "Creating TaskFolder: {Path}", path);
         return parentFolder.CreateFolder(path.Name)!;
     }
+    
+    #endregion TaskFolder
 
+    
+    #region IDisposable
+    
     public void Dispose()
     {
         TaskService? ts;
@@ -312,6 +334,8 @@ public class TaskScheduler : IDisposable
             ts.DisposeSafely(log);
         }
     }
+    
+    #endregion IDisposable
 }
 
 public static class TaskSchedulerExtensions
