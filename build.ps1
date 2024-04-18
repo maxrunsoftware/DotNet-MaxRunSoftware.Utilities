@@ -161,7 +161,7 @@ function ActionNugetPush {
         [string]$cmd = 'dotnet'
         [string[]]$cmdParams = @(
             'nuget', 
-        ,   'push', "`"$file`""
+        ,   'push', "$file"
         ,   '--source', 'https://api.nuget.org/v3/index.json'
         ,   '--api-key', "$($b.ReadGitKey())"
         ,   '--skip-duplicate'
