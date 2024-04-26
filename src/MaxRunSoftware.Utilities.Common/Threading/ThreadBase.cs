@@ -20,7 +20,7 @@ namespace MaxRunSoftware.Utilities.Common;
 public abstract class ThreadBase : IDisposable
 {
     private readonly Thread thread;
-    protected object Locker { get; } = new();
+    //protected object Locker { get; } = new();
 
     private readonly SingleUse isStarted;
     public bool IsStarted => isStarted.IsUsed;
@@ -36,11 +36,11 @@ public abstract class ThreadBase : IDisposable
     public Exception? Exception { get; protected set; }
 
     protected readonly ILogger log;
-    protected ThreadBase(ILoggerFactory loggerProvider)
+    protected ThreadBase(ILogger log)
     {
-        log = loggerProvider.CreateLogger(GetType());
-        isStarted = new(Locker);
-        isDisposed = new(Locker);
+        this.log = log;
+        isStarted = new();
+        isDisposed = new();
         thread = new(WorkPrivate);
         nameDefault = GetType().FullNameFormatted();
     }
@@ -77,14 +77,7 @@ public abstract class ThreadBase : IDisposable
 
     protected void Join(TimeSpan timeout) => thread.Join(timeout);
 
-    public void Dispose()
-    {
-        if (!isDisposed.TryUse()) return;
-
-        log.LogDebug("Disposing thread '{ThreadName}' with IsBackground={ThreadIsBackground} of type '{FullNameFormatted}'", thread.Name, thread.IsBackground, GetType().FullNameFormatted());
-
-        DisposeInternally();
-    }
+    
 
     public void Start(bool isBackgroundThread = true, string? name = null)
     {
@@ -94,8 +87,25 @@ public abstract class ThreadBase : IDisposable
 
         thread.IsBackground = isBackgroundThread;
         thread.Name = name ?? nameDefault;
-        log.LogDebug("Starting thread '{ThreadName}' with IsBackground={ThreadIsBackground} of type '{FullNameFormatted}'", thread.Name, thread.IsBackground, GetType().FullNameFormatted());
+        log.LogDebugMethod(new(isBackgroundThread, name), "Starting thread '{ThreadName}' with IsBackground={ThreadIsBackground} of type '{FullNameFormatted}'", thread.Name, thread.IsBackground, GetType().FullNameFormatted());
 
         thread.Start();
     }
+    
+    private void ReleaseUnmanagedResources()
+    {
+        if (!isDisposed.TryUse()) return;
+
+        log.LogDebugMethod(new(), "Disposing thread '{ThreadName}' with IsBackground={ThreadIsBackground} of type '{Type}'", thread.Name, thread.IsBackground, GetType().FullNameFormatted());
+
+        DisposeInternally();
+    }
+    
+    public void Dispose()
+    {
+        ReleaseUnmanagedResources();
+        GC.SuppressFinalize(this);
+    }
+    
+    ~ThreadBase() => ReleaseUnmanagedResources();
 }
