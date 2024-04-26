@@ -14,62 +14,6 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public sealed class TempDirectory : IDisposable
-{
-    private readonly ILogger log;
-    public string Path { get; }
-
-    internal TempDirectory(string path, ILoggerFactory? loggerProvider)
-    {
-        log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
-        log.LogDebug("Creating temporary directory {Path}", path);
-        Directory.CreateDirectory(path);
-        Path = path;
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            if (Directory.Exists(Path))
-            {
-                log.LogDebug("Deleting temporary directory {Path}", Path);
-                Directory.Delete(Path, true);
-                log.LogDebug("Successfully deleted temporary directory {Path}", Path);
-            }
-        }
-        catch (Exception e) { log.LogWarning(e, "Error deleting temporary directory {Path}", Path); }
-    }
-}
-
-public sealed class TempFile : IDisposable
-{
-    private readonly ILogger log;
-    public string Path { get; }
-
-    internal TempFile(string path, bool createEmptyFile, ILoggerFactory? loggerProvider)
-    {
-        log = loggerProvider == null ? Constant.LoggerNull : loggerProvider.CreateLogger(GetType());
-        log.LogDebug("Creating temporary file {Path}", path);
-        if (createEmptyFile) File.WriteAllBytes(path, Array.Empty<byte>());
-        Path = path;
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            if (File.Exists(Path))
-            {
-                log.LogDebug("Deleting temporary file {Path}", Path);
-                File.Delete(Path);
-                log.LogDebug("Successfully deleted temporary file {Path}", Path);
-            }
-        }
-        catch (Exception e) { log.LogWarning(e, "Error deleting temporary file {Path}", Path); }
-    }
-}
-
 // ReSharper disable InconsistentNaming
 public static partial class Util
 {
@@ -371,47 +315,6 @@ public static partial class Util
 
     #endregion File
 
-    #region Temp
-
-    private static readonly object lockTemp = new();
-
-    public static TempDirectory CreateTempDirectory(string basePath, ILoggerFactory? loggerProvider = null)
-    {
-        lock (lockTemp)
-        {
-            string p;
-            do
-            {
-                p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
-            } while (Directory.Exists(p));
-
-            return new(p, loggerProvider);
-        }
-    }
-
-    public static TempDirectory CreateTempDirectory(ILoggerFactory? loggerProvider = null) =>
-        CreateTempDirectory(Path.GetTempPath(), loggerProvider);
-
-
-    public static TempFile CreateTempFile(string basePath, bool createEmptyFile = false, ILoggerFactory? loggerProvider = null)
-    {
-        lock (lockTemp)
-        {
-            string p;
-            do
-            {
-                p = Path.GetFullPath(Path.Combine(basePath, Path.GetRandomFileName()));
-            } while (File.Exists(p));
-
-            return new(p, createEmptyFile, loggerProvider);
-        }
-    }
-
-    public static TempFile CreateTempFile(bool createEmptyFile = false, ILoggerFactory? loggerProvider = null) =>
-        CreateTempFile(Path.GetTempPath(), createEmptyFile, loggerProvider);
-
-    #endregion Temp
-
     #region Path
 
     private static readonly string[] pathDelimitersStrings = Constant.PathDelimiters_String.ToArray();
@@ -446,6 +349,40 @@ public static partial class Util
         if (s.Length > 1 && trailingDelimiter) s = s + pathDelimiter;
 
         return s;
+    }
+    
+    public static DirectoryInfo? PathDirectoryOrParentDirectory(string? path)
+    {
+        if (path == null) return null;
+        DirectoryInfo? fso;
+        try
+        {
+            if (IsFile(path)) fso = new FileInfo(path).Directory;
+            else if (IsDirectory(path)) fso = new(path);
+            else return null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+        
+        if (fso == null) return null;
+        while (true)
+        {
+            try
+            {
+                if (fso.Exists) break;
+                var p = fso.Parent;
+                if (p == null) break;
+                fso = p;
+            }
+            catch (Exception)
+            {
+                break;
+            }
+        }
+        
+        return fso;
     }
 
     #endregion Path

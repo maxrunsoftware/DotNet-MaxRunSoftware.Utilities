@@ -286,7 +286,7 @@ public abstract class TestBaseBase : IDisposable
     {
         get
         {
-            testDirectory ??= Util.CreateTempDirectory(LoggerProvider);
+            testDirectory ??= new(log: LoggerProvider.CreateLogger<TempDirectory>());
             return testDirectory.Path;
         }
     }
@@ -294,7 +294,7 @@ public abstract class TestBaseBase : IDisposable
     private readonly Stack<TempFile> tempFiles = new();
     protected string CreateTestFile(bool createEmptyFile = false)
     {
-        var f = Util.CreateTempFile(TestDirectory, createEmptyFile, LoggerProvider);
+        var f = new TempFile(path: TestDirectory, createEmptyFile: createEmptyFile, log: LoggerProvider.CreateLogger<TempFile>());
         tempFiles.Push(f);
         return f.Path;
     }
