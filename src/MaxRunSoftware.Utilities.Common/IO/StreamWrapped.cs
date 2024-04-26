@@ -14,11 +14,10 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class StreamWrapped : Stream
+public class StreamWrapped(Stream stream) : Stream
 {
-    protected readonly Stream stream;
-    public StreamWrapped(Stream stream) => this.stream = stream;
-
+    protected readonly Stream stream = stream;
+    
     public override void Flush() => stream.Flush();
 
     public override int Read(byte[] buffer, int offset, int count) => stream.Read(buffer, offset, count);

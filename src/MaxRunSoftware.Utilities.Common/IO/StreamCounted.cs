@@ -14,23 +14,47 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class StreamCounted : StreamWrapped
+/// <summary>
+/// Simple stream wrapper that counts the bytes read or written.
+/// Another example: https://stackoverflow.com/a/57439154
+/// </summary>
+/// <param name="stream"></param>
+public class StreamCounted(Stream stream) : StreamWrapped(stream)
 {
-    public StreamCounted(Stream stream) : base(stream) { }
-
-    public long BytesWritten { get; private set; }
     public long BytesRead { get; private set; }
-
     public override int Read(byte[] buffer, int offset, int count)
     {
         var c = stream.Read(buffer, offset, count);
         BytesRead += c;
         return c;
     }
-
+    
+    
+    public long BytesWritten { get; private set; }
     public override void Write(byte[] buffer, int offset, int count)
     {
         stream.Write(buffer, offset, count);
         BytesWritten += count;
+    }
+}
+
+public sealed class StreamCountedVolatile(Stream stream) : StreamWrapped(stream)
+{
+    private long bytesRead;
+    public long BytesRead => Volatile.Read(ref bytesRead);
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        var c = stream.Read(buffer, offset, count);
+        Interlocked.Add(ref bytesRead, c);
+        return c;
+    }
+
+    
+    private long bytesWritten;
+    public long BytesWritten => Volatile.Read(ref bytesWritten);
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        stream.Write(buffer, offset, count);
+        Interlocked.Add(ref bytesWritten, count);
     }
 }
