@@ -15,6 +15,7 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
+/// TODO: Rewrite this using updates in https://stackoverflow.com/a/229567
 /// System-wide Mutex lock. Good for locking on files using the file name.
 /// </summary>
 public sealed class MutexLock : IDisposable
