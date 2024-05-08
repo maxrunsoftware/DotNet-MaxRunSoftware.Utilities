@@ -19,16 +19,11 @@ namespace MaxRunSoftware.Utilities.Common;
 public sealed class MethodCaller
 {
     public MethodInfo MethodInfo { get; }
-    public IReadOnlyList<ParameterInfo> Parameters { get; }
-    public string Name { get; }
-    public bool IsStatic { get; }
-    public bool IsInstance => !IsStatic;
-    public bool IsVoid { get; }
     public Delegate Delegate { get; }
-
-    public object? Invoke(object? instance, params object?[] args)
+    
+    public object? Invoke(object? instance, object?[] args)
     {
-        if (IsVoid)
+        if (MethodInfo.ReturnType == typeof(void))
         {
             switch (args.Length)
             {
@@ -53,7 +48,7 @@ public sealed class MethodCaller
                 // @formatter:on
             }
         }
-
+        
         switch (args.Length)
         {
             // @formatter:off
@@ -77,89 +72,47 @@ public sealed class MethodCaller
             // @formatter:on
         }
     }
-
-    public MethodCaller(MethodInfo info)
+    
+    
+    public MethodCaller(MethodInfo methodInfo)
     {
-        MethodInfo = info.CheckNotNull(nameof(info));
-        Name = info.Name;
-        IsStatic = info.IsStatic;
-
-        var returnType = info.ReturnType;
-        IsVoid = returnType == typeof(void);
-
+        var m = MethodInfo = methodInfo;
+        
         /*
         if (returnType == typeof(void)) DefaultNullValue = null;
         else if (returnType.IsPrimitive || returnType.IsValueType || returnType.IsEnum) { DefaultNullValue = Activator.CreateInstance(returnType); }
         else { DefaultNullValue = null; }
         */
-
-        var declaringType = info.DeclaringType;
-        // Should not happen but if it does fail here rather then later trying to call it
-        if (declaringType == null) throw new NullReferenceException("Could not determine class containing method " + Name);
-
+        
+        
+        // https://stackoverflow.com/a/2850366
+        // Should not happen but if it does fail here rather than later trying to call it
+        var declaringType = m.DeclaringType ?? throw new NullReferenceException("Could not determine class containing method " + m.Name);
+        
         var instanceParameter = Expression.Parameter(typeof(object), "instance");
-        var instanceUnary = IsStatic ? null : Expression.Convert(instanceParameter, declaringType);
-
-        Parameters = info.GetParameters().ToList().AsReadOnly();
-        var argumentsParameter = new List<ParameterExpression>(Parameters.Count);
-        var argumentsUnary = new List<UnaryExpression>(Parameters.Count);
-
-        for (var i = 0; i < Parameters.Count; i++)
+        var instanceUnary = m.IsStatic ? null : Expression.Convert(instanceParameter, declaringType);
+        
+        var parameters = m.GetParameters();
+        var argumentsParameter = new List<ParameterExpression>(parameters.Length);
+        var argumentsUnary = new List<UnaryExpression>(parameters.Length);
+        
+        for (var i = 0; i < parameters.Length; i++)
         {
-            var methodParameter = Parameters[i];
-            var rawObject = Expression.Parameter(typeof(object), "arg" + (i + 1));
+            var methodParameter = parameters[i];
+            var rawObject = Expression.Parameter(typeof(object), $"arg{i+1}");
             argumentsParameter.Add(rawObject);
-
+            
             var convertedObject = Expression.Convert(rawObject, methodParameter.ParameterType);
             argumentsUnary.Add(convertedObject);
         }
-
-        Expression callExpression = Expression.Call(instanceUnary, info, argumentsUnary);
-        if (!IsVoid) callExpression = Expression.TypeAs(callExpression, typeof(object));
-        var lambda = Expression.Lambda(callExpression, instanceParameter.Yield().Concat(argumentsParameter).ToArray());
+        
+        
+        
+        Expression callExpression = Expression.Call(instanceUnary, m, argumentsUnary);
+        
+        if (m.ReturnType != typeof(void)) callExpression = Expression.TypeAs(callExpression, typeof(object));
+        var ps = instanceParameter.Yield().Concat(argumentsParameter).ToArray();
+        var lambda = Expression.Lambda(callExpression, ps);
         Delegate = lambda.Compile();
     }
-
-    public static IReadOnlyList<MethodCaller> GetMethodCallers(Type classType, BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static) => classType.GetMethods(flags).Select(o => new MethodCaller(o)).ToList();
-
-    public static MethodCaller? GetMethodCaller(Type classType, string methodName, params Type[] argumentTypes)
-    {
-        foreach (var caller in GetMethodCallers(classType))
-        {
-            if (caller.Name != methodName) continue;
-            if (caller.Parameters.Count != argumentTypes.Length) continue;
-
-            var allMatch = true;
-            for (var i = 0; i < argumentTypes.Length; i++)
-            {
-                if (caller.Parameters[i].ParameterType != argumentTypes[i]) allMatch = false;
-                if (!allMatch) break;
-            }
-
-            if (!allMatch) continue;
-
-            return caller;
-        }
-
-        return null;
-    }
-
-    // @formatter:off
-    public static MethodCaller? GetMethodCaller<T1>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1));
-    public static MethodCaller? GetMethodCaller<T1, T2>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15));
-    public static MethodCaller? GetMethodCaller<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Type classType, string methodName) => GetMethodCaller(classType, methodName, typeof(T1), typeof(T2), typeof(T3), typeof(T4), typeof(T5), typeof(T6), typeof(T7), typeof(T8), typeof(T9), typeof(T10), typeof(T11), typeof(T12), typeof(T13), typeof(T14), typeof(T15), typeof(T16));
-    // @formatter:on
 }

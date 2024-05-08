@@ -114,7 +114,7 @@ public abstract class TestBaseBase : IDisposable
         public object LockObject => lockObject.GetValue(TestOutputHelper).CheckNotNull();
 
         private readonly MethodSlim guardInitialized;
-        public void GuardInitialized() => guardInitialized.Invoke(TestOutputHelper);
+        public void GuardInitialized() => guardInitialized.Invoke(TestOutputHelper, []);
 
         public TestOutputHelper TestOutputHelper { get; }
 

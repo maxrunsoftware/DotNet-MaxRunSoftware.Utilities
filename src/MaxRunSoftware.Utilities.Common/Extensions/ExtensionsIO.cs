@@ -96,4 +96,101 @@ public static class ExtensionsIO
         if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return true;
         return false;
     }
+    
+    public record FileSystemInfosTyped(
+        List<DirectoryInfo> Directories,
+        List<FileInfo> Files
+    );
+    
+    public static FileSystemInfosTyped GetFileSystemInfosTyped(this DirectoryInfo info)
+    {
+        var fsis = info.GetFileSystemInfos();
+        var directories = new List<DirectoryInfo>(fsis.Length);
+        var files = new List<FileInfo>(fsis.Length);
+        
+        foreach (var fsi in fsis)
+        {
+            switch (fsi)
+            {
+                case FileInfo fi:
+                    files.Add(fi);
+                    break;
+                case DirectoryInfo di:
+                    directories.Add(di);
+                    break;
+                default:
+                    throw new NotImplementedException(fsi.GetType().FullNameFormatted());
+            }
+        }
+        
+        return new (directories, files);
+    }
+    
+    private static FileSystemEntry GetFileSystemEntry(DirectoryInfo directory)
+    {
+        List<DirectoryInfo>? directories = null;
+        List<FileInfo>? files = null;
+        Exception? exception = null;
+        try
+        {
+            var fsis = directory.GetFileSystemInfos();
+            foreach (var fsi in fsis)
+            {
+                switch (fsi)
+                {
+                    case FileInfo fi:
+                        files ??= new(fsis.Length);
+                        files.Add(fi);
+                        break;
+                    case DirectoryInfo di:
+                        directories ??= new(fsis.Length);
+                        directories.Add(di);
+                        break;
+                    default:
+                        throw new NotImplementedException(fsi.GetType().FullNameFormatted());
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            exception = e;
+        }
+        
+        return new(
+            directory,
+            directories == null ? Array.Empty<DirectoryInfo>() : directories.ToArray(),
+            files == null ? Array.Empty<FileInfo>() : files.ToArray(),
+            exception
+        );
+    }
+    
+    public static IEnumerable<FileSystemEntry> GetFileSystemEntries(this DirectoryInfo info, bool recursive)
+    {
+        var stack = new Stack<DirectoryInfo>();
+        stack.Push(info);
+        
+        while (stack.TryPop(out var directory))
+        {
+            var item = GetFileSystemEntry(directory);
+            if (recursive)
+            {
+                foreach (var subdir in item.Directories.Reverse())
+                {
+                    stack.Push(subdir);
+                }
+            }
+            yield return item;
+        }
+    }
+    
+    
+    
+    
 }
+
+public readonly record struct FileSystemEntry(
+    DirectoryInfo Directory,
+    DirectoryInfo[] Directories,
+    FileInfo[] Files,
+    Exception? Exception
+);

@@ -19,7 +19,7 @@ public static partial class Constant
 {
     #region NextInt
 
-    private static volatile int nextInt;
+    private static int nextInt;
 
     public static int NextInt() => Interlocked.Increment(ref nextInt);
 
@@ -37,7 +37,7 @@ public static partial class Constant
         // ReSharper disable once UnusedTypeParameter
         public class NextGenericInner<TT>
         {
-            public volatile int nextIntInner;
+            public int nextIntInner;
         }
     }
 }

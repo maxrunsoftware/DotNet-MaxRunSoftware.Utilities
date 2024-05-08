@@ -317,8 +317,8 @@ public static partial class Util
 
     #region Path
 
-    private static readonly string[] pathDelimitersStrings = Constant.PathDelimiters_String.ToArray();
-    public static string[] PathParts(string path) => path.Split(pathDelimitersStrings, StringSplitOptions.RemoveEmptyEntries).TrimOrNull().WhereNotNull().ToArray();
+    //private static readonly string[] pathDelimitersStrings = Constant.PathDelimiters_String.ToArray();
+    //public static string[] PathParts(string path) => path.Split(pathDelimitersStrings, StringSplitOptions.RemoveEmptyEntries).TrimOrNull().WhereNotNull().ToArray();
 
     /// <summary>
     /// Returns true if the path provided is an absolute (full) path

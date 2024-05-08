@@ -102,18 +102,9 @@ public static partial class Constant
     #endregion Encoding
 
     #region Path
+    
+    public static readonly bool Path_IsCaseSensitive = !(OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() || OperatingSystem.IsIOS() || OperatingSystem.IsTvOS() || OperatingSystem.IsWatchOS());
 
-    public static readonly ImmutableHashSet<char> PathDelimiters = new HashSet<char>(new[]
-    {
-        '/',
-        '\\',
-        Path.DirectorySeparatorChar,
-        Path.AltDirectorySeparatorChar,
-    }).ToImmutableHashSet();
-
-    public static readonly ImmutableHashSet<string> PathDelimiters_String = ImmutableHashSet.Create(PathDelimiters.Select(o => o.ToString()).ToArray());
-
-    public static readonly bool Path_IsCaseSensitive = !OS_Windows;
     public static readonly StringComparer Path_StringComparer = Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
     public static readonly StringComparison Path_StringComparison = Path_IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 

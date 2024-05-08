@@ -192,16 +192,16 @@ public static class ExtensionsLogging
         // ReSharper restore TemplateIsNotCompileTimeConstantProblem
     }
     
-    public static bool IsActiveFor(this LogLevel level, LogLevel loggingLevel) => level switch
+    public static bool IsActiveFor(this LogLevel logEventLevel, LogLevel loggerLevel) => logEventLevel switch
     {
-        LogLevel.Trace => loggingLevel is LogLevel.Trace,
-        LogLevel.Debug => loggingLevel is LogLevel.Trace or LogLevel.Debug,
-        LogLevel.Information => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information,
-        LogLevel.Warning => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning,
-        LogLevel.Error => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error,
-        LogLevel.Critical => loggingLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error or LogLevel.Critical,
+        LogLevel.Trace => loggerLevel is LogLevel.Trace,
+        LogLevel.Debug => loggerLevel is LogLevel.Trace or LogLevel.Debug,
+        LogLevel.Information => loggerLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information,
+        LogLevel.Warning => loggerLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning,
+        LogLevel.Error => loggerLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error,
+        LogLevel.Critical => loggerLevel is LogLevel.Trace or LogLevel.Debug or LogLevel.Information or LogLevel.Warning or LogLevel.Error or LogLevel.Critical,
         LogLevel.None => false,
-        _ => throw new ArgumentOutOfRangeException(nameof(loggingLevel), loggingLevel, null),
+        _ => throw new ArgumentOutOfRangeException(nameof(loggerLevel), loggerLevel, null),
     };
     
 

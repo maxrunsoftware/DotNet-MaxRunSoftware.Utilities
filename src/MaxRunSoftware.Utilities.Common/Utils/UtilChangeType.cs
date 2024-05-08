@@ -102,9 +102,9 @@ public static partial class Util
                 return Enum.Parse(outputType, str, true); // Should throw exception
             }
 
-            if (ExtensionsStringConversion.ConvertersNullable.TryGetValue(outputType, out var converterNullable)) return converterNullable.Invoke(null, str);
+            if (ExtensionsStringConversion.ConvertersNullable.TryGetValue(outputType, out var converterNullable)) return converterNullable.Invoke(null, [str, ]);
 
-            if (ExtensionsStringConversion.Converters.TryGetValue(outputType, out var converter)) return converter.Invoke(null, str);
+            if (ExtensionsStringConversion.Converters.TryGetValue(outputType, out var converter)) return converter.Invoke(null, [str, ]);
         }
 
         if (inputType.IsEnum) return ChangeType(obj.ToString(), outputType);

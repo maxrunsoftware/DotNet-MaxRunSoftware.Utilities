@@ -365,4 +365,22 @@ public static class ExtensionsReflection
         encoding.GetString(assembly.GetEmbeddedResource(filename));
 
     #endregion EmbeddedResource
+    
+    #region Attribute
+    
+    public static IEnumerable<(Type, T)> GetTypesWithAttribute<T>(this Assembly assembly, bool inherited = true) where T : Attribute
+    {
+        foreach (var type in assembly.GetTypes())
+        {
+            foreach (var attribute in type.GetCustomAttributes(inherited))
+            {
+                if (attribute is T a)
+                {
+                    yield return (type, a);
+                }
+            }
+        }
+    }
+    
+    #endregion Attribute
 }

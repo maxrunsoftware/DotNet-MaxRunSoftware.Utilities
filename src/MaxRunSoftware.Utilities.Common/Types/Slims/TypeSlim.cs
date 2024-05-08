@@ -88,3 +88,12 @@ public sealed class TypeSlim : ComparableClass<TypeSlim, TypeSlim.Comparer>
             ?? 0;
     }
 }
+
+public static class TypeSlimExtensions
+{
+    public static Type ToType(this TypeSlim obj) => obj;
+    public static TypeSlim ToTypeSlim(this Type obj) => obj;
+    
+    public static TypeInfo ToTypeInfo(this TypeSlim obj) => obj;
+    public static TypeSlim ToTypeSlim(this TypeInfo obj) => obj;
+}

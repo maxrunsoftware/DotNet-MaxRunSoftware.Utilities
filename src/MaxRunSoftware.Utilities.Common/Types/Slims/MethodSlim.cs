@@ -15,10 +15,12 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [PublicAPI]
-public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer>, ISlimValueGetterArgs
+public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer>, ISlimInvokable
 {
     public string Name { get; }
 
+    #region NameFull
+    
     public string NameFull => nameFull.Value;
     private readonly Lzy<string> nameFull;
     private string NameFullCreate()
@@ -54,12 +56,22 @@ public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer
         sb.Append(')');
         return sb.ToString();
     }
+    
+    #endregion NameFull
 
     public TypeSlim? TypeDeclaring { get; }
     public TypeSlim? ReturnType { get; }
     public MethodInfo Info { get; }
     public ImmutableArray<TypeSlim> GenericArguments { get; }
+    
+    public bool IsStatic { get; }
+    public bool IsOperatorImplicit { get; }
+    public bool IsOperatorExplicit { get; }
+    
+    public IEnumerable<Attribute> Attributes => Info.GetCustomAttributes();
 
+    #region Parameters
+    
     private readonly ImmutableArray<ParameterInfo> parametersRaw;
     public ImmutableArray<MethodSlimParameter> Parameters => parameters.Value;
     private readonly Lzy<ImmutableArray<MethodSlimParameter>> parameters;
@@ -69,15 +81,9 @@ public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer
             .Select(o => new ParameterSlim(o))
             .Select(o => new MethodSlimParameter(this, o))
             .ToImmutableArray();
-
-    private readonly Lzy<MethodCaller> invoker;
-
-    public bool IsStatic { get; }
-    public bool IsOperatorImplicit { get; }
-    public bool IsOperatorExplicit { get; }
-
-    public IEnumerable<Attribute> Attributes => Info.GetCustomAttributes();
-
+    
+    #endregion Parameters
+    
     public MethodSlim(MethodInfo info) : base(Comparer.Instance)
     {
         Info = info.CheckNotNull(nameof(info));
@@ -88,14 +94,16 @@ public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer
         IsStatic = info.IsStatic;
         GenericArguments = info.GetGenericArguments().Select(o => (TypeSlim)o).ToImmutableArray();
         parameters = Lzy.Create(ParametersCreate);
-        invoker = Lzy.Create(() => new MethodCaller(Info));
+        
         parametersRaw = Info.GetParameters().ToImmutableArray();
         IsOperatorImplicit = IsStatic && parametersRaw.Length == 1 && StringComparer.Ordinal.Equals(Name, "op_Implicit");
         IsOperatorExplicit = IsStatic && parametersRaw.Length == 1 && StringComparer.Ordinal.Equals(Name, "op_Explicit");
     }
 
+    #region override
 
     public override string ToString() => NameFull;
+    
     // ReSharper disable RedundantOverriddenMember
     public override bool Equals(object? obj) => base.Equals(obj);
     public override int GetHashCode() => base.GetHashCode();
@@ -135,13 +143,37 @@ public sealed class MethodSlim : ComparableClass<MethodSlim, MethodSlim.Comparer
             ?? CompareClassEnumerable(x.Parameters.Select(o => o.Parameter), y.Parameters.Select(o => o.Parameter))
             ?? 0;
     }
+    
+    #endregion override
 
     #region Extras
-
-    public object? Invoke(object? instance, params object?[] args) => invoker.Value.Invoke(instance, args);
-
-    public object? GetValue(object? instance) => GetValue(instance, Array.Empty<object?>());
-    public object? GetValue(object? instance, object?[] args) => Invoke(instance, args);
+    
+    public MethodCaller GetMethodCaller(Type[]? genericTypeArguments = null) => new(
+        genericTypeArguments != null && genericTypeArguments.Length > 0
+            ? Info.MakeGenericMethod(genericTypeArguments)
+            : Info
+    );
+    
+    public object? Invoke(object? instance, object?[]? args = null, Type[]? genericTypeArguments = null) => GetMethodCaller(genericTypeArguments).Invoke(instance, args ?? []);
+    
+    public object? GetValue(object? instance) => Invoke(instance);
 
     #endregion Extras
+}
+
+[PublicAPI]
+public static class MethodSlimExtensions
+{
+    public static ImmutableArray<MethodSlim> GetMethodSlims(this TypeSlim type, BindingFlags flags) =>
+        type.Type.GetMethodSlims(flags);
+    
+    public static ImmutableArray<MethodSlim> GetMethodSlims(this Type type, BindingFlags flags) =>
+        type.GetMethods(flags).Select(o => new MethodSlim(o)).ToImmutableArray();
+}
+
+[PublicAPI]
+public sealed class MethodSlimParameter(MethodSlim method, ParameterSlim parameter)
+{
+    public MethodSlim Method { get; } = method;
+    public ParameterSlim Parameter { get; } = parameter;
 }

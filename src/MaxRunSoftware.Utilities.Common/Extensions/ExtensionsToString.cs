@@ -12,40 +12,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Concurrent;
 using System.Data.Common;
 using System.Globalization;
 using System.Net;
+using System.Numerics;
 using System.Security;
 
 namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsToString
 {
+    public static int ToStringMaxStringLength<T>(this T value) where T : IMinMaxValue<T> =>
+        Math.Max(
+            Math.Max(
+                (T.MinValue.ToString() ?? string.Empty).Length,
+                (T.MaxValue.ToString() ?? string.Empty).Length
+            ),
+            (value.ToString() ?? string.Empty).Length
+        );
+    
     #region ToStringPadded
-
-    public static string ToStringPadded(this byte value) => value.ToString().PadLeft(byte.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this sbyte value) => value.ToString().PadLeft(sbyte.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this decimal value) => value.ToString(CultureInfo.InvariantCulture).PadLeft(decimal.MaxValue.ToString(CultureInfo.InvariantCulture).Length, '0');
-
-    public static string ToStringPadded(this double value) => value.ToString(CultureInfo.InvariantCulture).PadLeft(double.MaxValue.ToString(CultureInfo.InvariantCulture).Length, '0');
-
-    public static string ToStringPadded(this float value) => value.ToString(CultureInfo.InvariantCulture).PadLeft(float.MaxValue.ToString(CultureInfo.InvariantCulture).Length, '0');
-
-    public static string ToStringPadded(this int value) => value.ToString().PadLeft(int.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this uint value) => value.ToString().PadLeft(uint.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this long value) => value.ToString().PadLeft(long.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this ulong value) => value.ToString().PadLeft(ulong.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this short value) => value.ToString().PadLeft(short.MaxValue.ToString().Length, '0');
-
-    public static string ToStringPadded(this ushort value) => value.ToString().PadLeft(ushort.MaxValue.ToString().Length, '0');
-
+    
+    public static string ToStringPadded<T>(this T value, char paddingChar = '0', int? maxPaddingAmount = null) where T : INumber<T>, IMinMaxValue<T>
+    {
+        var padding = Math.Max(value.ToStringMaxStringLength(), 1);
+        padding = Math.Min(padding, maxPaddingAmount ?? int.MaxValue);
+        var s = value.ToString() ?? "?";
+        return s.PadLeft(padding, paddingChar);
+    }
+    
     #endregion ToStringPadded
+    
+    #region ToStringRunningCount
+    
+    /// <summary>
+    /// Gets a 001/100 format for a running count
+    /// </summary>
+    /// <param name="index">The zero based index, +1 will be added automatically</param>
+    /// <param name="total">The total number of items</param>
+    /// <param name="delimiter">The delimiter to use to separate index from total</param>
+    /// <param name="paddingChar">The character to prefix the index with</param>
+    /// <returns>001/100 formatted string</returns>
+    public static string ToStringRunningCount<T>(this T index, T total, string delimiter = "/", char paddingChar = '0') where T : IBinaryNumber<T>, IAdditionOperators<T, T, T>, IMinMaxValue<T>
+    {
+        var i = index + T.One;
+        var indexString = i.ToString() ?? string.Empty;
+        var totalString = total.ToString() ?? string.Empty;
+        
+        var maxPaddingAmount = Math.Max(indexString.Length, totalString.Length);
+        
+        return i.ToStringPadded(
+            paddingChar: paddingChar,
+            maxPaddingAmount: maxPaddingAmount
+        ) + delimiter + totalString;
+    }
+    
+    #endregion ToStringRunningCount
 
     #region ToStringCommas
 
@@ -72,8 +95,7 @@ public static class ExtensionsToString
     public static string ToString(this decimal value, MidpointRounding rounding, int decimalPlaces) => value.Round(rounding, decimalPlaces).ToString("N" + decimalPlaces).Replace(",", "");
 
     #endregion ToStringRoundAwayFromZero
-
-
+    
     public static string ToStringItems(this IEnumerable enumerable) => "[" + string.Join(", ", enumerable.Cast<object?>().Select(ToStringGuessFormat)) + "]";
 
     public static string ToString(this DateTime dateTime, DateTimeToStringFormat format) =>

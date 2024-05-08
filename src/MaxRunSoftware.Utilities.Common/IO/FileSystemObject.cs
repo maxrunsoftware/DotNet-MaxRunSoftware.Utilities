@@ -20,7 +20,7 @@ public abstract class FileSystemObject : ImmutableObjectBase<FileSystemObject>
 
     protected static readonly StringComparer STRING_COMPARER = Constant.Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
     protected static readonly StringComparison STRING_COMPARISON = Constant.Path_IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-    private static readonly char[] PATH_DELIMITERS = Constant.PathDelimiters.ToArray();
+    private static readonly char[] PATH_DELIMITERS = [System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar,];
 
     public string Path { get; }
 

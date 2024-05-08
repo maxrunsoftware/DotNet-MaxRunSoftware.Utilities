@@ -115,7 +115,7 @@ public static class Extensions
     public static Tuple<TKey, TValue> ToTuple<TKey, TValue>(this KeyValuePair<TKey, TValue> keyValuePair) => Tuple.Create(keyValuePair.Key, keyValuePair.Value);
 
     #endregion Conversion
-
+    
     public static Lazy<T> Initialize<T>(this Lazy<T> lazy)
     {
         if (lazy == null) throw new ArgumentNullException(nameof(lazy));

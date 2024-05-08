@@ -14,14 +14,15 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
+
 public interface ISlimValueGetter
 {
     object? GetValue(object? instance);
 }
 
-public interface ISlimValueGetterArgs : ISlimValueGetter
+public interface ISlimInvokable : ISlimValueGetter
 {
-    object? GetValue(object? instance, object?[] args);
+    object? Invoke(object? instance, object?[]? args = null, Type[]? genericTypeArguments = null);
 }
 
 public interface ISlimValueSetter

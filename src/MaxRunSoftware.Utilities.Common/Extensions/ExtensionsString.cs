@@ -810,8 +810,10 @@ public static class ExtensionsString
     [Pure]
     public static Type GuessType(this IEnumerable<string?> strings)
     {
+        // ReSharper disable once PossibleMultipleEnumeration
         strings.CheckNotNull(nameof(strings));
-
+        
+        // ReSharper disable once PossibleMultipleEnumeration
         var list2 = strings.TrimOrNull().ToList();
         var listCount = list2.Count;
 
@@ -911,7 +913,7 @@ public static class ExtensionsString
         return newArray;
     }
 
-    [Pure] public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).SplitOn(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
+    //[Pure] public static string[] SplitOnDirectorySeparator(this string? path) => (path ?? string.Empty).SplitOn(Constant.PathDelimiters).Where(o => o.TrimOrNull() != null).ToArray();
 
     /// <summary>
     /// This regex (^[a-z]+|[A-Z]+(?![a-z])|[A-Z][a-z]+) can be used to extract all words from the camelCase or PascalCase name.

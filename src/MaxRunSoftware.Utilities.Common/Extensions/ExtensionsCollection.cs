@@ -139,7 +139,7 @@ public static class ExtensionsCollection
     /// <typeparam name="T">Type</typeparam>
     /// <param name="enumerable">The enumerable to check for null</param>
     /// <returns>The same enumerable or if null an empty enumerable</returns>
-    public static IEnumerable<T> OrEmpty<T>(this IEnumerable<T>? enumerable) => enumerable ?? Enumerable.Empty<T>();
+    public static IEnumerable<T> OrEmpty<T>([NoEnumeration] this IEnumerable<T>? enumerable) => enumerable ?? Enumerable.Empty<T>();
 
     public static IReadOnlyCollection<T> OrEmpty<T>(this IReadOnlyCollection<T>? list) => list ?? EmptyReadOnlyList<T>.Instance;
 

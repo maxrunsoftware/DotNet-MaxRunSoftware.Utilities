@@ -266,7 +266,7 @@ public class FtpClientSFtp : FtpClientBase
             sftpSession = fieldSlim.GetValue(instance);
             if (sftpSession == null) return null;
 
-            var pathNew = methodSlim.Invoke(sftpSession, path);
+            var pathNew = methodSlim.Invoke(sftpSession, [path, ]);
             return pathNew as string;
         }
 

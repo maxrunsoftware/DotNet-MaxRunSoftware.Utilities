@@ -23,16 +23,17 @@ public static partial class Util
         obj is ExpandoObject
             ? ((IDictionary<string, object>)obj).ContainsKey(propertyName)
             : (bool)(obj.GetType().GetProperty(propertyName) != null);
-
+    
     /// <summary>
     /// Gets a 001/100 format for a running count
     /// </summary>
     /// <param name="index">The zero based index, +1 will be added automatically</param>
     /// <param name="total">The total number of items</param>
+    /// <param name="delimiter">The delimiter to use to separate index from total</param>
     /// <returns>001/100 formatted string</returns>
-    public static string FormatRunningCount(int index, int total) => (index + 1).ToStringPadded().Right(total.ToString().Length) + "/" + total;
+    public static string FormatRunningCount(int index, int total, string delimiter = "/") => (index + 1).ToStringPadded().Right(total.ToString().Length) + delimiter + total;
 
-    public static string FormatRunningCountPercent(int index, int total, int decimalPlaces)
+    public static string FormatRunningCountPercent(int index, int total, int decimalPlaces, string suffix = " %")
     {
         var len = 3;
         if (decimalPlaces > 0) len += 1; // decimal
@@ -43,7 +44,7 @@ public static partial class Util
         var totalDecimal = total;
         var multiplierDecimal = 100;
 
-        return (indexDecimal / totalDecimal * multiplierDecimal).ToString(MidpointRounding.AwayFromZero, decimalPlaces).PadLeft(len) + " %";
+        return (indexDecimal / totalDecimal * multiplierDecimal).ToString(MidpointRounding.AwayFromZero, decimalPlaces).PadLeft(len) + suffix;
     }
 
     public static string RandomString(int size, char[] characterPool)

@@ -39,7 +39,7 @@ public class MethodSlimTests(ITestOutputHelper testOutputHelper) : TestBaseBase(
         var mi = GetMethod(nameof(TestClassA.TestMethodStaticA));
         var ms = new MethodSlim(mi);
         var x = 2;
-        var o = ms.Invoke(null, x);
+        var o = ms.Invoke(null, [x, ] );
         Assert.NotNull(o!);
         Assert.IsType<string>(o);
         var y = (string)o;
