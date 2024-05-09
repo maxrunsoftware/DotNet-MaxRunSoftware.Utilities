@@ -26,5 +26,12 @@ public static partial class Constant
     public static readonly Guid Guid_Max = new("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF");
 
     public const float Float_Zero = 0;
+    public const float Float_One = 1;
+    public const float Float_One_Negative = -1;
+    public const float Float_Two = 2;
+    
     public const double Double_Zero = 0;
+    public const double Double_One = 1;
+    public const double Double_One_Negative = -1;
+    public const double Double_Two = 2;
 }

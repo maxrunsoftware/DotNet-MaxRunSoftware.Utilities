@@ -39,9 +39,7 @@ public static class ExtensionsColor
 
     public static Color Shift(this Color startColor, Color endColor, double percentShifted)
     {
-        if (percentShifted > 1d) percentShifted = 1d;
-
-        if (percentShifted < 0d) percentShifted = 0d;
+        percentShifted.CheckMin(Constant.Double_Zero).CheckMax(Constant.Double_One);
 
         //int rStart = startColor.R;
         //int rEnd = endColor.R;
