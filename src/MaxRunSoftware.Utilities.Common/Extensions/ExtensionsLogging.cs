@@ -15,6 +15,7 @@
 // ReSharper disable InconsistentNaming
 
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -204,5 +205,13 @@ public static class ExtensionsLogging
         _ => throw new ArgumentOutOfRangeException(nameof(loggerLevel), loggerLevel, null),
     };
     
+    
+    public static ILogger GetLogger(this IServiceProvider services, Type type)
+    {
+        var genericType = typeof(ILogger<>).MakeGenericType([type]);
+        var loggerObj = services.GetRequiredService(genericType);
+        var logger = (ILogger)loggerObj;
+        return logger;
+    }
 
 }
