@@ -10,10 +10,6 @@ public class OptionsAttribute(string configSectionPath) : Attribute
 {
     public string ConfigSectionPath { get; set; } = configSectionPath;
     
-    public static IEnumerable<(Type, OptionsAttribute)> GetTypesWithAttribute(Assembly assembly) => assembly.GetTypesWithAttribute<OptionsAttribute>(inherited: false);
-    
-    public static IEnumerable<(Type, OptionsAttribute)> GetTypesWithAttribute<TInAssembly>() => GetTypesWithAttribute(typeof(TInAssembly).Assembly);
-    
     public static OptionsAttribute? GetAttribute(Type type)
     {
         var attrs = type.GetCustomAttributes(false);
@@ -115,34 +111,34 @@ public static class OptionsAttributeExtensions
     
     public static IServiceCollection AddOptionsAndBind(
         this IServiceCollection services,
-        Type typeofOptionsServiceCollectionExtensions,
-        Type typeofOptionsBuilderConfigurationExtensions,
+        Type typeof_OptionsServiceCollectionExtensions,
+        Type typeof_OptionsBuilderConfigurationExtensions,
         Type optionsType,
         OptionsAttribute optionsAttribute
     )
     {
-        var optionsBuilder = AddOptions(typeofOptionsServiceCollectionExtensions, services, optionsType);
-        BindConfiguration(typeofOptionsBuilderConfigurationExtensions, optionsType, optionsBuilder, optionsAttribute);
+        var optionsBuilder = AddOptions(typeof_OptionsServiceCollectionExtensions, services, optionsType);
+        BindConfiguration(typeof_OptionsBuilderConfigurationExtensions, optionsType, optionsBuilder, optionsAttribute);
         return services;
     }
     
     public static IServiceCollection AddOptionsAndBind(
         this IServiceCollection services,
-        Type typeofOptionsServiceCollectionExtensions,
-        Type typeofOptionsBuilderConfigurationExtensions,
+        Type typeof_OptionsServiceCollectionExtensions,
+        Type typeof_OptionsBuilderConfigurationExtensions,
         Type optionsType
     ) => AddOptionsAndBind(
         services,
-        typeofOptionsServiceCollectionExtensions,
-        typeofOptionsBuilderConfigurationExtensions,
+        typeof_OptionsServiceCollectionExtensions,
+        typeof_OptionsBuilderConfigurationExtensions,
         optionsType,
         OptionsAttribute.GetAttribute(optionsType).CheckNotNull()
     );
     
     public static IServiceCollection AddOptionsAndBind(
         this IServiceCollection services,
-        Type typeofOptionsServiceCollectionExtensions,
-        Type typeofOptionsBuilderConfigurationExtensions,
+        Type typeof_OptionsServiceCollectionExtensions,
+        Type typeof_OptionsBuilderConfigurationExtensions,
         IEnumerable<(Type, OptionsAttribute)> options,
         Func<Type, OptionsAttribute, bool>? predicate = null
     )
@@ -153,8 +149,8 @@ public static class OptionsAttributeExtensions
             {
                 services = AddOptionsAndBind(
                     services,
-                    typeofOptionsServiceCollectionExtensions,
-                    typeofOptionsBuilderConfigurationExtensions,
+                    typeof_OptionsServiceCollectionExtensions,
+                    typeof_OptionsBuilderConfigurationExtensions,
                     optionsType,
                     optionsAttribute
                 );
@@ -166,28 +162,15 @@ public static class OptionsAttributeExtensions
     
     public static IServiceCollection AddOptionsAndBind(
         this IServiceCollection services,
-        Type typeofOptionsServiceCollectionExtensions,
-        Type typeofOptionsBuilderConfigurationExtensions,
+        Type typeof_OptionsServiceCollectionExtensions,
+        Type typeof_OptionsBuilderConfigurationExtensions,
         Assembly assembly,
         Func<Type, OptionsAttribute, bool>? predicate = null
     ) => AddOptionsAndBind(
         services,
-        typeofOptionsServiceCollectionExtensions,
-        typeofOptionsBuilderConfigurationExtensions,
-        OptionsAttribute.GetTypesWithAttribute(assembly),
-        predicate: predicate
-    );
-    
-    public static IServiceCollection AddOptionsAndBind<TInAssembly>(
-        this IServiceCollection services,
-        Type typeofOptionsServiceCollectionExtensions,
-        Type typeofOptionsBuilderConfigurationExtensions,
-        Func<Type, OptionsAttribute, bool>? predicate = null
-    ) => AddOptionsAndBind(
-        services,
-        typeofOptionsServiceCollectionExtensions,
-        typeofOptionsBuilderConfigurationExtensions,
-        OptionsAttribute.GetTypesWithAttribute<TInAssembly>(),
+        typeof_OptionsServiceCollectionExtensions,
+        typeof_OptionsBuilderConfigurationExtensions,
+        assembly.GetTypesWithAttribute<OptionsAttribute>(inherited: false),
         predicate: predicate
     );
 }

@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace MaxRunSoftware.Utilities.Common.Tests.Types;
 
@@ -54,7 +53,7 @@ public class OptionsAttributeTests(ITestOutputHelper testOutputHelper) : TestBas
         
         s.AddSingleton<IConfiguration>(builder.Configuration);
         s.AddSingleton<TestService>();
-        s.AddOptionsAndBind<TestOptions>(typeof(OptionsServiceCollectionExtensions), typeof(OptionsBuilderConfigurationExtensions));
+        s.AddOptionsAndBind(typeof(OptionsServiceCollectionExtensions), typeof(OptionsBuilderConfigurationExtensions), typeof(TestOptions).Assembly);
         
         var host = builder.Build();
         var ts = host.Services.GetRequiredService<TestService>();
