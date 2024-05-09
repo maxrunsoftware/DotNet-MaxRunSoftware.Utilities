@@ -205,7 +205,6 @@ public static class ExtensionsLogging
         _ => throw new ArgumentOutOfRangeException(nameof(loggerLevel), loggerLevel, null),
     };
     
-    
     public static ILogger GetLogger(this IServiceProvider services, Type type)
     {
         var genericType = typeof(ILogger<>).MakeGenericType([type]);
@@ -213,5 +212,4 @@ public static class ExtensionsLogging
         var logger = (ILogger)loggerObj;
         return logger;
     }
-
 }
