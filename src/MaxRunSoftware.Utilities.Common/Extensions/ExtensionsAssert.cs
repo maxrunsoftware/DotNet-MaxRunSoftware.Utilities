@@ -35,30 +35,48 @@ public class AssertException : DebugException
 
 public static class ExtensionsAssert
 {
+    private static volatile bool isEnabled = isEnabled_Default();
+    
+    private static bool isEnabled_Default()
+    {
+        foreach (var envVar in new[] {"DOTNET_ENVIRONMENT", "ASPNETCORE_ENVIRONMENT", "DOTNETCORE_ENVIRONMENT", })
+        {
+            var env = Environment.GetEnvironmentVariable(envVar);
+            if (env == null) continue;
+            env = env.Trim();
+            if (env.Length == 0) continue;
+            foreach (var val in new[] { "Development", "Dev", "Testing", "Test", })
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(env, val)) return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public static bool IsEnabled { get => isEnabled; set => isEnabled = value; }
+    
     public static void AssertTrue(this bool obj)
     {
-#if DEBUG
+        if (!IsEnabled) return;
         if (!obj) throw new AssertException("Expected value to be true");
-#endif
     }
 
     public static void AssertFalse(this bool obj)
     {
-#if DEBUG
+        if (!IsEnabled) return;
         if (obj) throw new AssertException("Expected value to be false");
-#endif
     }
 
     public static void AssertNotNull(this object? obj)
     {
-#if DEBUG
+        if (!IsEnabled) return;
         if (obj == null) throw new AssertException("Expected value to not be null");
-#endif
     }
 
     public static void AssertIsType(this object obj, bool isExactType, params Type[] types)
     {
-#if DEBUG
+        if (!IsEnabled) return;
         AssertNotNull(obj);
         if (obj == null) return; // don't throw NRE
 
@@ -79,12 +97,11 @@ public static class ExtensionsAssert
         }
 
         throw new AssertException($"Object {obj} is not assignable to any of the types ({types.Length}) specified: " + types.Select(o => o.NameFormatted()).ToStringDelimited(" | "));
-#endif
     }
 
     public static void AssertEmpty<T>(this T obj)
     {
-#if DEBUG
+        if (!IsEnabled) return;
         if (obj is string str && str.Length > 0) throw new AssertException("Expected collection to be empty");
         if (obj is ICollection collection && collection.Count > 0) throw new AssertException("Expected collection to be empty");
         if (obj is Array array)
@@ -97,6 +114,18 @@ public static class ExtensionsAssert
         {
             foreach (var _ in enumerable) throw new AssertException("Expected enumerable to be empty");
         }
-#endif
+    }
+    
+    public static void AssertIsEqual<T>(this T x, T y)
+    {
+        if (!IsEnabled) return;
+        if (ReferenceEquals(x, y)) return;
+        if (ReferenceEquals(x, null))
+        {
+            if (ReferenceEquals(y, null)) return; // both null
+            throw new AssertException($"T:[{typeof(T).FullNameFormatted()}] {nameof(x)}:null != {nameof(y)}:{y}");
+        }
+        if (ReferenceEquals(y, null)) throw new AssertException($"T:[{typeof(T).FullNameFormatted()}] {nameof(x)}:{x} != {nameof(y)}:null");
+        if (!x.Equals(y)) throw new AssertException($"T:[{typeof(T).FullNameFormatted()}] {nameof(x)}:{x} != {nameof(y)}:{y} ");
     }
 }
