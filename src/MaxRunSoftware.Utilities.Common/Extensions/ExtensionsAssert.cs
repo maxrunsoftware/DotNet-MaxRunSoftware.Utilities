@@ -35,24 +35,7 @@ public class AssertException : DebugException
 
 public static class ExtensionsAssert
 {
-    private static volatile bool isEnabled = isEnabled_Default();
-    
-    private static bool isEnabled_Default()
-    {
-        foreach (var envVar in new[] {"DOTNET_ENVIRONMENT", "ASPNETCORE_ENVIRONMENT", "DOTNETCORE_ENVIRONMENT", })
-        {
-            var env = Environment.GetEnvironmentVariable(envVar);
-            if (env == null) continue;
-            env = env.Trim();
-            if (env.Length == 0) continue;
-            foreach (var val in new[] { "Development", "Dev", "Testing", "Test", })
-            {
-                if (StringComparer.OrdinalIgnoreCase.Equals(env, val)) return true;
-            }
-        }
-        
-        return false;
-    }
+    private static volatile bool isEnabled = Constant.IsDebug;
     
     public static bool IsEnabled { get => isEnabled; set => isEnabled = value; }
     

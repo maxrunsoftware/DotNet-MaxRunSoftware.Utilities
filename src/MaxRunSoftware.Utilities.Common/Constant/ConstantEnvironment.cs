@@ -19,6 +19,46 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    #region IsDebug
+    
+    private static volatile bool isDebug = IsDebug_Default();
+
+    public static bool IsDebug { get => isDebug; set => isDebug = value; }
+    
+    private static bool IsDebug_Default()
+    {
+        var envNames = new[] { "DOTNET_ENVIRONMENT", "ASPNETCORE_ENVIRONMENT", "DOTNETCORE_ENVIRONMENT", "MRS_ENVIRONMENT", };
+        var envVals = new[] { "Development", "Dev", "Testing", "Test", };
+        
+        foreach (var envName in envNames)
+        {
+            var v = GetEnvVar(envName);
+            if (v != null)
+            {
+                foreach (var envVal in envVals)
+                {
+                    if (StringComparer.OrdinalIgnoreCase.Equals(envVal, v)) return true;
+                }
+            }
+        }
+        
+        return false;
+        
+        static string? GetEnvVar(string name)
+        {
+            try
+            {
+                return TrimOrNull(Environment.GetEnvironmentVariable(name));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+    }
+    
+    #endregion IsDebug
+    
     #region OS
 
     /// <summary>
@@ -107,6 +147,6 @@ public static partial class Constant
 
     public static readonly StringComparer Path_StringComparer = Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
     public static readonly StringComparison Path_StringComparison = Path_IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-
+    
     #endregion Path
 }
