@@ -14,32 +14,15 @@
 
 using System.Net;
 using System.Net.Http;
-using MaxRunSoftware.Utilities.Web.Server.EmbedIO;
-
-// ReSharper disable PossibleNullReferenceException
-// ReSharper disable AssignNullToNotNullAttribute
 
 namespace MaxRunSoftware.Utilities.Web.Tests;
 
+// ReSharper disable PossibleNullReferenceException
+// ReSharper disable AssignNullToNotNullAttribute
 public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS)
 {
     protected readonly HttpIO httpIO = new();
-
-    protected WebServer CreateWebServer()
-    {
-        var ws = new WebServer(LoggerProvider);
-        ws.Port = TestConfig.DEFAULT_PORT;
-        return ws;
-    }
-
-    protected WebServer StartWebServer(Func<WebServerHttpContext, Task> handler)
-    {
-        var ws = CreateWebServer();
-        ws.Handler = handler;
-        ws.Start();
-        return ws;
-    }
-
+    
     /// <summary>
     /// https://stackoverflow.com/a/27108442
     /// </summary>

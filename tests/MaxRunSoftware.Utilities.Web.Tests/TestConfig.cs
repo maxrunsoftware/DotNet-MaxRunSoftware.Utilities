@@ -18,11 +18,7 @@ namespace MaxRunSoftware.Utilities.Web.Tests;
 // ReSharper disable StringLiteralTypo
 public static class TestConfig
 {
-    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = new[]
-    {
-        SkippedTest.Create<WebServerTests>(nameof(WebServerTests.WebServer_Run), "just runs the web server"),
-    }.ToImmutableArray();
-
+    public static readonly ImmutableArray<SkippedTest> IGNORED_TESTS = [];
 
     public static readonly string DEFAULT_HOST = "localhost";
     public static readonly ushort DEFAULT_PORT = 32913;
