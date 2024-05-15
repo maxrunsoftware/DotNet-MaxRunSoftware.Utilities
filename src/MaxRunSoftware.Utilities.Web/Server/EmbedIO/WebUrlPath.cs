@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace MaxRunSoftware.Utilities.Web.Server;
+namespace MaxRunSoftware.Utilities.Web.Server.EmbedIO;
 
 public class WebUrlPath : ComparerBaseClass<WebUrlPath>, IReadOnlyList<string>
 {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using MaxRunSoftware.Utilities.Web.Server;
+using MaxRunSoftware.Utilities.Web.Server.EmbedIO;
 
 // ReSharper disable PossibleNullReferenceException
 

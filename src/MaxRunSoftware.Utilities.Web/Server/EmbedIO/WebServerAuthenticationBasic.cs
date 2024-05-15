@@ -15,7 +15,7 @@
 using System.Net;
 using EmbedIO;
 
-namespace MaxRunSoftware.Utilities.Web.Server;
+namespace MaxRunSoftware.Utilities.Web.Server.EmbedIO;
 
 public class WebServerAuthenticationBasicModule : WebModuleBase
 {

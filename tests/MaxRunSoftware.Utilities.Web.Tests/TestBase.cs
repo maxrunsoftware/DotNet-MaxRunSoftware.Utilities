@@ -14,7 +14,7 @@
 
 using System.Net;
 using System.Net.Http;
-using MaxRunSoftware.Utilities.Web.Server;
+using MaxRunSoftware.Utilities.Web.Server.EmbedIO;
 
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute

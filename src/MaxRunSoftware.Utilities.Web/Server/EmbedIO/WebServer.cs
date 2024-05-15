@@ -21,10 +21,12 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevelSwan = Swan.Logging.LogLevel;
 using LogLevelMicrosoft = Microsoft.Extensions.Logging.LogLevel;
 using ILoggerSwan = Swan.Logging.ILogger;
+using EmbedIOWebServer = EmbedIO.WebServer;
+using MaxRunSoftware.Utilities.Web.Server;
 
 // ReSharper disable InconsistentlySynchronizedField
 
-namespace MaxRunSoftware.Utilities.Web.Server;
+namespace MaxRunSoftware.Utilities.Web.Server.EmbedIO;
 
 public class WebServer : IDisposable
 {
@@ -90,7 +92,7 @@ public class WebServer : IDisposable
     private readonly SingleUse disposable;
 
     public WebServerOptions ServerOptions { get; set; }
-    public EmbedIO.WebServer? Server { get; private set; }
+    public EmbedIOWebServer? Server { get; private set; }
     public int ResponseDelayMilliseconds { get; set; } = 100;
 
     public Func<WebServerHttpContext, Task>? Handler { get; set; }
@@ -159,9 +161,9 @@ public class WebServer : IDisposable
         {
             log.LogDebugMethod(new(), "Registering URL {Url}", urlPrefix);
         }
-
-
-        EmbedIO.WebServer s = new(ServerOptions);
+        
+        
+        EmbedIOWebServer s = new EmbedIOWebServer(ServerOptions);
 
         var authBasic = new WebServerAuthenticationBasicModule(loggerProvider, () => BasicAuthenticationHandler);
         s.WithModule(authBasic);
