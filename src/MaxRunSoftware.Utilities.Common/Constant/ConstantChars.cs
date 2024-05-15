@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ReSharper disable StringLiteralTypo
-
 namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable InconsistentNaming
+// ReSharper disable StringLiteralTypo
 public static partial class Constant
 {
     /// <summary>
@@ -27,7 +26,7 @@ public static partial class Constant
     /// <summary>
     /// Characters A-Z
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_A_Z_Upper = ImmutableArray.Create(Chars_A_Z_Upper_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_A_Z_Upper = [..Chars_A_Z_Upper_String.ToCharArray()];
 
     /// <summary>
     /// Characters a-z
@@ -37,7 +36,7 @@ public static partial class Constant
     /// <summary>
     /// Characters a-z
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_A_Z_Lower = ImmutableArray.Create(Chars_A_Z_Lower_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_A_Z_Lower = [..Chars_A_Z_Lower_String.ToCharArray()];
 
     /// <summary>
     /// Numbers 0-9
@@ -47,7 +46,7 @@ public static partial class Constant
     /// <summary>
     /// Numbers 0-9
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_0_9 = ImmutableArray.Create(Chars_0_9_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_0_9 = [..Chars_0_9_String.ToCharArray()];
 
     /// <summary>
     /// A-Z a-z 0-9
@@ -57,7 +56,7 @@ public static partial class Constant
     /// <summary>
     /// A-Z a-z 0-9
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_Alphanumeric = ImmutableArray.Create(Chars_Alphanumeric_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_Alphanumeric = [..Chars_Alphanumeric_String.ToCharArray()];
 
     /// <summary>
     /// Printable characters (33 - 126)
@@ -67,7 +66,7 @@ public static partial class Constant
     /// <summary>
     /// Printable characters (33 - 126)
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_Printable = ImmutableArray.Create(Chars_Printable_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_Printable = [..Chars_Printable_String.ToCharArray()];
 
     /// <summary>
     /// Printable characters including space character (32 - 126)
@@ -77,5 +76,5 @@ public static partial class Constant
     /// <summary>
     /// Printable characters including space character (32 - 126)
     /// </summary>
-    public static readonly ImmutableArray<char> Chars_Printable_Space = ImmutableArray.Create(Chars_Printable_Space_String.ToCharArray());
+    public static readonly ImmutableArray<char> Chars_Printable_Space = [..Chars_Printable_Space_String.ToCharArray()];
 }

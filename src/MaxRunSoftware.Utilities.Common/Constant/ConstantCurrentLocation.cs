@@ -21,7 +21,7 @@ public static partial class Constant
 {
     #region Path_Current_Locations
 
-    public static readonly ImmutableArray<string> Path_Current_Locations = ImmutableArray.Create(Path_Current_Locations_Create().ToArray());
+    public static readonly ImmutableArray<string> Path_Current_Locations = [..Path_Current_Locations_Create()];
 
     private static List<string> Path_Current_Locations_Create()
     {
@@ -50,13 +50,13 @@ public static partial class Constant
                 if (pathNullable == null) continue;
                 path = pathNullable;
             }
-            catch { }
+            catch { /* swallow */ }
 
             try
             {
                 path = Path.GetFullPath(path);
             }
-            catch { }
+            catch { /* swallow */ }
 
             try
             {
@@ -70,11 +70,11 @@ public static partial class Constant
                             path += "." + extension;
                             break;
                         }
-                        catch { }
+                        catch { /* swallow */ }
                     }
                 }
             }
-            catch { }
+            catch { /* swallow */ }
 
             if (!set.Add(path)) continue;
 
@@ -88,7 +88,7 @@ public static partial class Constant
 
     #region Path_Current_Directories
 
-    public static readonly ImmutableArray<string> Path_Current_Directories = ImmutableArray.Create(Path_Current_Directories_Create().ToArray());
+    public static readonly ImmutableArray<string> Path_Current_Directories = [..Path_Current_Directories_Create()];
 
     private static List<string> Path_Current_Directories_Create()
     {
@@ -114,7 +114,7 @@ public static partial class Constant
                     if (set.Add(location2)) list.Add(location2);
                 }
             }
-            catch { }
+            catch { /* swallow */ }
         }
 
         return list;
@@ -126,7 +126,7 @@ public static partial class Constant
 
     #region Path_Current_Files
 
-    public static readonly ImmutableArray<string> Path_Current_Files = ImmutableArray.Create(Path_Current_Files_Create().ToArray());
+    public static readonly ImmutableArray<string> Path_Current_Files = [..Path_Current_Files_Create()];
 
     private static List<string> Path_Current_Files_Create()
     {
@@ -140,7 +140,7 @@ public static partial class Constant
                 if (!File.Exists(location)) continue;
                 if (set.Add(location)) list.Add(location);
             }
-            catch { }
+            catch { /* swallow */ }
         }
 
         return list;

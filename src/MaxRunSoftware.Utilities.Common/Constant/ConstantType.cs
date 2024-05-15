@@ -17,7 +17,8 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
-    public static readonly ImmutableHashSet<Type> Types_Numeric = CreateHashSet(
+    public static readonly FrozenSet<Type> Types_Numeric = new[]
+    {
         typeof(sbyte), typeof(byte),
         typeof(short), typeof(ushort),
         typeof(int), typeof(uint),
@@ -25,20 +26,22 @@ public static partial class Constant
         typeof(float),
         typeof(double),
         typeof(decimal)
-    );
+    }.ToFrozenSet();
 
-    public static readonly ImmutableHashSet<Type> Types_Numeric_Nullable = CreateHashSet(Types_Numeric.Select(o => typeof(Nullable<>).MakeGenericType(o)).ToArray());
-
-    public static readonly ImmutableHashSet<Type> Types_Decimal = CreateHashSet(
+    public static readonly FrozenSet<Type> Types_Numeric_Nullable = Types_Numeric.Select(o => typeof(Nullable<>).MakeGenericType(o)).ToFrozenSet();
+    
+    public static readonly FrozenSet<Type> Types_Decimal = new[]
+    {
         typeof(float),
         typeof(double),
         typeof(decimal)
-    );
+    }.ToFrozenSet();
 
-    public static readonly ImmutableHashSet<Type> Types_Decimal_Nullable = CreateHashSet(Types_Decimal.Select(o => typeof(Nullable<>).MakeGenericType(o)).ToArray());
-
-
-    public static readonly ImmutableDictionary<Type, string> Type_PrimitiveAlias = CreateDictionary(
+    public static readonly FrozenSet<Type> Types_Decimal_Nullable = Types_Decimal.Select(o => typeof(Nullable<>).MakeGenericType(o)).ToFrozenSet();
+    
+    
+    public static readonly FrozenDictionary<Type, string> Type_PrimitiveAlias = new[]
+    {
         // ReSharper disable BuiltInTypeReferenceStyle
         (typeof(Boolean), "bool"), (typeof(Boolean?), "bool?"),
         (typeof(SByte), "sbyte"), (typeof(SByte?), "sbyte?"),
@@ -57,9 +60,11 @@ public static partial class Constant
         (typeof(String), "string"),
         (typeof(void), "void")
         // ReSharper restore BuiltInTypeReferenceStyle
-    );
+    }.ConstantToFrozenDictionaryTry();
 
-    public static readonly ImmutableDictionary<string, Type> PrimitiveAlias_Type = CreateDictionary(Type_PrimitiveAlias.Select(o => (o.Value, o.Key)).ToArray());
+    public static readonly FrozenDictionary<string, Type> PrimitiveAlias_Type = Type_PrimitiveAlias
+        .Select(o => (o.Value, o.Key))
+        .ConstantToFrozenDictionaryTry(StringComparer.OrdinalIgnoreCase);
 
 
     public const BindingFlags BindingFlag_Lookup_Default = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public; // https://referencesource.microsoft.com/#mscorlib/system/type.cs,1868

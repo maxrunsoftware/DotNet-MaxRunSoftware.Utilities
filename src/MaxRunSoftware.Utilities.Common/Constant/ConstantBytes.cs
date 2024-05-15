@@ -18,16 +18,22 @@ namespace MaxRunSoftware.Utilities.Common;
 public static partial class Constant
 {
     public const long Bytes_Byte = 1L;
+    
     public const long Bytes_Kilo = 1000L;
     public const long Bytes_Kibi = 1024L;
+    
     public const long Bytes_Mega = 1000000L;
     public const long Bytes_Mebi = 1048576L;
+    
     public const long Bytes_Giga = 1000000000L;
     public const long Bytes_Gibi = 1073741824L;
+    
     public const long Bytes_Tera = 1000000000000L;
     public const long Bytes_Tebi = 1099511627776L;
+    
     public const long Bytes_Peta = 1000000000000000L;
     public const long Bytes_Pebi = 1125899906842624L;
+    
     public const long Bytes_Exa = 1000000000000000000L;
     public const long Bytes_Exbi = 1152921504606846976L;
 }

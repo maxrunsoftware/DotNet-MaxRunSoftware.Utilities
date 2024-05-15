@@ -23,7 +23,7 @@ public static partial class Constant
     /// <summary>
     /// Map of HttpRequestHeader types to the HTTP header name
     /// </summary>
-    public static readonly ImmutableDictionary<HttpRequestHeader, string> HttpRequestHeader_String = CreateDictionary(
+    public static readonly FrozenDictionary<HttpRequestHeader, string> HttpRequestHeader_String = new[] {
         (HttpRequestHeader.CacheControl, "Cache-Control"),
         (HttpRequestHeader.Connection, "Connection"),
         (HttpRequestHeader.Date, "Date"),
@@ -65,18 +65,21 @@ public static partial class Constant
         (HttpRequestHeader.Te, "Te"),
         (HttpRequestHeader.Translate, "Translate"),
         (HttpRequestHeader.UserAgent, "User-Agent")
-    );
-
+    }.ConstantToFrozenDictionaryTry();
+    
     /// <summary>
     /// Map of HTTP header name to HttpRequestHeader types
     /// </summary>
-    public static readonly ImmutableDictionary<string, HttpRequestHeader> String_HttpRequestHeader = TransposeDictionary(StringComparer.OrdinalIgnoreCase, HttpRequestHeader_String);
-
-
+    public static readonly FrozenDictionary<string, HttpRequestHeader> String_HttpRequestHeader = HttpRequestHeader_String
+        .Select(kvp => (kvp.Value, kvp.Key))
+        .ConstantToFrozenDictionaryTry(StringComparer.OrdinalIgnoreCase);
+    
+    
     /// <summary>
     /// Map of HttpResponseHeader types to the HTTP header name
     /// </summary>
-    public static readonly ImmutableDictionary<HttpResponseHeader, string> HttpResponseHeader_String = CreateDictionary(
+    public static readonly FrozenDictionary<HttpResponseHeader, string> HttpResponseHeader_String = new[]
+    {
         (HttpResponseHeader.CacheControl, "Cache-Control"),
         (HttpResponseHeader.Connection, "Connection"),
         (HttpResponseHeader.Date, "Date"),
@@ -107,18 +110,20 @@ public static partial class Constant
         (HttpResponseHeader.SetCookie, "Set-Cookie"),
         (HttpResponseHeader.Vary, "Vary"),
         (HttpResponseHeader.WwwAuthenticate, "WWW-Authenticate")
-    );
+    }.ConstantToFrozenDictionaryTry();
 
     /// <summary>
     /// Map of HTTP header name to HttpResponseHeader types
     /// </summary>
-    public static readonly ImmutableDictionary<string, HttpResponseHeader> String_HttpResponseHeader = TransposeDictionary(StringComparer.OrdinalIgnoreCase, HttpResponseHeader_String);
+    public static readonly FrozenDictionary<string, HttpResponseHeader> String_HttpResponseHeader = HttpResponseHeader_String
+        .Select(kvp => (kvp.Value, kvp.Key))
+        .ConstantToFrozenDictionaryTry(StringComparer.OrdinalIgnoreCase);
 
 
     /// <summary>
     /// Map of Http Status Codes to descriptions
     /// </summary>
-    public static readonly ImmutableDictionary<int, string> HttpStatusCodeInt_HttpStatusDescription = CreateDictionary(
+    public static readonly FrozenDictionary<int, string> HttpStatusCodeInt_HttpStatusDescription = new[] {
         (100, "Continue"),
         (101, "Switching Protocols"),
         (102, "Processing"),
@@ -179,13 +184,13 @@ public static partial class Constant
         (508, "Loop Detected"),
         (510, "Not Extended"),
         (511, "Network Authentication Required")
-    );
+    }.ConstantToFrozenDictionaryTry();
 
 
     /// <summary>
     /// Map of HttpRequestMethod to HttpMethod
     /// </summary>
-    public static readonly ImmutableDictionary<HttpRequestMethod, HttpMethod> HttpRequestMethod_HttpMethod = CreateDictionary(
+    public static readonly FrozenDictionary<HttpRequestMethod, HttpMethod> HttpRequestMethod_HttpMethod = new[] {
         (HttpRequestMethod.Get, HttpMethod.Get),
         (HttpRequestMethod.Put, HttpMethod.Put),
         (HttpRequestMethod.Post, HttpMethod.Post),
@@ -195,12 +200,14 @@ public static partial class Constant
         (HttpRequestMethod.Trace, HttpMethod.Trace),
         (HttpRequestMethod.Patch, HttpMethod.Patch),
         (HttpRequestMethod.Connect, HttpMethod.Connect)
-    );
+    }.ConstantToFrozenDictionaryTry();
 
     /// <summary>
     /// Map of HttpMethod to HttpRequestMethod
     /// </summary>
-    public static readonly ImmutableDictionary<HttpMethod, HttpRequestMethod> HttpMethod_HttpRequestMethod = TransposeDictionary(HttpRequestMethod_HttpMethod);
+    public static readonly FrozenDictionary<HttpMethod, HttpRequestMethod> HttpMethod_HttpRequestMethod = HttpRequestMethod_HttpMethod
+        .Select(kvp => (kvp.Value, kvp.Key))
+        .ConstantToFrozenDictionaryTry();
 }
 
 public enum HttpRequestMethod

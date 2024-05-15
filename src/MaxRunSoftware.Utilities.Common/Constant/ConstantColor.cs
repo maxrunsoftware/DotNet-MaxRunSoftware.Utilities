@@ -17,9 +17,6 @@ using System.Drawing;
 namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable InconsistentNaming
-/// <summary>
-/// https://stackoverflow.com/a/12340136
-/// </summary>
 public static partial class Constant
 {
     private sealed class ColorEqualityComparerImpl : IEqualityComparer<Color>
@@ -41,13 +38,13 @@ public static partial class Constant
     /// <summary>
     /// Case-insensitive map of Color names to Colors
     /// </summary>
-    public static readonly ImmutableDictionary<string, Color> Name_Color = Name_Color_Create();
+    public static readonly FrozenDictionary<string, Color> Name_Color = Name_Color_Create();
 
-    private static ImmutableDictionary<string, Color> Name_Color_Create()
+    private static FrozenDictionary<string, Color> Name_Color_Create()
     {
         // https://stackoverflow.com/a/3821197
-
-        var b = ImmutableDictionary.CreateBuilder<string, Color>(StringComparer.OrdinalIgnoreCase);
+        // https://stackoverflow.com/a/12340136
+        var b = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
 
         try
         {
@@ -75,17 +72,17 @@ public static partial class Constant
         }
         catch (Exception e) { LogError(e); }
 
-        return b.ToImmutable();
+        return b.ToFrozenDictionary();
     }
     
     /// <summary>
     /// Case-insensitive map of hex values to known Colors
     /// </summary>
-    public static readonly ImmutableDictionary<string, Color> Hex_Color = Hex_Color_Create();
+    public static readonly FrozenDictionary<string, Color> Hex_Color = Hex_Color_Create();
     
-    private static ImmutableDictionary<string, Color> Hex_Color_Create()
+    private static FrozenDictionary<string, Color> Hex_Color_Create()
     {
-        var b = ImmutableDictionary.CreateBuilder<string, Color>(StringComparer.OrdinalIgnoreCase);
+        var b = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase);
         
         try
         {
@@ -97,14 +94,14 @@ public static partial class Constant
         }
         catch (Exception e) { LogError(e); }
         
-        return b.ToImmutable();
+        return b.ToFrozenDictionary();
     }
     
-    public static readonly ImmutableDictionary<KnownColor, Color> KnownColor_Color = KnownColor_Color_Create();
+    public static readonly FrozenDictionary<KnownColor, Color> KnownColor_Color = KnownColor_Color_Create();
     
-    private static ImmutableDictionary<KnownColor, Color> KnownColor_Color_Create()
+    private static FrozenDictionary<KnownColor, Color> KnownColor_Color_Create()
     {
-        var b = ImmutableDictionary.CreateBuilder<KnownColor, Color>();
+        var b = new Dictionary<KnownColor, Color>();
         
         try
         {
@@ -116,14 +113,14 @@ public static partial class Constant
         }
         catch (Exception e) { LogError(e); }
         
-        return b.ToImmutable();
+        return b.ToFrozenDictionary();
     }
     
-    public static readonly ImmutableDictionary<Color, KnownColor> Color_KnownColor = Color_KnownColor_Create();
+    public static readonly FrozenDictionary<Color, KnownColor> Color_KnownColor = Color_KnownColor_Create();
     
-    private static ImmutableDictionary<Color, KnownColor> Color_KnownColor_Create()
+    private static FrozenDictionary<Color, KnownColor> Color_KnownColor_Create()
     {
-        var b = ImmutableDictionary.CreateBuilder<Color, KnownColor>(ColorEqualityComparer);
+        var b = new Dictionary<Color, KnownColor>(ColorEqualityComparer);
         
         try
         {
@@ -134,6 +131,6 @@ public static partial class Constant
         }
         catch (Exception e) { LogError(e); }
         
-        return b.ToImmutable();
+        return b.ToFrozenDictionary();
     }
 }

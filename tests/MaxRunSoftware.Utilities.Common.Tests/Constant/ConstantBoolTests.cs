@@ -29,7 +29,7 @@ public class ConstantBoolTests(ITestOutputHelper testOutputHelper) : TestBaseBas
         };
         foreach (var val in vals)
         {
-            Assert.Contains(val, Constant.Bool_True);
+            Assert.Contains(val, Constant.Bool_True.ToArray());
         }
     }
 
@@ -46,7 +46,7 @@ public class ConstantBoolTests(ITestOutputHelper testOutputHelper) : TestBaseBas
         };
         foreach (var val in vals)
         {
-            Assert.Contains(val, Constant.Bool_False);
+            Assert.Contains(val, Constant.Bool_False.ToArray());
         }
     }
 }

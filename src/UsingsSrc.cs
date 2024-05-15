@@ -21,6 +21,7 @@ global using System.Data;
 global using System.Diagnostics.Contracts;
 global using System.IO;
 global using System.Collections.Immutable;
+global using System.Collections.Frozen;
 global using System.Linq;
 global using System.Reflection;
 global using System.Text;

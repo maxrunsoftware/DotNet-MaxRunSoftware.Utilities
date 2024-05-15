@@ -22,12 +22,12 @@ public static partial class Constant
     /// <summary>
     /// Case-insensitive mapping of strings to LogLevels
     /// </summary>
-    public static readonly ImmutableDictionary<string, LogLevel> String_LogLevel = String_LogLevel_Create(
+    public static readonly FrozenDictionary<string, LogLevel> String_LogLevel = String_LogLevel_Create(
         (LogLevel.Information, "info"),
         (LogLevel.Warning, "warn")
     );
     
-    private static ImmutableDictionary<string, LogLevel> String_LogLevel_Create(params (LogLevel level, string alias)[] aliases)
+    private static FrozenDictionary<string, LogLevel> String_LogLevel_Create(params (LogLevel level, string alias)[] aliases)
     {
         var d = new Dictionary<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>().Select(item => (Name: Enum.GetName(item)!, Level: item)))
@@ -41,12 +41,10 @@ public static partial class Constant
             d.TryAdd(item.alias, item.level);
         }
 
-        var b = ImmutableDictionary.CreateBuilder<string, LogLevel>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kvp in d) b.Add(kvp.Key, kvp.Value);
-        return b.ToImmutable();
+        return d.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
     
-    public static readonly ImmutableDictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>> LogLevel_ConsoleColor = new Dictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>>
+    public static readonly FrozenDictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>> LogLevel_ConsoleColor = new Dictionary<LogLevel, Tuple<ConsoleColor?, ConsoleColor?>>
     {
         [LogLevel.None] = new(ConsoleColor.DarkMagenta, null),
         [LogLevel.Trace] = new(ConsoleColor.DarkBlue, null),
@@ -55,7 +53,7 @@ public static partial class Constant
         [LogLevel.Warning] = new(ConsoleColor.Yellow, null),
         [LogLevel.Error] = new(ConsoleColor.Red, null),
         [LogLevel.Critical] = new(ConsoleColor.White, ConsoleColor.DarkRed),
-    }.ToImmutableDictionary();
+    }.ToFrozenDictionary();
 
     public static readonly ILogger LoggerNull = NullLogger.Instance;
     public static readonly ILoggerProvider LoggerProviderNull = NullLoggerProvider.Instance;

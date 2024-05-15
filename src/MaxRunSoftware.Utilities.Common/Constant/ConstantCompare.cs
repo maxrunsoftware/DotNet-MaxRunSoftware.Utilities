@@ -17,69 +17,48 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    private static FrozenDictionary<TKey, TValue> FD<TKey, TValue>(IEnumerable<(TKey, TValue)> items) where TKey : notnull
+    {
+        var d = new Dictionary<TKey, TValue>();
+        foreach (var item in items) d.TryAdd(item.Item1, item.Item2);
+        return d.ToFrozenDictionary();
+    }
+    
+    private static readonly ImmutableArray<(StringComparer, StringComparison)> StringComparer_StringComparison_Items =
+    [
+        (StringComparer.Ordinal, StringComparison.Ordinal),
+        (StringComparer.CurrentCulture, StringComparison.CurrentCulture),
+        (StringComparer.InvariantCulture, StringComparison.InvariantCulture),
+        (StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase),
+        (StringComparer.CurrentCultureIgnoreCase, StringComparison.CurrentCultureIgnoreCase),
+        (StringComparer.InvariantCultureIgnoreCase, StringComparison.InvariantCultureIgnoreCase),
+    ];
+    
     #region StringComparer
-
+    
     /// <summary>
     /// List of String Comparisons from most restrictive to least
     /// </summary>
-    public static readonly ImmutableArray<StringComparer> StringComparers = ImmutableArray.Create(
-        StringComparer.Ordinal,
-        StringComparer.CurrentCulture,
-        StringComparer.InvariantCulture,
-        StringComparer.OrdinalIgnoreCase,
-        StringComparer.CurrentCultureIgnoreCase,
-        StringComparer.InvariantCultureIgnoreCase
-    );
+    public static readonly ImmutableArray<StringComparer> StringComparers = [..StringComparer_StringComparison_Items.Select(o => o.Item1)];
 
     /// <summary>
     /// Map of StringComparer to StringComparison
     /// </summary>
-    public static readonly ImmutableDictionary<StringComparer, StringComparison> StringComparer_StringComparison = StringComparer_StringComparison_Create();
-
-    private static ImmutableDictionary<StringComparer, StringComparison> StringComparer_StringComparison_Create()
-    {
-        var b = ImmutableDictionary.CreateBuilder<StringComparer, StringComparison>();
-        b.TryAdd(StringComparer.CurrentCulture, StringComparison.CurrentCulture);
-        b.TryAdd(StringComparer.CurrentCultureIgnoreCase, StringComparison.CurrentCultureIgnoreCase);
-        b.TryAdd(StringComparer.InvariantCulture, StringComparison.InvariantCulture);
-        b.TryAdd(StringComparer.InvariantCultureIgnoreCase, StringComparison.InvariantCultureIgnoreCase);
-        b.TryAdd(StringComparer.Ordinal, StringComparison.Ordinal);
-        b.TryAdd(StringComparer.OrdinalIgnoreCase, StringComparison.OrdinalIgnoreCase);
-        return b.ToImmutableDictionary();
-    }
-
+    public static readonly FrozenDictionary<StringComparer, StringComparison> StringComparer_StringComparison = StringComparer_StringComparison_Items.ToFrozenDictionary(o => o.Item1, o => o.Item2);
+    
     #endregion StringComparer
 
     #region StringComparison
-
+    
     /// <summary>
     /// List of String Comparisons from most restrictive to least
     /// </summary>
-    public static readonly ImmutableArray<StringComparison> StringComparisons = ImmutableArray.Create(
-        StringComparison.Ordinal,
-        StringComparison.CurrentCulture,
-        StringComparison.InvariantCulture,
-        StringComparison.OrdinalIgnoreCase,
-        StringComparison.CurrentCultureIgnoreCase,
-        StringComparison.InvariantCultureIgnoreCase
-    );
+    public static readonly ImmutableArray<StringComparison> StringComparisons = [..StringComparer_StringComparison_Items.Select(o => o.Item2)];
 
     /// <summary>
     /// Map of StringComparison to StringComparer
     /// </summary>
-    public static readonly ImmutableDictionary<StringComparison, StringComparer> StringComparison_StringComparer = StringComparison_StringComparer_Create();
-
-    private static ImmutableDictionary<StringComparison, StringComparer> StringComparison_StringComparer_Create()
-    {
-        var b = ImmutableDictionary.CreateBuilder<StringComparison, StringComparer>();
-        b.TryAdd(StringComparison.CurrentCulture, StringComparer.CurrentCulture);
-        b.TryAdd(StringComparison.CurrentCultureIgnoreCase, StringComparer.CurrentCultureIgnoreCase);
-        b.TryAdd(StringComparison.InvariantCulture, StringComparer.InvariantCulture);
-        b.TryAdd(StringComparison.InvariantCultureIgnoreCase, StringComparer.InvariantCultureIgnoreCase);
-        b.TryAdd(StringComparison.Ordinal, StringComparer.Ordinal);
-        b.TryAdd(StringComparison.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
-        return b.ToImmutableDictionary();
-    }
+    public static readonly FrozenDictionary<StringComparison, StringComparer> StringComparison_StringComparer = StringComparer_StringComparison_Items.ToFrozenDictionary(o => o.Item2, o => o.Item1);
 
     #endregion StringComparison
 
@@ -97,13 +76,11 @@ public static partial class Constant
     /// </summary>
     public static readonly StringComparer StringComparer_OrdinalIgnoreCase_OrdinalReversed = new StringComparerOrdinalIgnoreCaseOrdinal(true);
 
-    private sealed class StringComparerOrdinalIgnoreCaseOrdinal : StringComparer
+    private sealed class StringComparerOrdinalIgnoreCaseOrdinal(bool reversed) : StringComparer
     {
         private readonly StringComparer ordinal = Ordinal;
         private readonly StringComparer ordinalIgnoreCase = OrdinalIgnoreCase;
-        private readonly bool reversed;
-        public StringComparerOrdinalIgnoreCaseOrdinal(bool reversed) => this.reversed = reversed;
-
+        
         public override int Compare(string? x, string? y)
         {
             var c = ordinalIgnoreCase.Compare(x, y);
@@ -127,10 +104,8 @@ public static partial class Constant
     public static readonly CharComparer CharComparer_Ordinal = new(c => c);
     public static readonly CharComparer CharComparer_OrdinalIgnoreCase = new(char.ToUpperInvariant);
 
-    public sealed class CharComparer : IEqualityComparer<char>, IComparer<char>
+    public sealed class CharComparer(Func<char, char> converter) : IEqualityComparer<char>, IComparer<char>
     {
-        private readonly Func<char, char> converter;
-        public CharComparer(Func<char, char> converter) => this.converter = converter;
         public bool Equals(char x, char y) => converter(x) == converter(y);
         public int GetHashCode(char obj) => converter(obj).GetHashCode();
         public int Compare(char x, char y) => converter(x).CompareTo(converter(y));

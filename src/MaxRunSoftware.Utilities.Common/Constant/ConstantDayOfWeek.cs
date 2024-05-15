@@ -12,34 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using static System.DayOfWeek;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
     // ReSharper disable StringLiteralTypo
-    public static readonly ImmutableArray<string> DayOfWeek_Sunday_Strings = ImmutableArray.Create("U,SU,SUN,SUND,SUNDA,SUNDAY".Split(','));
-    public static readonly ImmutableArray<string> DayOfWeek_Monday_Strings = ImmutableArray.Create("M,MO,MON,MOND,MONDA,MONDAY".Split(','));
-    public static readonly ImmutableArray<string> DayOfWeek_Tuesday_Strings = ImmutableArray.Create("T,TU,TUE,TUES,TUESD,TUESDA,TUESDAY".Split(','));
-    public static readonly ImmutableArray<string> DayOfWeek_Wednesday_Strings = ImmutableArray.Create("W,WE,WED,WEDN,WEDNE,WEDNES,WEDNESD,WEDNESDA,WEDNESDAY".Split(','));
-    public static readonly ImmutableArray<string> DayOfWeek_Thursday_Strings = ImmutableArray.Create("R,TH,THU,THUR,THURS,THURSD,THURSDA,THURSDAY".Split(','));
-    public static readonly ImmutableArray<string> DayOfWeek_Friday_Strings = ImmutableArray.Create("F,FR,FRI,FRID,FRIDA,FRIDAY".Split(','));
-
-    public static readonly ImmutableArray<string> DayOfWeek_Saturday_Strings = ImmutableArray.Create("S,SA,SAT,SATU,SATUR,SATURD,SATURDA,SATURDAY".Split(','));
+    public static readonly FrozenDictionary<DayOfWeek, ImmutableArray<string>> DaysOfWeek_Strings = new Dictionary<DayOfWeek, ImmutableArray<string>>
+    {
+        [Sunday] = ["U", "SU", "SUN", "SUND", "SUNDA", "SUNDAY"],
+        [Monday] = ["M", "MO", "MON", "MOND", "MONDA", "MONDAY"],
+        [Tuesday] = ["T", "TU", "TUE", "TUES", "TUESD", "TUESDA", "TUESDAY"],
+        [Wednesday] = ["W", "WE", "WED", "WEDN", "WEDNE", "WEDNES", "WEDNESD", "WEDNESDA", "WEDNESDAY"],
+        [Thursday] = ["R", "TH", "THU", "THUR", "THURS", "THURSD", "THURSDA", "THURSDAY"],
+        [Friday] = ["F", "FR", "FRI", "FRID", "FRIDA", "FRIDAY"],
+        [Saturday] = ["S", "SA", "SAT", "SATU", "SATUR", "SATURD", "SATURDA", "SATURDAY"],
+    }.ToFrozenDictionary();
+    
+    public static readonly ImmutableArray<string> DayOfWeek_Sunday_Strings = DaysOfWeek_Strings[Sunday];
+    public static readonly ImmutableArray<string> DayOfWeek_Monday_Strings = DaysOfWeek_Strings[Monday];
+    public static readonly ImmutableArray<string> DayOfWeek_Tuesday_Strings = DaysOfWeek_Strings[Tuesday];
+    public static readonly ImmutableArray<string> DayOfWeek_Wednesday_Strings = DaysOfWeek_Strings[Wednesday];
+    public static readonly ImmutableArray<string> DayOfWeek_Thursday_Strings = DaysOfWeek_Strings[Thursday];
+    public static readonly ImmutableArray<string> DayOfWeek_Friday_Strings = DaysOfWeek_Strings[Friday];
+    public static readonly ImmutableArray<string> DayOfWeek_Saturday_Strings = DaysOfWeek_Strings[Saturday];
+    
     // ReSharper restore StringLiteralTypo
 
-    public static readonly ImmutableArray<DayOfWeek> DaysOfWeek = ImmutableArray.Create(DayOfWeek.Sunday, DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday);
-    public static readonly ImmutableDictionary<string, DayOfWeek> String_DayOfWeek = String_DayOfWeek_Create();
+    public static readonly ImmutableArray<DayOfWeek> DaysOfWeek = [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday];
+    public static readonly FrozenDictionary<string, DayOfWeek> String_DayOfWeek = DaysOfWeek_Strings
+        .SelectMany(kvp => kvp.Value.Select(s => (s, kvp.Key)))
+        .ConstantToFrozenDictionaryTry(StringComparer.OrdinalIgnoreCase);
 
-    private static ImmutableDictionary<string, DayOfWeek> String_DayOfWeek_Create()
-    {
-        var strings = new[] { DayOfWeek_Sunday_Strings, DayOfWeek_Monday_Strings, DayOfWeek_Tuesday_Strings, DayOfWeek_Wednesday_Strings, DayOfWeek_Thursday_Strings, DayOfWeek_Friday_Strings, DayOfWeek_Saturday_Strings };
-        var b = ImmutableDictionary.CreateBuilder<string, DayOfWeek>(StringComparer.OrdinalIgnoreCase);
-        for (var i = 0; i < DaysOfWeek.Length; i++)
-        {
-            foreach (var s in strings[i]) b.Add(s, DaysOfWeek[i]);
-        }
-
-        return b.ToImmutable();
-    }
+    
 }
