@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using GenHTTP.Api.Content.Websites;
 using GenHTTP.Api.Infrastructure;
@@ -133,12 +134,22 @@ public class WebServer(ILogger log) : IDisposable
     {
         public void OnRequestHandled(IRequest request, IResponse response)
         {
-            log.LogDebug("REQUEST - {Source} - {Method} {Path} - {Status} - {ContentLength}",
-                request.Client.IPAddress,
+            var clientAddress = request.Client.IPAddress;
+            var clientAddressString = (IPAddress.IsLoopback(clientAddress) ? IPAddress.Loopback : clientAddress).MapToIPv4().ToString();
+            
+            var contentLength = response.ContentLength ?? 0;
+            var contentLengthString = contentLength <= 0 ? string.Empty : $"[{contentLength}]";
+            
+            var statusString = response.Status.RawStatus.ToString();
+            if (response.Status.KnownStatus != null) statusString = statusString + "-" + response.Status.KnownStatus;
+            
+            log.LogDebug("REQUEST [{ClientAddress}] {Method} {Path} - {Status} {ContentLength}",
+                clientAddressString,
                 request.Method.RawMethod,
                 request.Target.Path,
-                response.Status.RawStatus,
-                response.ContentLength ?? 0
+                statusString,
+                contentLengthString
+                
             );
         }
         
