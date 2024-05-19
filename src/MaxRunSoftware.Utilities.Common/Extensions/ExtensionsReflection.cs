@@ -368,19 +368,72 @@ public static class ExtensionsReflection
     
     #region Attribute
     
-    public static IEnumerable<(Type, T)> GetTypesWithAttribute<T>(this Assembly assembly, bool inherited = true) where T : Attribute
+    public static IEnumerable<(Type, Attribute)> GetTypesWithAttribute(this Assembly assembly, Type attributeType, bool inherited = true, bool exactType = false)
     {
+        attributeType.CheckIsAssignableTo(typeof(Attribute));
         foreach (var type in assembly.GetTypes())
         {
-            foreach (var attribute in type.GetCustomAttributes(inherited))
+            var attrs = GetAttributes(type, attributeType, inherited: inherited, exactType: exactType);
+            foreach (var attr in attrs)
             {
-                if (attribute is T a)
-                {
-                    yield return (type, a);
-                }
+                yield return (type, attr);
             }
+            
         }
     }
+    
+    
+    public static Attribute[] GetAttributes(this Type type, Type attributeType, bool inherited = true, bool exactType = false)
+    {
+        attributeType.CheckIsAssignableTo(typeof(Attribute));
+        
+        var attrs = type.GetCustomAttributes(inherited);
+        if (attrs.Length == 0) return [];
+        
+        var list = new List<Attribute>(attrs.Length);
+        foreach (var o in attrs)
+        {
+            if (o is not Attribute attr) continue;
+            if (exactType)
+            {
+                if (attributeType == attr.GetType()) list.Add(attr);
+            }
+            else
+            {
+                if (attributeType.IsAssignableTo(attr.GetType())) list.Add(attr);
+            }
+        }
+        
+        if (list.IsEmpty()) return [];
+        return list.ToArray();
+        
+    }
+    
+    public static Attribute? GetAttribute(this Type type, Type attributeType, bool inherited = true, bool? exactType = null)
+    {
+        attributeType.CheckIsAssignableTo(typeof(Attribute));
+        
+        if (exactType == null)
+        {
+            return GetAttribute(type, attributeType, inherited: inherited, exactType: true) 
+                   ?? GetAttribute(type, attributeType, inherited: inherited, exactType: false);
+        }
+        
+        return GetAttributes(type, attributeType, inherited: inherited, exactType: exactType.Value).FirstOrDefault();
+    }
+    
+    
+    public static IEnumerable<(Type, TAttribute)> GetTypesWithAttribute<TAttribute>(this Assembly assembly, bool inherited = true, bool exactType = false) where TAttribute : Attribute =>
+        GetTypesWithAttribute(assembly, typeof(TAttribute), inherited: inherited, exactType: exactType).Select(o => (o.Item1, (TAttribute)o.Item2));
+
+    public static TAttribute[] GetAttributes<TAttribute>(this Type type, bool inherited = true, bool exactType = false) where TAttribute : Attribute => 
+        GetAttributes(type, typeof(TAttribute), inherited: inherited, exactType: exactType)
+            .Select(o => (TAttribute)o)
+            .ToArray();
+    
+    
+    public static TAttribute? GetAttribute<TAttribute>(this Type type, bool inherited = true, bool? exactType = null) where TAttribute : Attribute =>
+        (TAttribute?)GetAttribute(type, typeof(TAttribute), inherited: inherited, exactType: exactType);
     
     #endregion Attribute
 }

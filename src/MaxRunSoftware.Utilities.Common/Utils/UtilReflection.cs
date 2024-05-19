@@ -14,6 +14,7 @@
 
 using System.Diagnostics;
 using System.Linq.Expressions;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -267,7 +268,9 @@ public static partial class Util
         /// <returns>The target of the attribute - either an Assembly, Type or MemberInfo instance.</returns>
         public static object GetTarget<TAttribute>(TAttribute attribute) where TAttribute : Attribute => AttributeTargetHelper<TAttribute>.GetTarget(attribute);
     }
-
+    
+    
+    
     #endregion Attributes
 
     #region New and Reflection

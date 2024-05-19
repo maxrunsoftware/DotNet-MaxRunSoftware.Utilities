@@ -9,22 +9,6 @@ namespace MaxRunSoftware.Utilities.Common;
 public class OptionsAttribute(string configSectionPath) : Attribute
 {
     public string ConfigSectionPath { get; set; } = configSectionPath;
-    
-    public static OptionsAttribute? GetAttribute(Type type)
-    {
-        var attrs = type.GetCustomAttributes(false);
-        foreach (var a in attrs)
-        {
-            if (a.GetType() == typeof(OptionsAttribute)) return (OptionsAttribute)a;
-        }
-        
-        foreach (var a in attrs)
-        {
-            if (a is OptionsAttribute o) return o;
-        }
-        
-        return null;
-    }
 }
 
 
@@ -113,12 +97,12 @@ public static class OptionsAttributeExtensions
         this IServiceCollection services,
         Type typeof_OptionsServiceCollectionExtensions,
         Type typeof_OptionsBuilderConfigurationExtensions,
-        Type optionsType,
+        Type typeWithOptionsAttribute,
         OptionsAttribute optionsAttribute
     )
     {
-        var optionsBuilder = AddOptions(typeof_OptionsServiceCollectionExtensions, services, optionsType);
-        BindConfiguration(typeof_OptionsBuilderConfigurationExtensions, optionsType, optionsBuilder, optionsAttribute);
+        var optionsBuilder = AddOptions(typeof_OptionsServiceCollectionExtensions, services, typeWithOptionsAttribute);
+        BindConfiguration(typeof_OptionsBuilderConfigurationExtensions, typeWithOptionsAttribute, optionsBuilder, optionsAttribute);
         return services;
     }
     
@@ -126,13 +110,13 @@ public static class OptionsAttributeExtensions
         this IServiceCollection services,
         Type typeof_OptionsServiceCollectionExtensions,
         Type typeof_OptionsBuilderConfigurationExtensions,
-        Type optionsType
+        Type typeWithOptionsAttribute
     ) => AddOptionsAndBind(
         services,
         typeof_OptionsServiceCollectionExtensions,
         typeof_OptionsBuilderConfigurationExtensions,
-        optionsType,
-        OptionsAttribute.GetAttribute(optionsType).CheckNotNull()
+        typeWithOptionsAttribute,
+        typeWithOptionsAttribute.GetAttribute<OptionsAttribute>().CheckNotNull()
     );
     
     public static IServiceCollection AddOptionsAndBind(

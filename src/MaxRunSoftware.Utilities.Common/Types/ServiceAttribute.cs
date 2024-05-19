@@ -13,26 +13,6 @@ public class ServiceAttribute(ServiceLifetime lifetime = ServiceLifetime.Scoped,
     public ServiceLifetime Lifetime { get; set; } = lifetime;
     public Type? InterfaceType { get; set; } = interfaceType;
     
-    public static IEnumerable<(Type, ServiceAttribute)> GetTypesWithAttribute(Assembly assembly) => assembly.GetTypesWithAttribute<ServiceAttribute>(inherited: false);
-    
-    public static IEnumerable<(Type, ServiceAttribute)> GetTypesWithAttribute<TInAssembly>() => GetTypesWithAttribute(typeof(TInAssembly).Assembly);
-    
-    public static ServiceAttribute? GetAttribute(Type type)
-    {
-        var attrs = type.GetCustomAttributes(false);
-        foreach (var a in attrs)
-        {
-            if (a.GetType() == typeof(ServiceAttribute)) return (ServiceAttribute)a;
-        }
-        
-        foreach (var a in attrs)
-        {
-            if (a is ServiceAttribute o) return o;
-        }
-        
-        return null;
-    }
-    
     public ServiceDescriptor ToServiceDescriptor(Type type) => new(InterfaceType ?? type, type, Lifetime);
 }
 
@@ -78,7 +58,7 @@ public static class ServiceAttributeExtensions
     {
         return AddServiceAttributeServices(
             services,
-            ServiceAttribute.GetTypesWithAttribute(assembly),
+            assembly.GetTypesWithAttribute<ServiceAttribute>(),
             predicate: predicate
         );
     }
@@ -88,7 +68,7 @@ public static class ServiceAttributeExtensions
         Func<Type, ServiceAttribute, bool>? predicate = null
     ) => AddServiceAttributeServices(
         services,
-        ServiceAttribute.GetTypesWithAttribute<TInAssembly>(),
+        typeof(TInAssembly).Assembly.GetTypesWithAttribute<ServiceAttribute>(),
         predicate: predicate
     );
 }
