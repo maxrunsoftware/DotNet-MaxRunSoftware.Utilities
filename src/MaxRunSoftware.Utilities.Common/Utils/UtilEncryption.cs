@@ -13,6 +13,8 @@
 // limitations under the License.
 
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using NotImplementedException = System.NotImplementedException;
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -206,5 +208,75 @@ public static partial class Util
                 for (var i = prefixZeros; i < value.Length; i++) stream.Write(value[i]);
             }
         }
+    }
+    
+    public static X509Certificate2? CertificateTryAll(ReadOnlySpan<char> cert, ReadOnlySpan<char> key, ReadOnlySpan<char> password)
+    {
+        var a = cert == null ? null : cert.ToString();
+        var b = key == null ? null : key.ToString();
+        var c = password == null ? null : password.ToString();
+        string? d = null;
+        
+        string?[] z = [a, b, c, d];
+        var len = z.Length;
+        
+        var items1 = new HashSet<string?>();
+        var items2 = new HashSet<(string?, string?)>();
+        var items3 = new HashSet<(string?, string?, string?)>();
+        
+        for (var i0 = 0; i0 < len; i0++)
+        {
+            items1.Add(z[i0]);
+            for (var i1 = 0; i1 < len; i1++)
+            {
+                items2.Add((z[i0], z[i1]));
+                for (var i2 = 0; i2 < len; i2++)
+                {
+                    items3.Add((z[i0], z[i1], z[i2]));
+                } 
+            } 
+        }
+        
+        items1.Remove(null);
+        items2.Remove((null, null));
+        items3.Remove((null, null, null));
+        
+        foreach (var item0 in items1)
+        {
+            try
+            {
+                return X509Certificate2.CreateFromPem(item0);
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+        
+        foreach (var (item0, item1)  in items2)
+        {
+            try
+            {
+                return X509Certificate2.CreateFromPem(item0, item1);
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+        
+        foreach (var (item0, item1, item2) in items3)
+        {
+            try
+            {
+                return X509Certificate2.CreateFromEncryptedPem(item0, item1, item2);
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+        
+        return null;
     }
 }
