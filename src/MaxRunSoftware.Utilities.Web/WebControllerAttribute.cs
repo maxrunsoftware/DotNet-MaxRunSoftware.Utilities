@@ -1,4 +1,4 @@
-namespace MaxRunSoftware.Utilities.Web.Server;
+namespace MaxRunSoftware.Utilities.Web;
 
 /// <summary>
 /// Service Options

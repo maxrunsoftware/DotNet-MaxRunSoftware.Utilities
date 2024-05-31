@@ -24,10 +24,12 @@ public record WebServerSiteAuthenticationModel
     string? ErrorMessage = null
 );
 
-public abstract partial class WebServerSite<TUser> : WebServer, IWebAuthIntegration<TUser>
+public abstract partial class WebServerSite<TUser> : GenHTTPServer, IWebAuthIntegration<TUser>
     where TUser : class, IUser
 {
     private readonly ILogger log;
+    
+    public bool AllowAnonymous { get; set; } = false;
     
     public ISessionHandling SessionTokenHandler { get; set; } = new WebServerSiteSessionTokenHandler();
     public IWebServerSiteSessionHandler SessionHandler { get; set; } = new WebServerSiteSessionHandler<TUser>();
@@ -50,8 +52,6 @@ public abstract partial class WebServerSite<TUser> : WebServer, IWebAuthIntegrat
     
 
     #region IWebAuthIntegration<TUser>
-    
-    public bool AllowAnonymous { get; set; } = false;
     
     public virtual ValueTask<bool> CheckSetupRequired(IRequest request) => new(false);
     
