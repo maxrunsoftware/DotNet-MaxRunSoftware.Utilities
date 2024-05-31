@@ -119,7 +119,7 @@ public class GenHTTPServer(ILogger log) : IDisposable
         try
         {
 
-            Start();
+            Host.Start();
             
             try
             {

@@ -61,6 +61,8 @@ public class GenHTTPServerSite(ILogger log) : GenHTTPServer(log)
         return layout;
     }
     
+    protected virtual LayoutBuilder AddLayoutAdditional(LayoutBuilder layout) => layout;
+    
     protected virtual WebsiteBuilder AddTheme(WebsiteBuilder builder, ITheme? theme) => theme == null ? builder : builder.Theme(theme);
     
     protected virtual WebsiteBuilder AddContent(WebsiteBuilder builder, IHandlerBuilder content) => builder.Content(content);
@@ -83,6 +85,7 @@ public class GenHTTPServerSite(ILogger log) : GenHTTPServer(log)
         var layout = Layout.Create();
         layout = AddResources(layout);
         layout = AddControllers(layout);
+        layout = AddLayoutAdditional(layout);
         return [layout, ];
     }
     

@@ -21,58 +21,5 @@ namespace MaxRunSoftware.Utilities.Web.Tests;
 // ReSharper disable AssignNullToNotNullAttribute
 public class TestBase(ITestOutputHelper testOutputHelper) : TestBaseBase(testOutputHelper, TestConfig.IGNORED_TESTS)
 {
-    protected readonly HttpIO httpIO = new();
-    
-    /// <summary>
-    /// https://stackoverflow.com/a/27108442
-    /// </summary>
-    protected class HttpIO
-    {
-        public HttpClient Client { get; }
-        public CookieContainer CookieContainer { get; }
-        public HttpIO()
-        {
-            CookieContainer = new();
-            Client = new(new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.All,
-                CheckCertificateRevocationList = false,
-                ClientCertificateOptions = ClientCertificateOption.Manual,
-                MaxRequestContentBufferSize = 0,
-                ServerCertificateCustomValidationCallback = (
-                        /* message */ _,
-                        /* certificate2 */ _,
-                        /* chain */ _,
-                        /* sslPolicyErrors */ _)
-                    => true,
-                UseCookies = true,
-                AllowAutoRedirect = false,
-                CookieContainer = CookieContainer,
-            });
-        }
-
-
-        public async Task<string> GetAsync(string uri)
-        {
-            using var response = await Client.GetAsync(uri);
-
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        public async Task<string> PostAsync(string uri, string data, string contentType)
-        {
-            using HttpContent content = new StringContent(data, Encoding.UTF8, contentType);
-
-            var requestMessage = new HttpRequestMessage
-            {
-                Content = content,
-                Method = HttpMethod.Post,
-                RequestUri = new(uri),
-            };
-
-            using var response = await Client.SendAsync(requestMessage);
-
-            return await response.Content.ReadAsStringAsync();
-        }
-    }
+   
 }

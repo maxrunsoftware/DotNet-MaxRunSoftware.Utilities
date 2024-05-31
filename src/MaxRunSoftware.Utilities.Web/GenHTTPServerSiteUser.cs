@@ -5,9 +5,11 @@ using GenHTTP.Api.Content.Templating;
 using GenHTTP.Api.Protocol;
 using GenHTTP.Modules.Authentication;
 using GenHTTP.Modules.Authentication.Web;
+using GenHTTP.Modules.Authentication.Web.Concern;
 using GenHTTP.Modules.Basics;
 using GenHTTP.Modules.Controllers;
 using GenHTTP.Modules.IO;
+using GenHTTP.Modules.Layouting.Provider;
 using GenHTTP.Modules.Razor;
 
 namespace MaxRunSoftware.Utilities.Web;
@@ -33,9 +35,26 @@ public class GenHTTPServerSiteAuthUser : IUser
 
 public class GenHTTPServerSiteAuth(ILogger log) : GenHTTPServerSite(log)
 {
-
+    protected override LayoutBuilder AddLayoutAdditional(LayoutBuilder layout)
+    {
+        layout = base.AddLayoutAdditional(layout);
+        var wai = new WebAuthIntegration(this);
+        var sessionHandling = new SessionHandling(this);
+        var auth = new WebAuthenticationBuilder<GenHTTPServerSiteAuthUser>(wai).SessionHandling(sessionHandling);
+        layout = layout.Add(auth);
+        return layout;
+    }
     
-    private class WebAuthIntegration : IWebAuthIntegration<GenHTTPServerSiteAuthUser>
+    protected class SessionHandling(GenHTTPServerSiteAuth server) : ISessionHandling
+    {
+        public virtual string? ReadToken(IRequest request) => server.SessionIdRead(request);
+        
+        public virtual void WriteToken(IResponse response, string sessionToken) => server.SessionIdWrite(response, sessionToken);
+        
+        public virtual void ClearToken(IResponse response) => server.SessionIdClear(response);
+    }
+    
+    protected class WebAuthIntegration : IWebAuthIntegration<GenHTTPServerSiteAuthUser>
     {
         private readonly GenHTTPServerSiteAuth server;
         
@@ -183,6 +202,14 @@ public class GenHTTPServerSiteAuth(ILogger log) : GenHTTPServerSite(log)
     
     public virtual string RenderUserPageCSHTML { get; set; } =
         """
+        @if (@Model.Data.Text != null)
+        {
+        <p>
+            @Model.Data.Text
+        </p>
+        }
+        else
+        {
         <form id="credentials" method="post" action=".">
             <div class="container">
                 <div class="inputs">
@@ -194,7 +221,13 @@ public class GenHTTPServerSiteAuth(ILogger log) : GenHTTPServerSite(log)
                         <label for="password" class="form-label">Password: </label>
                         <input type="password" class="form-control" id="password" name="password" placeholder="password" />
                     </div>
-                    @if (@Model.Data.ErrorMessage != null)
+                    @if (@Model.Data.Error != null)
+                    {
+                    <div class="alert alert-danger" role="alert">
+                        @Model.Data.Error.Message
+                    </div>
+                    }
+                    else if (@Model.Data.ErrorMessage != null)
                     {
                     <div class="alert alert-danger" role="alert">
                         @Model.Data.ErrorMessage
@@ -204,13 +237,14 @@ public class GenHTTPServerSiteAuth(ILogger log) : GenHTTPServerSite(log)
                 </div>
             </div>
         </form>
+        }
         """;
     
     protected virtual IHandlerBuilder RenderUserPage(IRequest request, GenHTTPServerSiteAuthModel model)
     {
         var response = ModRazor.Page(
                     Resource.FromString(RenderUserPageCSHTML),
-                    (r, h) => new ViewModel(r, h, model)
+                    (r, h) => new ViewModel<GenHTTPServerSiteAuthModel>(r, h, model)
                 )
                 .Title(model.Title)
             ;
@@ -223,7 +257,7 @@ public class GenHTTPServerSiteAuth(ILogger log) : GenHTTPServerSite(log)
     
     #region Setup
     
-    protected virtual bool IsUserSetupNeeded() => false;
+    protected virtual bool IsUserSetupNeeded() => Users.Count == 0;
     
     protected virtual IHandlerBuilder RenderUserSetup(IRequest request)
     {
