@@ -28,7 +28,7 @@ public static partial class Util
             return rsa.Encrypt(data, encryptionPadding);
         }
     }
-
+    
     public static byte[] EncryptionDecryptAsymmetric(string pemPrivateKey, byte[] data, RSAEncryptionPadding encryptionPadding)
     {
         using (var rsa = RSA.Create())
@@ -37,7 +37,7 @@ public static partial class Util
             return rsa.Decrypt(data, encryptionPadding);
         }
     }
-
+    
     public static (string publicKey, string privateKey) EncryptionGeneratePublicPrivateKeys(int length)
     {
         using (var rsa = RSA.Create(length))
@@ -48,7 +48,7 @@ public static partial class Util
             return (publicKey, privateKey);
         }
     }
-
+    
     private static class EncryptionGeneratePublicPrivateKeysHelper
     {
         public static string ExportPrivateKey(RSA rsa)
@@ -57,14 +57,14 @@ public static partial class Util
             ExportPrivateKey(rsa, sb);
             return sb.ToString();
         }
-
+        
         public static string ExportPublicKey(RSA rsa)
         {
             var sb = new StringWriter();
             ExportPublicKey(rsa, sb);
             return sb.ToString();
         }
-
+        
         private static void ExportPrivateKey(RSA csp, TextWriter outputStream)
         {
             // https://stackoverflow.com/a/23739932
@@ -89,16 +89,16 @@ public static partial class Util
                     EncodeLength(writer, length);
                     writer.Write(innerStream.GetBuffer(), 0, length);
                 }
-
+                
                 var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
                 outputStream.WriteLine("-----BEGIN RSA PRIVATE KEY-----");
                 // Output as Base64 with lines chopped at 64 characters
                 for (var i = 0; i < base64.Length; i += 64) outputStream.WriteLine(base64, i, Math.Min(64, base64.Length - i));
-
+                
                 outputStream.WriteLine("-----END RSA PRIVATE KEY-----");
             }
         }
-
+        
         private static void ExportPublicKey(RSA csp, TextWriter outputStream)
         {
             // https://stackoverflow.com/a/28407693
@@ -133,29 +133,29 @@ public static partial class Util
                             EncodeLength(bitStringWriter, paramsLength);
                             bitStringWriter.Write(paramsStream.GetBuffer(), 0, paramsLength);
                         }
-
+                        
                         var bitStringLength = (int)bitStringStream.Length;
                         EncodeLength(innerWriter, bitStringLength);
                         innerWriter.Write(bitStringStream.GetBuffer(), 0, bitStringLength);
                     }
-
+                    
                     var length = (int)innerStream.Length;
                     EncodeLength(writer, length);
                     writer.Write(innerStream.GetBuffer(), 0, length);
                 }
-
+                
                 var base64 = Convert.ToBase64String(stream.GetBuffer(), 0, (int)stream.Length).ToCharArray();
                 outputStream.WriteLine("-----BEGIN PUBLIC KEY-----");
                 for (var i = 0; i < base64.Length; i += 64) outputStream.WriteLine(base64, i, Math.Min(64, base64.Length - i));
-
+                
                 outputStream.WriteLine("-----END PUBLIC KEY-----");
             }
         }
-
+        
         private static void EncodeLength(BinaryWriter stream, int length)
         {
             if (length < 0) throw new ArgumentOutOfRangeException(nameof(length), "Length must be non-negative");
-
+            
             if (length < 0x80)
             {
                 // Short form
@@ -171,25 +171,25 @@ public static partial class Util
                     temp >>= 8;
                     bytesRequired++;
                 }
-
+                
                 stream.Write((byte)(bytesRequired | 0x80));
                 for (var i = bytesRequired - 1; i >= 0; i--) stream.Write((byte)((length >> (8 * i)) & 0xff));
             }
         }
-
+        
         private static void EncodeIntegerBigEndian(BinaryWriter stream, byte[]? value, bool forceUnsigned = true)
         {
             if (value == null) throw new ArgumentNullException(nameof(value)); // TODO: Not sure how this should be handled
-
+            
             stream.Write((byte)0x02); // INTEGER
             var prefixZeros = 0;
             for (var i = 0; i < value.Length; i++)
             {
                 if (value[i] != 0) break;
-
+                
                 prefixZeros++;
             }
-
+            
             if (value.Length - prefixZeros == 0)
             {
                 EncodeLength(stream, 1);
@@ -203,80 +203,14 @@ public static partial class Util
                     EncodeLength(stream, value.Length - prefixZeros + 1);
                     stream.Write((byte)0);
                 }
-                else { EncodeLength(stream, value.Length - prefixZeros); }
-
+                else
+                {
+                    EncodeLength(stream, value.Length - prefixZeros);
+                }
+                
                 for (var i = prefixZeros; i < value.Length; i++) stream.Write(value[i]);
             }
         }
     }
     
-    public static X509Certificate2? CertificateTryAll(ReadOnlySpan<char> cert, ReadOnlySpan<char> key, ReadOnlySpan<char> password)
-    {
-        var a = cert == null ? null : cert.ToString();
-        var b = key == null ? null : key.ToString();
-        var c = password == null ? null : password.ToString();
-        string? d = null;
-        
-        string?[] z = [a, b, c, d];
-        var len = z.Length;
-        
-        var items1 = new HashSet<string?>();
-        var items2 = new HashSet<(string?, string?)>();
-        var items3 = new HashSet<(string?, string?, string?)>();
-        
-        for (var i0 = 0; i0 < len; i0++)
-        {
-            items1.Add(z[i0]);
-            for (var i1 = 0; i1 < len; i1++)
-            {
-                items2.Add((z[i0], z[i1]));
-                for (var i2 = 0; i2 < len; i2++)
-                {
-                    items3.Add((z[i0], z[i1], z[i2]));
-                } 
-            } 
-        }
-        
-        items1.Remove(null);
-        items2.Remove((null, null));
-        items3.Remove((null, null, null));
-        
-        foreach (var item0 in items1)
-        {
-            try
-            {
-                return X509Certificate2.CreateFromPem(item0);
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-        
-        foreach (var (item0, item1)  in items2)
-        {
-            try
-            {
-                return X509Certificate2.CreateFromPem(item0, item1);
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-        
-        foreach (var (item0, item1, item2) in items3)
-        {
-            try
-            {
-                return X509Certificate2.CreateFromEncryptedPem(item0, item1, item2);
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-        
-        return null;
-    }
 }
