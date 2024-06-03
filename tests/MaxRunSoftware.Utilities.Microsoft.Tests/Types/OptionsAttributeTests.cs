@@ -17,7 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace MaxRunSoftware.Utilities.Common.Tests.Types;
+namespace MaxRunSoftware.Utilities.Microsoft.Tests;
 
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
@@ -53,7 +53,7 @@ public class OptionsAttributeTests(ITestOutputHelper testOutputHelper) : TestBas
         
         s.AddSingleton<IConfiguration>(builder.Configuration);
         s.AddSingleton<TestService>();
-        s.AddOptionsAndBind(typeof(OptionsServiceCollectionExtensions), typeof(OptionsBuilderConfigurationExtensions), typeof(TestOptions).Assembly);
+        s.AddOptionsAndBind(typeof(TestOptions).Assembly);
         
         var host = builder.Build();
         var ts = host.Services.GetRequiredService<TestService>();

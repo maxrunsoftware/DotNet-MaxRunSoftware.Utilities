@@ -8,6 +8,6 @@
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="TaskScheduler" Version="2.10.1" />
+        <PackageReference Include="TaskScheduler" Version="2.11.0" />
     </ItemGroup>
 </Project>

@@ -37,31 +37,6 @@ public static partial class Util
         return (d.TrimOrNull() ?? string.Empty, f, e.TrimOrNull() ?? string.Empty);
     }
 
-    public static string FileGetMD5(string file)
-    {
-        using (var stream = FileOpenRead(file)) { return GenerateHashMD5(stream); }
-    }
-
-    public static string FileGetSHA1(string file)
-    {
-        using (var stream = FileOpenRead(file)) { return GenerateHashSHA1(stream); }
-    }
-
-    public static string FileGetSHA256(string file)
-    {
-        using (var stream = FileOpenRead(file)) { return GenerateHashSHA256(stream); }
-    }
-
-    public static string FileGetSHA384(string file)
-    {
-        using (var stream = FileOpenRead(file)) { return GenerateHashSHA384(stream); }
-    }
-
-    public static string FileGetSHA512(string file)
-    {
-        using (var stream = FileOpenRead(file)) { return GenerateHashSHA512(stream); }
-    }
-
     public static long FileGetLength(string file) => new FileInfo(file).Length;
 
     public static string FileChangeName(string file, string newFileName)
