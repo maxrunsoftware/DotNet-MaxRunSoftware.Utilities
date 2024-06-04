@@ -151,7 +151,7 @@ function ActionBuild {
 }
 
 function ActionNuget {
-    $b.CopyNugetFiles("scheduler", "microsoft")
+    $b.CopyNugetFiles("scheduler", "testing", "web")
 }
 
 function ActionNugetPush {
