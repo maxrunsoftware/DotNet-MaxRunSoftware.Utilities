@@ -87,6 +87,12 @@ public sealed class GenHTTPResourceBytesBuilder : IResourceBuilder<GenHTTPResour
         return this;
     }
     
+    public GenHTTPResourceBytesBuilder Content(IEnumerable<byte> content)
+    {
+        _Content = content.ToArray();
+        return this;
+    }
+    
     public GenHTTPResourceBytesBuilder Name(string name)
     {
         _Name = name;

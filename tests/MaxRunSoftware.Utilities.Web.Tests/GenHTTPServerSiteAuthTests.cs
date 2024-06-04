@@ -1,6 +1,8 @@
 using GenHTTP.Api.Content.Templating;
 using GenHTTP.Api.Content.Websites;
 using GenHTTP.Modules.IO;
+using GenHTTP.Modules.Layouting.Provider;
+using GenHTTP.Modules.Razor;
 using GenHTTP.Modules.Scriban;
 using GenHTTP.Modules.Websites;
 using GenHTTP.Themes.AdminLTE;
@@ -22,16 +24,20 @@ public class GenHTTPServerSiteAuthTests(ITestOutputHelper testOutputHelper) : Te
     }
     
     [SkippableFact]
-    public void Start_Server_AdminLTE_Test()
+    public void Start_1Server_AdminLTE_Test()
     {
         LogLevel = LogLevel.Trace;
-        
-        
         var server = new GenHTTPServerSiteAuth(LoggerProvider.CreateLogger<GenHTTPServerSiteAuth>())
         {
             Port = TestConfig.DEFAULT_PORT,
             Theme = CreateThemeAdminLte(),
         };
+        
+        foreach (var (name, array) in TestConfig.RESOURCES)
+        {
+            server.Resources.Add(name, new GenHTTPResourceBytesBuilder().Name(name).Content(array));
+        }
+        
         server.Run();
     }
     
@@ -41,11 +47,9 @@ public class GenHTTPServerSiteAuthTests(ITestOutputHelper testOutputHelper) : Te
     /// <returns>GenHTTP theme AdminLTE</returns>
     private static ITheme CreateThemeAdminLte()
     {
-        var menu = Menu.Empty()
-            .Add("{website}/", "Home");
+        var menu = Menu.Empty().Add("{website}/", "Home");
         
-        var notifications = ModScriban.Template<BasicModel>(Resource.FromAssembly("Notifications.html"))
-            .Build();
+        var notifications = ModRazor.Template<BasicModel>(Resource.FromString(CreateThemeAdminLte_Notifications)).Build();
         
         var theme = new AdminLteBuilder().Title("AdminLTE Theme")
             .Fullscreen()
@@ -59,6 +63,7 @@ public class GenHTTPServerSiteAuthTests(ITestOutputHelper testOutputHelper) : Te
             .Header(menu)
             .Notifications(async (r, h) => await notifications.RenderAsync(new BasicModel(r, h)))
             .Build();
+        
         
         return theme;
     } 
