@@ -40,10 +40,8 @@ public class FtpClientFtpRemoteCertificateInfo
     public X509Chain Chain { get; }
     public SslPolicyErrors PolicyErrors { get; }
 
-    public void Log(ILoggerFactory loggerProvider, string host, ushort port)
+    public void Log(ILogger log, string host, ushort port)
     {
-        var log = loggerProvider.CreateLogger<FtpClientFtpRemoteCertificateInfo>();
-
         log.LogTrace("Remote server {Host}:{Port} " + nameof(X509Certificate2) + "." + nameof(Certificate2.GetRawCertDataString) + ": {CertificateDataString}", host, port, Certificate2.GetRawCertDataString());
 
         log.LogDebug("Remote server {Host}:{Port} " + nameof(X509Certificate2) + "." + nameof(Certificate2.Thumbprint) + ": {CertificateThumbprint}", host, port, Certificate2.Thumbprint);

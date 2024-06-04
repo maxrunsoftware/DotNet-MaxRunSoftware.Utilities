@@ -20,42 +20,44 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public class FtpClientFtp : FtpClientBase
 {
-    private class FtpClientLogger : IFtpLogger
+    private class FtpClientLogger(ILoggerFactory loggerProvider) : IFtpLogger
     {
-        private readonly ILogger log;
-        public FtpClientLogger(ILoggerFactory loggerProvider) => log = loggerProvider.CreateLogger<FtpClient>();
-
-        private static LogLevel ParseLevel(FtpTraceLevel ftpTraceLevel) => ftpTraceLevel switch
+        private readonly ILogger log = loggerProvider.CreateLogger<FtpClient>();
+        
+        public void Log(FtpLogEntry entry)
         {
-            FtpTraceLevel.Verbose => LogLevel.Debug,
-            FtpTraceLevel.Info => LogLevel.Information,
-            FtpTraceLevel.Warn => LogLevel.Warning,
-            FtpTraceLevel.Error => LogLevel.Error,
-            _ => throw new ArgumentOutOfRangeException(nameof(ftpTraceLevel), ftpTraceLevel, null),
-        };
-
-        public void Log(FtpLogEntry entry) => log.Log(ParseLevel(entry.Severity), entry.Exception, "{Message}", entry.Message);
+            log.Log(ParseLevel(entry.Severity), entry.Exception, "{Message}", entry.Message);
+            
+            return;
+            
+            static LogLevel ParseLevel(FtpTraceLevel ftpTraceLevel) => ftpTraceLevel switch
+            {
+                FtpTraceLevel.Verbose => LogLevel.Debug,
+                FtpTraceLevel.Info => LogLevel.Information,
+                FtpTraceLevel.Warn => LogLevel.Warning,
+                FtpTraceLevel.Error => LogLevel.Error,
+                _ => throw new ArgumentOutOfRangeException(nameof(ftpTraceLevel), ftpTraceLevel, null),
+            };
+        }
     }
-
-    private readonly Func<FtpClientFtpRemoteCertificateInfo, bool> validateCertificate;
-    public FtpClientFtp(FtpClientFtpConfig config, ILoggerFactory loggerProvider) : base(loggerProvider)
+    
+    //private readonly Func<FtpClientFtpRemoteCertificateInfo, bool> validateCertificate;
+    public FtpClientFtp(FtpClientFtpConfig config, ILoggerFactory loggerFactory) : base(loggerFactory)
     {
-        log = loggerProvider.CreateLogger<FtpClientFtp>();
-
-        validateCertificate = config.ValidateCertificate;
+        log = loggerFactory.CreateLogger<FtpClientFtp>();
+        
         var host = config.Host;
         var port = config.Port;
-        var logger = new FtpClientLogger(loggerProvider);
+        var ftpClientLogger = new FtpClientLogger(loggerFactory);
 
         if (config.Username == null)
         {
             if (config.Password != null) throw new InvalidOperationException("Password specified but no Username specified");
-
             client = new(
-                host,
-                port,
-                config.FtpConfig,
-                logger
+                host: host,
+                port: port,
+                config: config.FtpConfig,
+                logger: ftpClientLogger
             );
         }
         else
@@ -66,14 +68,17 @@ public class FtpClientFtp : FtpClientBase
                 user: config.Username,
                 pass: config.Password ?? string.Empty,
                 config: config.FtpConfig,
-                logger: logger
+                logger: ftpClientLogger
             );
         }
-
+        
+        var validateCertificate = config.ValidateCertificate;
+        var ftpClientFtpRemoteCertificateInfoLog = loggerFactory.CreateLogger<FtpClientFtpRemoteCertificateInfo>();
+        var _this = this;
         void ValidateCertificate(BaseFtpClient _, FtpSslValidationEventArgs args)
         {
-            var rc = new FtpClientFtpRemoteCertificateInfo(this, config, args);
-            rc.Log(loggerProvider, host, port);
+            var rc = new FtpClientFtpRemoteCertificateInfo(_this, config, args);
+            rc.Log(ftpClientFtpRemoteCertificateInfoLog, host, port);
             var isValid = validateCertificate(rc);
             log.LogDebug("Certificate validated as {CertificateIsValid}", isValid);
             args.Accept = isValid;

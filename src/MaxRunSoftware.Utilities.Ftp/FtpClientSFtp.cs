@@ -20,10 +20,10 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public class FtpClientSFtp : FtpClientBase
 {
-    public FtpClientSFtp(FtpClientSftpConfig config, ILoggerFactory loggerProvider) : base(loggerProvider)
+    public FtpClientSFtp(FtpClientSftpConfig config, ILoggerFactory loggerFactory) : base(loggerFactory)
     {
-        log = loggerProvider.CreateLogger<FtpClientSFtp>();
-        client = Ssh.CreateClient<SftpClient>(config, loggerProvider);
+        log = loggerFactory.CreateLogger<FtpClientSFtp>();
+        client = Ssh.CreateSftpClient(config, loggerFactory);
 
         if (config.WorkingDirectory != null) WorkingDirectory = config.WorkingDirectory;
     }
@@ -195,7 +195,7 @@ public class FtpClientSFtp : FtpClientBase
         log.LogInformation("Deleted remote directory {RemotePath}", remotePath);
     }
 
-    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(SftpFile? item)
+    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(ISftpFile? item)
     {
         if (item == null) return null;
         var type = FtpClientRemoteFileSystemObjectType.Unknown;
@@ -205,10 +205,15 @@ public class FtpClientSFtp : FtpClientBase
 
         return CreateFileSystemObject(item.Name, item.FullName, type);
     }
-
+    
     protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list) =>
-        list.AddRange(Client.ListDirectory(remotePath).OrEmpty().Select(CreateFileSystemObject).WhereNotNull());
-
+        list.AddRange(
+            Client.ListDirectory(remotePath)
+                .OrEmpty()
+                .Select(CreateFileSystemObject)
+                .WhereNotNull()
+        );
+    
     protected override string? GetServerInfoInternal() => Client.ConnectionInfo?.ClientVersion;
 
     protected override void DeleteFileInternal(string remoteFile)

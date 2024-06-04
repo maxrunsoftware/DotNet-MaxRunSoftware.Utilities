@@ -18,9 +18,9 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public abstract class FtpClientBase : IFtpClient
 {
-    protected FtpClientBase(ILoggerFactory loggerProvider)
+    protected FtpClientBase(ILoggerFactory loggerFactory)
     {
-        log = loggerProvider.CreateLogger<FtpClientBase>();
+        log = loggerFactory.CreateLogger<FtpClientBase>();
         serverInfo = Lzy.Create(GetServerInfoInternal);
         directorySeparator = Lzy.Create(GetDirectorySeparatorInternal);
     }
@@ -63,7 +63,7 @@ public abstract class FtpClientBase : IFtpClient
         set
         {
             var workingDirectoryCurrent = WorkingDirectory;
-            if (StringComparer.Ordinal.Equals(workingDirectoryCurrent, value))
+            if (workingDirectoryCurrent.EqualsOrdinal(value))
             {
                 log.LogDebugMethod(new(value), LOG_IGNORED + " for '{Directory}' because we are already in that directory", value);
             }
@@ -72,7 +72,7 @@ public abstract class FtpClientBase : IFtpClient
                 workingDirectoryCached = null;
                 log.LogInformation("Changing " + nameof(WorkingDirectory) + " from '{WorkingDirectoryCurrent}' to '{WorkingDirectoryNew}'", workingDirectoryCurrent, value);
                 SetWorkingDirectoryInternal(value);
-                if (log.IsEnabled(LogLevel.Debug)) log.LogDebug(nameof(WorkingDirectory) + " is now '{Directory}'", WorkingDirectory);
+                log.LogDebug(nameof(WorkingDirectory) + " is now '{Directory}'", WorkingDirectory);
             }
         }
     }

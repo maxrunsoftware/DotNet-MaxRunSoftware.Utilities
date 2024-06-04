@@ -16,28 +16,14 @@ using Renci.SshNet;
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
-public class Ssh : IDisposable
+public class Ssh(SshConfig config, ILogger log) : IDisposable
 {
-    public Ssh(SshConfig config, ILoggerFactory loggerProvider)
-    {
-        log = loggerProvider.CreateLogger<Ssh>();
-        client = CreateClient<SshClient>(config, log);
-    }
-    private readonly ILogger log;
-    private SshClient? client;
+    public Ssh(SshConfig config, ILoggerFactory loggerFactory) : this(config, loggerFactory.CreateLogger<Ssh>()) { }
 
-    private SshClient Client
-    {
-        get
-        {
-            var c = client;
-            if (c == null) throw new ObjectDisposedException(GetType().FullNameFormatted());
-
-            return c;
-        }
-    }
-
-    public string? ClientVersion => Client.ConnectionInfo?.ClientVersion;
+    private SshClient? client = CreateClient<SshClient>(config, log);
+    private SshClient Client => client ?? throw new ObjectDisposedException(GetType().FullNameFormatted());
+    
+    public string? ClientVersion => Client.ConnectionInfo?.ClientVersion.TrimOrNull();
 
     public string? RunCommand(string command)
     {
@@ -47,49 +33,77 @@ public class Ssh : IDisposable
     }
 
     #region Create Clients
+    
+    public static SshClient CreateSshClient(SshConfig config, ILoggerFactory loggerFactory) => CreateClient<SshClient>(config, loggerFactory);
+    
+    public static SshClient CreateSshClient(SshConfig config, ILogger log) => CreateClient<SshClient>(config, log);
+    
+    public static SftpClient CreateSftpClient(SshConfig config, ILoggerFactory loggerFactory) => CreateClient<SftpClient>(config, loggerFactory);
+    
+    public static SftpClient CreateSftpClient(SshConfig config, ILogger log) => CreateClient<SftpClient>(config, log);
 
-    public static T CreateClient<T>(SshConfig config, ILoggerFactory loggerProvider) where T : BaseClient =>
-        CreateClient<T>(config, loggerProvider.CreateLogger<Ssh>());
+    private static T CreateClient<T>(SshConfig config, ILoggerFactory loggerFactory) where T : BaseClient =>
+        CreateClient<T>(config, loggerFactory.CreateLogger<Ssh>());
 
-    public static T CreateClient<T>(SshConfig config, ILogger log) where T : BaseClient
+    private static T CreateClient<T>(SshConfig config, ILogger log) where T : BaseClient
     {
         var host = config.Host;
         var port = config.Port;
         if (port == 0) port = 22;
-        var username = config.Username.CheckNotNullTrimmed(nameof(config.Username));
+        var username = config.Username.CheckNotNullTrimmed();
         var password = config.Password.TrimOrNull();
-        var pks = config.PrivateKeys.ToList();
+        var privateKeys = config.PrivateKeys.ToList();
 
-        if (password == null && pks.Count == 0) throw new ArgumentException("No password provided and no private keys provided.", nameof(config.Password));
-        if (password != null && pks.Count > 0) throw new ArgumentException("Private keys are not supported when a password is supplied.", nameof(config.PrivateKeys));
+        if (password == null && privateKeys.Count == 0) throw new ArgumentException("No password provided and no private keys provided.", nameof(config.Password));
+        if (password != null && privateKeys.Count > 0) throw new ArgumentException("Private keys are not supported when a password is supplied.", nameof(config.PrivateKeys));
 
-        var privateKeyFiles = new List<PrivateKeyFile>();
-        foreach (var pk in pks)
+        var privateKeyFiles = new List<IPrivateKeySource>();
+        foreach (var (pkData, pkPassword) in privateKeys)
         {
-            pk.FileName.CheckFileExists();
-            PrivateKeyFile pkf;
-            if (pk.Password == null)
+            var memoryStream = new MemoryStream(pkData) { Position = 0, };
+            PrivateKeyFile privateKeyFile;
+            if (pkPassword == null)
             {
-                pkf = new(pk.FileName);
-                log.LogDebug("Using private key file {FileName}", pk.FileName);
+                privateKeyFile = new(memoryStream);
+                log.LogDebug("Using private key {Size} bytes", pkData.Length);
             }
             else
             {
-                pkf = new(pk.FileName, pk.Password);
-                log.LogDebug("Using (password protected) private key file {FileName}", pk.FileName);
+                privateKeyFile = new(memoryStream, pkPassword);
+                log.LogDebug("Using (password protected) private key {Size} bytes", pkData.Length);
             }
 
-            privateKeyFiles.Add(pkf);
+            privateKeyFiles.Add(privateKeyFile);
         }
 
         BaseClient? client = null;
         var clientType = typeof(T);
-        if (clientType == typeof(SshClient)) client = password == null ? new(host, port, username, privateKeyFiles.ToArray()) : new SshClient(host, port, username, password);
-        if (clientType == typeof(SftpClient)) client = password == null ? new(host, port, username, privateKeyFiles.ToArray()) : new SftpClient(host, port, username, password);
+        if (clientType == typeof(SshClient))
+        {
+            if (password == null)
+            {
+                client = new SshClient(host, port, username, privateKeyFiles.ToArray());
+            }
+            else
+            {
+                client = new SshClient(host, port, username, password);
+            }
+        }
+        else if (clientType == typeof(SftpClient))
+        {
+            if (password == null)
+            {
+                client = new SftpClient(host, port, username, privateKeyFiles.ToArray());
+            }
+            else
+            {
+                client = new SftpClient(host, port, username, password);
+            }
+        }
+        
         if (client == null) throw new NotImplementedException($"Cannot create SSH Client for type {clientType.FullNameFormatted()}");
 
-        var ci = client.ConnectionInfo;
-        if (ci == null) throw new NullReferenceException();
+        var ci = client.ConnectionInfo.CheckNotNull();
         ci.Timeout = config.Timeout;
         ci.ChannelCloseTimeout = config.ChannelCloseTimeout;
         ci.Encoding = config.Encoding;
@@ -98,9 +112,9 @@ public class Ssh : IDisposable
 
         try
         {
-            log.LogDebug("Connecting {Type} to server {Host}:{Port} with username '{Username}'", clientType.NameFormatted(), host, port, username);
+            log.LogInformation("Connecting {Type} to server {Host}:{Port} with username '{Username}'", clientType.NameFormatted(), host, port, username);
             client.Connect();
-            log.LogDebug("Connection successful");
+            log.LogInformation("Connection successful");
         }
         catch (Exception)
         {
