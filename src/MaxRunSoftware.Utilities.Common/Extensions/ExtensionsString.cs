@@ -21,22 +21,8 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsString
 {
-    /// <summary>
-    /// Gets the Ordinal hashcode
-    /// </summary>
-    /// <param name="str">The string</param>
-    /// <returns>The hashcode</returns>
-    [Pure]
-    public static int GetHashCodeCaseSensitive(this string? str) => str == null ? 0 : StringComparer.Ordinal.GetHashCode(str);
-
-    /// <summary>
-    /// Gets the OrdinalIgnoreCase hashcode
-    /// </summary>
-    /// <param name="str">The string</param>
-    /// <returns>The hashcode</returns>
-    [Pure]
-    public static int GetHashCodeCaseInsensitive(this string? str) => str == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(str);
-
+    #region RemoveLeft
+    
     /// <summary>
     /// Removes the first character from a string if there is one
     /// </summary>
@@ -75,6 +61,10 @@ public static class ExtensionsString
     [Pure]
     public static string RemoveLeft(this string str, int numberOfCharactersToRemove) => numberOfCharactersToRemove.CheckMin(1) >= str.Length ? string.Empty : str.Substring(numberOfCharactersToRemove);
 
+    #endregion RemoveLeft
+    
+    #region RemoveRight
+    
     /// <summary>
     /// Removes the rightmost characters from a string
     /// </summary>
@@ -113,7 +103,43 @@ public static class ExtensionsString
         //return str.Substring(0, str.Length - 1);
         return str[..^1];
     }
-
+    
+    #endregion RemoveRight
+    
+    /// <summary>Removes all the leading occurrences of a specified string from the current string.</summary>
+    /// <param name="str">The string to remove from.</param>
+    /// <param name="trimString">The string to remove.</param>
+    /// <param name="comparisonType">One of the enumeration values that determines how <paramref name="str" /> and <paramref name="trimString" /> are compared.</param>
+    /// <returns>The string that remains after all occurrences of the <paramref name="trimString" /> string are removed from the start of the current string. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+    public static string TrimStart(this string str, string trimString, StringComparison comparisonType = StringComparison.CurrentCulture)
+    {
+        var tLen = trimString.Length;
+        if (tLen == 0) return str;
+        if (tLen == 1) return str.TrimStart(trimString[0]);
+        while (str.Length >= tLen && str.StartsWith(trimString, comparisonType))
+        {
+            str = str.RemoveLeft(tLen);
+        }
+        return str;
+    }
+    
+    /// <summary>Removes all the trailing occurrences of a specified string from the current string.</summary>
+    /// <param name="str">The string to remove from.</param>
+    /// <param name="trimString">The string to remove.</param>
+    /// <param name="comparisonType">One of the enumeration values that determines how <paramref name="str" /> and <paramref name="trimString" /> are compared.</param>
+    /// <returns>The string that remains after all occurrences of the <paramref name="trimString" /> string are removed from the end of the current string. If no characters can be trimmed from the current instance, the method returns the current instance unchanged.</returns>
+    public static string TrimEnd(this string str, string trimString, StringComparison comparisonType = StringComparison.CurrentCulture)
+    {
+        var tLen = trimString.Length;
+        if (tLen == 0) return str;
+        if (tLen == 1) return str.TrimEnd(trimString[0]);
+        while (str.Length >= tLen && str.EndsWith(trimString, comparisonType))
+        {
+            str = str.RemoveRight(tLen);
+        }
+        return str;
+    }
+    
     /// <summary>
     /// Counts the number of occurrences of a specific string
     /// </summary>

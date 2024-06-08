@@ -206,7 +206,7 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         Client.WorkingDirectory = "..";
 
         var files = Client.ListObjects(dir.Name)
-            .Where(o => o.Type == FtpClientRemoteFileSystemObjectType.File)
+            .Where(o => o.Type == FtpClientRemoteObjectType.File)
             .Where(o => o.Name.In("myfile1.txt", "myfile2.txt", "myfile3.txt"))
             .ToList();
 
@@ -233,28 +233,28 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         }
     }
 
-    private FtpClientRemoteFileSystemObject? GetFile(string fileName)
+    private FtpClientRemoteObject? GetFile(string fileName)
     {
         var o = Client.GetObject(fileName);
-        return o?.Type == FtpClientRemoteFileSystemObjectType.File ? o : null;
+        return o?.Type == FtpClientRemoteObjectType.File ? o : null;
     }
 
-    private FtpClientRemoteFileSystemObject? GetDirectory(string directoryName)
+    private FtpClientRemoteObject? GetDirectory(string directoryName)
     {
         var o = Client.GetObject(directoryName);
-        return o?.Type == FtpClientRemoteFileSystemObjectType.Directory ? o : null;
+        return o?.Type == FtpClientRemoteObjectType.Directory ? o : null;
     }
 
-    private FtpClientRemoteFileSystemObject[] GetFiles(string? directoryName = null) =>
-        Client.ListObjects(directoryName ?? Client.WorkingDirectory).Where(o => o.Type == FtpClientRemoteFileSystemObjectType.File).ToArray();
+    private FtpClientRemoteObject[] GetFiles(string? directoryName = null) =>
+        Client.ListObjects(directoryName ?? Client.WorkingDirectory).Where(o => o.Type == FtpClientRemoteObjectType.File).ToArray();
 
-    private FtpClientRemoteFileSystemObject[] GetFilesRecursive(string? directoryName = null) =>
-        Client.ListObjects(directoryName ?? Client.WorkingDirectory, true).Where(o => o.Type == FtpClientRemoteFileSystemObjectType.File).ToArray();
+    private FtpClientRemoteObject[] GetFilesRecursive(string? directoryName = null) =>
+        Client.ListObjects(directoryName ?? Client.WorkingDirectory, true).Where(o => o.Type == FtpClientRemoteObjectType.File).ToArray();
 
 
     //private string GetTestDirectoryName([CallerMemberName] string? directoryName = null) => directoryName.CheckNotNull();
     private string GetTestDirectoryNameFull([CallerMemberName] string? directoryName = null) => Client.GetAbsolutePath(directoryName.CheckNotNull());
-    private FtpClientRemoteFileSystemObject CreateTestWorkingDirectory([CallerMemberName] string? directoryName = null)
+    private FtpClientRemoteObject CreateTestWorkingDirectory([CallerMemberName] string? directoryName = null)
     {
         Assert.NotNull(directoryName);
         directoryName = directoryName.CheckNotNull();

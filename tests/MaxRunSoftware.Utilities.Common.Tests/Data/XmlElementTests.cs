@@ -117,7 +117,7 @@ public class XmlElementTests(ITestOutputHelper testOutputHelper) : TestBaseBase(
                 new("c") { Children = new List<XmlElement> { new("ca"), new("cb"), new("cc") } },
             },
         };
-        var xml = element.ToXml(settings);
+        var xml = element.ToStringXml(settings);
         Assert.Equal("<root><a><aa /><ab /><ac /></a><b><ba /><bb /><bc /></b><c><ca /><cb /><cc /></c></root>", xml);
     }
 
@@ -135,7 +135,7 @@ public class XmlElementTests(ITestOutputHelper testOutputHelper) : TestBaseBase(
                 new("c") { Children = new List<XmlElement> { new("ca", ""), new("cb", ""), new("cc", "") } },
             },
         };
-        var xml = element.ToXml(settings);
+        var xml = element.ToStringXml(settings);
         Assert.Equal("<root><a><aa></aa><ab></ab><ac></ac></a><b><ba></ba><bb></bb><bc></bc></b><c><ca></ca><cb></cb><cc></cc></c></root>", xml);
     }
 

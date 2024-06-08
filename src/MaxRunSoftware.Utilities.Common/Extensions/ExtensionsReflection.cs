@@ -383,11 +383,11 @@ public static class ExtensionsReflection
     }
     
     
-    public static Attribute[] GetAttributes(this Type type, Type attributeType, bool inherited = true, bool exactType = false)
+    public static Attribute[] GetAttributes(this ICustomAttributeProvider info, Type attributeType, bool inherited = true, bool exactType = false)
     {
         attributeType.CheckIsAssignableTo(typeof(Attribute));
         
-        var attrs = type.GetCustomAttributes(inherited);
+        var attrs = info.GetCustomAttributes(inherited);
         if (attrs.Length == 0) return [];
         
         var list = new List<Attribute>(attrs.Length);
@@ -409,31 +409,29 @@ public static class ExtensionsReflection
         
     }
     
-    public static Attribute? GetAttribute(this Type type, Type attributeType, bool inherited = true, bool? exactType = null)
+    public static Attribute? GetAttribute(this ICustomAttributeProvider info, Type attributeType, bool inherited = true, bool? exactType = null)
     {
         attributeType.CheckIsAssignableTo(typeof(Attribute));
         
         if (exactType == null)
         {
-            return GetAttribute(type, attributeType, inherited: inherited, exactType: true) 
-                   ?? GetAttribute(type, attributeType, inherited: inherited, exactType: false);
+            return GetAttribute(info, attributeType, inherited: inherited, exactType: true) 
+                   ?? GetAttribute(info, attributeType, inherited: inherited, exactType: false);
         }
         
-        return GetAttributes(type, attributeType, inherited: inherited, exactType: exactType.Value).FirstOrDefault();
+        return GetAttributes(info, attributeType, inherited: inherited, exactType: exactType.Value).FirstOrDefault();
     }
-    
     
     public static IEnumerable<(Type, TAttribute)> GetTypesWithAttribute<TAttribute>(this Assembly assembly, bool inherited = true, bool exactType = false) where TAttribute : Attribute =>
         GetTypesWithAttribute(assembly, typeof(TAttribute), inherited: inherited, exactType: exactType).Select(o => (o.Item1, (TAttribute)o.Item2));
 
-    public static TAttribute[] GetAttributes<TAttribute>(this Type type, bool inherited = true, bool exactType = false) where TAttribute : Attribute => 
-        GetAttributes(type, typeof(TAttribute), inherited: inherited, exactType: exactType)
+    public static TAttribute[] GetAttributes<TAttribute>(this ICustomAttributeProvider info, bool inherited = true, bool exactType = false) where TAttribute : Attribute => 
+        GetAttributes(info, typeof(TAttribute), inherited: inherited, exactType: exactType)
             .Select(o => (TAttribute)o)
             .ToArray();
     
-    
-    public static TAttribute? GetAttribute<TAttribute>(this Type type, bool inherited = true, bool? exactType = null) where TAttribute : Attribute =>
-        (TAttribute?)GetAttribute(type, typeof(TAttribute), inherited: inherited, exactType: exactType);
+    public static TAttribute? GetAttribute<TAttribute>(this ICustomAttributeProvider info, bool inherited = true, bool? exactType = null) where TAttribute : Attribute =>
+        (TAttribute?)GetAttribute(info, typeof(TAttribute), inherited: inherited, exactType: exactType);
     
     #endregion Attribute
 }

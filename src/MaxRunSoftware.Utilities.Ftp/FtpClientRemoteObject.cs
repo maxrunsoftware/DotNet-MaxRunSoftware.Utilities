@@ -14,7 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
-public enum FtpClientRemoteFileSystemObjectType
+public enum FtpClientRemoteObjectType
 {
     Unknown,
     Directory,
@@ -22,13 +22,11 @@ public enum FtpClientRemoteFileSystemObjectType
     Link,
 }
 
-public class FtpClientRemoteFileSystemObjectComparer : IComparer<FtpClientRemoteFileSystemObject>
+public class FtpClientRemoteObjectComparer(string directorySeparator) : IComparer<FtpClientRemoteObject>
 {
-    public string DirectorySeparator { get; }
-
-    public FtpClientRemoteFileSystemObjectComparer(string directorySeparator) => DirectorySeparator = directorySeparator;
-
-    public int Compare(FtpClientRemoteFileSystemObject? x, FtpClientRemoteFileSystemObject? y)
+    public string DirectorySeparator { get; } = directorySeparator;
+    
+    public int Compare(FtpClientRemoteObject? x, FtpClientRemoteObject? y)
     {
         if (ReferenceEquals(x, null))
         {
@@ -65,14 +63,14 @@ public class FtpClientRemoteFileSystemObjectComparer : IComparer<FtpClientRemote
     }
 }
 
-public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSystemObject>
+public class FtpClientRemoteObject : IEquatable<FtpClientRemoteObject>
 {
     private readonly int getHashCode;
     public string Name { get; }
     public string NameFull { get; }
-    public FtpClientRemoteFileSystemObjectType Type { get; }
+    public FtpClientRemoteObjectType Type { get; }
 
-    public FtpClientRemoteFileSystemObject(string name, string nameFull, FtpClientRemoteFileSystemObjectType type)
+    public FtpClientRemoteObject(string name, string nameFull, FtpClientRemoteObjectType type)
     {
         Name = name;
         NameFull = nameFull;
@@ -92,20 +90,20 @@ public class FtpClientRemoteFileSystemObject : IEquatable<FtpClientRemoteFileSys
     public bool IsMatch(string pathOrPattern, bool isCaseSensitive)
     {
         pathOrPattern = pathOrPattern.CheckNotNullTrimmed(nameof(pathOrPattern));
-        var source = pathOrPattern.StartsWith("/") ? NameFull : Name;
+        var source = pathOrPattern.StartsWith('/') ? NameFull : Name;
         return source.EqualsWildcard(pathOrPattern, !isCaseSensitive);
     }
 
     public override int GetHashCode() => getHashCode;
-    public override bool Equals(object? obj) => Equals(obj as FtpClientRemoteFileSystemObject);
-    public bool Equals(FtpClientRemoteFileSystemObject? other)
+    public override bool Equals(object? obj) => Equals(obj as FtpClientRemoteObject);
+    public bool Equals(FtpClientRemoteObject? other)
     {
         if (ReferenceEquals(other, null)) return false;
         if (ReferenceEquals(other, this)) return true;
 
         if (GetHashCode() != other.GetHashCode()) return false;
         if (Type != other.Type) return false;
-        if (!StringComparer.Ordinal.Equals(NameFull, other.NameFull)) return false;
+        if (!NameFull.EqualsOrdinal(other.NameFull)) return false;
 
         return true;
     }

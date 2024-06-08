@@ -17,7 +17,7 @@ using System.Xml.Xsl;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class XmlElement
+public class XmlElement(string name, string? value = null)
 {
     public static string ValueDelimiter { get; set; } = "\n";
 
@@ -28,18 +28,12 @@ public class XmlElement
         NewLineOnAttributes = false,
         OmitXmlDeclaration = true,
     };
-
-    public XmlElement(string name, string? value = null)
-    {
-        this.name = name.CheckNotNullTrimmed();
-        Value = value;
-    }
-
-    private string name;
+    
+    private string name = name.CheckNotNullTrimmed();
     public string Name { get => name; set => name = value.CheckNotNullTrimmed(); }
 
-    public string? Value { get; set; }
-
+    public string? Value { get; set; } = value;
+    
     private IDictionary<string, string>? attributes;
     public IDictionary<string, string> Attributes { get => attributes ??= new Dictionary<string, string>(); set => attributes = value; }
 
@@ -58,10 +52,10 @@ public class XmlElement
     {
         var document = new XmlDocument();
         document.LoadXml(xml);
-        return FromXmlDocument(document);
+        return FromXml(document);
     }
 
-    public static XmlElement FromXmlDocument(XmlDocument document)
+    public static XmlElement FromXml(XmlDocument document)
     {
         var elementRoot = document.DocumentElement.CheckNotNull();
         return FromXmlElement(elementRoot);
@@ -227,9 +221,9 @@ public static class XmlElementExtensions
 
     #endregion ApplyXslt
 
-    #region ToXml
+    #region ToStringXml
 
-    private static void ToXml(XmlElement element, XmlWriter xmlWriter, HashSet<XmlElement> itemsSeen)
+    private static void ToStringXml(XmlElement element, XmlWriter xmlWriter, HashSet<XmlElement> itemsSeen)
     {
         if (!itemsSeen.Add(element)) throw new ArgumentException($"Found multiple references to the same element {element}", nameof(element));
 
@@ -241,37 +235,46 @@ public static class XmlElementExtensions
 
         foreach (var child in element.Children)
         {
-            ToXml(child, xmlWriter, itemsSeen);
+            ToStringXml(child, xmlWriter, itemsSeen);
         }
 
         xmlWriter.WriteEndElement();
     }
-
-    public static string ToXml(this XmlElement element, XmlWriterSettings? settings = null)
+    
+    /// <summary>
+    /// https://stackoverflow.com/a/9459212
+    /// </summary>
+    /// <param name="encoding"></param>
+    private sealed class StringWriterWithEncoding(Encoding encoding) : StringWriter
     {
-        using var stringWriter = new StringWriter();
-        ToXml(element, stringWriter, settings);
+        public override Encoding Encoding => encoding;
+    }
+    
+    public static string ToStringXml(this XmlElement element, XmlWriterSettings? settings = null)
+    {
+        using var stringWriter = new StringWriterWithEncoding((settings ?? XmlElement.DefaultWriterSettings).Encoding);
+        ToStringXml(element, stringWriter, settings);
         stringWriter.Flush();
         return stringWriter.ToString();
     }
 
-    public static void ToXml(this XmlElement element, TextWriter textWriter, XmlWriterSettings? settings = null)
+    public static void ToStringXml(this XmlElement element, TextWriter textWriter, XmlWriterSettings? settings = null)
     {
         using var xmlWriter = XmlWriter.Create(textWriter, settings ?? XmlElement.DefaultWriterSettings);
         var itemsSeen = new HashSet<XmlElement>();
-        ToXml(element, xmlWriter, itemsSeen);
+        ToStringXml(element, xmlWriter, itemsSeen);
         xmlWriter.Flush();
         textWriter.Flush();
     }
 
-    public static void ToXml(this XmlElement element, Stream stream, XmlWriterSettings? settings = null, Encoding? encoding = null, int bufferSize = -1)
+    public static void ToStringXml(this XmlElement element, Stream stream, XmlWriterSettings? settings = null, Encoding? encoding = null, int bufferSize = -1)
     {
         encoding ??= settings?.Encoding ?? XmlElement.DefaultWriterSettings.Encoding;
         using var streamWriter = new StreamWriter(stream, encoding, bufferSize, true);
-        ToXml(element, streamWriter, settings);
+        ToStringXml(element, streamWriter, settings);
         streamWriter.Flush();
         stream.Flush();
     }
 
-    #endregion ToXml
+    #endregion ToStringXml
 }

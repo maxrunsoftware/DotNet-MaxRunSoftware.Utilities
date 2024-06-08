@@ -21,8 +21,8 @@ public abstract class FtpClientBase : IFtpClient
     protected FtpClientBase(ILoggerFactory loggerFactory)
     {
         log = loggerFactory.CreateLogger<FtpClientBase>();
-        serverInfo = Lzy.Create(GetServerInfoInternal);
-        directorySeparator = Lzy.Create(GetDirectorySeparatorInternal);
+        serverInfo = Lzy.Create(ServerInfoGet);
+        directorySeparator = Lzy.Create(DirectorySeparatorGet);
     }
 
     private readonly ILogger log;
@@ -36,7 +36,7 @@ public abstract class FtpClientBase : IFtpClient
 
     public string? ServerInfo => serverInfo.Value;
     private readonly Lzy<string?> serverInfo;
-    protected abstract string? GetServerInfoInternal();
+    protected abstract string? ServerInfoGet();
 
     #endregion ServerInfo
 
@@ -50,12 +50,8 @@ public abstract class FtpClientBase : IFtpClient
         {
             if (workingDirectoryCached == null)
             {
-                var path = GetWorkingDirectoryInternal();
-
-                while (path.Length > 0 && path.StartsWith(DirectorySeparator)) path = path.RemoveLeft();
-                while (path.Length > 0 && path.EndsWith(DirectorySeparator)) path = path.RemoveRight();
-
-                workingDirectoryCached = DirectorySeparator + path;
+                var ds = DirectorySeparator;
+                workingDirectoryCached = ds + WorkingDirectoryGet().TrimStart(ds).TrimEnd(ds);
             }
 
             return workingDirectoryCached;
@@ -71,14 +67,14 @@ public abstract class FtpClientBase : IFtpClient
             {
                 workingDirectoryCached = null;
                 log.LogInformation("Changing " + nameof(WorkingDirectory) + " from '{WorkingDirectoryCurrent}' to '{WorkingDirectoryNew}'", workingDirectoryCurrent, value);
-                SetWorkingDirectoryInternal(value);
+                WorkingDirectorySet(value);
                 log.LogDebug(nameof(WorkingDirectory) + " is now '{Directory}'", WorkingDirectory);
             }
         }
     }
 
-    protected abstract string GetWorkingDirectoryInternal();
-    protected abstract void SetWorkingDirectoryInternal(string directory);
+    protected abstract string WorkingDirectoryGet();
+    protected abstract void WorkingDirectorySet(string directory);
 
     #endregion WorkingDirectory
 
@@ -86,7 +82,7 @@ public abstract class FtpClientBase : IFtpClient
 
     public string DirectorySeparator => directorySeparator.Value;
     private readonly Lzy<string> directorySeparator;
-    protected abstract string GetDirectorySeparatorInternal();
+    protected abstract string DirectorySeparatorGet();
 
     #endregion DirectorySeparator
 
@@ -162,14 +158,14 @@ public abstract class FtpClientBase : IFtpClient
 
     #region CreateDirectory
 
-    public FtpClientRemoteFileSystemObject CreateDirectory(string remotePath)
+    public FtpClientRemoteObject CreateDirectory(string remotePath)
     {
         log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
         var o = GetObject(remotePath);
         if (o != null)
         {
-            if (o.Type == FtpClientRemoteFileSystemObjectType.Directory) return o;
-            throw new ArgumentException($"Object {remotePath} already exists but is a {o.Type} not a {FtpClientRemoteFileSystemObjectType.Directory}", nameof(remotePath));
+            if (o.Type == FtpClientRemoteObjectType.Directory) return o;
+            throw new ArgumentException($"Object {remotePath} already exists but is a {o.Type} not a {FtpClientRemoteObjectType.Directory}", nameof(remotePath));
         }
 
         CreateDirectoryInternal(remotePath);
@@ -209,12 +205,12 @@ public abstract class FtpClientBase : IFtpClient
                 var remoteDirectory = ParseDirectory(remotePath);
                 var objsAll = ListObjects(remotePath, true, null).ToArray();
                 var objsChildren = objsAll.Where(o => IsChild(remoteDirectory, o)).ToArray();
-                foreach (var file in objsChildren.Where(o => o.Type != FtpClientRemoteFileSystemObjectType.Directory))
+                foreach (var file in objsChildren.Where(o => o.Type != FtpClientRemoteObjectType.Directory))
                 {
                     DeleteFile(file.NameFull);
                 }
 
-                foreach (var dir in objsChildren.Where(o => o.Type == FtpClientRemoteFileSystemObjectType.Directory).OrderByDescending(o => o.NameFull.Length))
+                foreach (var dir in objsChildren.Where(o => o.Type == FtpClientRemoteObjectType.Directory).OrderByDescending(o => o.NameFull.Length))
                 {
                     DeleteDirectoryInternal(dir.NameFull);
                 }
@@ -234,7 +230,7 @@ public abstract class FtpClientBase : IFtpClient
         return true;
     }
 
-    protected bool IsChild(FtpClientRemoteFileSystemObject parent, FtpClientRemoteFileSystemObject child)
+    protected bool IsChild(FtpClientRemoteObject parent, FtpClientRemoteObject child)
     {
         if (parent.Equals(child)) return false;
         if (child.NameFull.Length <= parent.NameFull.Length) return false;
@@ -242,7 +238,7 @@ public abstract class FtpClientBase : IFtpClient
         return true;
     }
 
-    protected FtpClientRemoteFileSystemObject ParseDirectory(string remotePath)
+    protected FtpClientRemoteObject ParseDirectory(string remotePath)
     {
         var wdCurrent = WorkingDirectory;
         string? wdNew = null;
@@ -254,11 +250,11 @@ public abstract class FtpClientBase : IFtpClient
             if (name == null)
             {
                 // We are trying to get ROOT dir
-                return new(string.Empty, DirectorySeparator, FtpClientRemoteFileSystemObjectType.Directory);
+                return new(string.Empty, DirectorySeparator, FtpClientRemoteObjectType.Directory);
             }
             else
             {
-                return new(name, wdNew, FtpClientRemoteFileSystemObjectType.Directory);
+                return new(name, wdNew, FtpClientRemoteObjectType.Directory);
             }
         }
         finally
@@ -280,21 +276,21 @@ public abstract class FtpClientBase : IFtpClient
 
     #region ListObjects
 
-    private IComparer<FtpClientRemoteFileSystemObject>? objectComparer;
-    public IComparer<FtpClientRemoteFileSystemObject> ObjectComparer => objectComparer ??= new FtpClientRemoteFileSystemObjectComparer(DirectorySeparator);
+    private IComparer<FtpClientRemoteObject>? objectComparer;
+    public IComparer<FtpClientRemoteObject> ObjectComparer => objectComparer ??= new FtpClientRemoteObjectComparer(DirectorySeparator);
 
-    protected abstract void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list);
+    protected abstract void ListObjectsInternal(string remotePath, List<FtpClientRemoteObject> list);
 
-    protected virtual bool ListObjectsIsIncluded(FtpClientRemoteFileSystemObject obj) =>
-        obj is not { Type: FtpClientRemoteFileSystemObjectType.Directory, Name: "." or ".." };
+    protected virtual bool ListObjectsIsIncluded(FtpClientRemoteObject obj) =>
+        obj is not { Type: FtpClientRemoteObjectType.Directory, Name: "." or ".." };
 
-    public virtual IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException)
+    public virtual IEnumerable<FtpClientRemoteObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException)
     {
         log.LogTraceMethod(new(remotePath, handlerException), LOG_ATTEMPT);
 
         var remotePathObj = GetObject(remotePath);
         if (remotePathObj == null) throw new DirectoryNotFoundException($"Remote directory {remotePath} does not exist");
-        if (remotePathObj.Type != FtpClientRemoteFileSystemObjectType.Directory) throw new DirectoryNotFoundException($"Remote object {remotePathObj.NameFull} is not a {FtpClientRemoteFileSystemObjectType.Directory} it is a {remotePathObj.Type}");
+        if (remotePathObj.Type != FtpClientRemoteObjectType.Directory) throw new DirectoryNotFoundException($"Remote object {remotePathObj.NameFull} is not a {FtpClientRemoteObjectType.Directory} it is a {remotePathObj.Type}");
         remotePath = remotePathObj.NameFull;
         log.LogTraceMethod(new(remotePath, handlerException), LOG_ATTEMPT + " (AbsolutePath: {Path})", remotePath);
         Debug.Assert(remotePath.StartsWith(DirectorySeparator));
@@ -309,7 +305,7 @@ public abstract class FtpClientBase : IFtpClient
             var remoteDirectory = stack.Pop();
             if (!checkedDirs.Add(remoteDirectory)) continue;
             log.LogDebugMethod(new(remotePath, handlerException), "Listing {RemoteDirectory}", remoteDirectory);
-            var items = new List<FtpClientRemoteFileSystemObject>();
+            var items = new List<FtpClientRemoteObject>();
             var shouldContinue = true;
             try
             {
@@ -341,7 +337,7 @@ public abstract class FtpClientBase : IFtpClient
 
             foreach (var item in items.Where(ListObjectsIsIncluded))
             {
-                if (item.Type == FtpClientRemoteFileSystemObjectType.Directory && !checkedDirs.Contains(item.NameFull))
+                if (item.Type == FtpClientRemoteObjectType.Directory && !checkedDirs.Contains(item.NameFull))
                 {
                     if (recursive) stack.Push(item.NameFull);
                 }
@@ -358,7 +354,7 @@ public abstract class FtpClientBase : IFtpClient
 
     #region GetObject
 
-    public virtual FtpClientRemoteFileSystemObject? GetObject(string remotePath)
+    public virtual FtpClientRemoteObject? GetObject(string remotePath)
     {
         log.LogTraceMethod(new(remotePath), LOG_ATTEMPT);
         var obj = GetObjectInternal(remotePath);
@@ -374,7 +370,7 @@ public abstract class FtpClientBase : IFtpClient
         return obj;
     }
 
-    protected abstract FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath);
+    protected abstract FtpClientRemoteObject? GetObjectInternal(string remotePath);
 
     #endregion GetObject
 
@@ -431,7 +427,7 @@ public abstract class FtpClientBase : IFtpClient
 
     #region CreateFileSystemObject
 
-    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(string? name, string? nameFull, FtpClientRemoteFileSystemObjectType type)
+    protected virtual FtpClientRemoteObject? CreateFileSystemObject(string? name, string? nameFull, FtpClientRemoteObjectType type)
     {
         if (nameFull != null && nameFull.Length == 0) nameFull = null;
         if (name == null && nameFull == null) return null;
@@ -548,11 +544,11 @@ public abstract class FtpClientBase : IFtpClient
 
     protected virtual string ToAbsolutePath(string path)
     {
-        if (!path.StartsWith("/"))
+        if (!path.StartsWith('/'))
         {
             // relative path or just name
             var wd = WorkingDirectory;
-            if (!wd.EndsWith("/")) path = "/" + path;
+            if (!wd.EndsWith('/')) path = "/" + path;
 
             path = wd + path;
         }

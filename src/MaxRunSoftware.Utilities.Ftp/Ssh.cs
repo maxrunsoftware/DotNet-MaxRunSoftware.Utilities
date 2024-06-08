@@ -52,37 +52,18 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
         if (port == 0) port = 22;
         var username = config.Username.CheckNotNullTrimmed();
         var password = config.Password.TrimOrNull();
-        var privateKeys = config.PrivateKeys.ToList();
+        var privateKeys = ParsePrivateKeys(config, log);
 
-        if (password == null && privateKeys.Count == 0) throw new ArgumentException("No password provided and no private keys provided.", nameof(config.Password));
-        if (password != null && privateKeys.Count > 0) throw new ArgumentException("Private keys are not supported when a password is supplied.", nameof(config.PrivateKeys));
+        if (password == null && privateKeys.Length == 0) throw new ArgumentException("No password provided and no private keys provided.", nameof(config.Password));
+        if (password != null && privateKeys.Length > 0) throw new ArgumentException("Private keys are not supported when a password is supplied.", nameof(config.PrivateKeys));
 
-        var privateKeyFiles = new List<IPrivateKeySource>();
-        foreach (var (pkData, pkPassword) in privateKeys)
-        {
-            var memoryStream = new MemoryStream(pkData) { Position = 0, };
-            PrivateKeyFile privateKeyFile;
-            if (pkPassword == null)
-            {
-                privateKeyFile = new(memoryStream);
-                log.LogDebug("Using private key {Size} bytes", pkData.Length);
-            }
-            else
-            {
-                privateKeyFile = new(memoryStream, pkPassword);
-                log.LogDebug("Using (password protected) private key {Size} bytes", pkData.Length);
-            }
-
-            privateKeyFiles.Add(privateKeyFile);
-        }
-
-        BaseClient? client = null;
+        IBaseClient? client = null;
         var clientType = typeof(T);
         if (clientType == typeof(SshClient))
         {
             if (password == null)
             {
-                client = new SshClient(host, port, username, privateKeyFiles.ToArray());
+                client = new SshClient(host, port, username, privateKeys);
             }
             else
             {
@@ -93,7 +74,7 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
         {
             if (password == null)
             {
-                client = new SftpClient(host, port, username, privateKeyFiles.ToArray());
+                client = new SftpClient(host, port, username, privateKeys);
             }
             else
             {
@@ -123,6 +104,31 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
         }
 
         return (T)client;
+        
+        static IPrivateKeySource[] ParsePrivateKeys(SshConfig config, ILogger log)
+        {
+            var privateKeys = config.PrivateKeys.ToList();
+            var list = new List<IPrivateKeySource>();
+            foreach (var (pkData, pkPassword) in privateKeys)
+            {
+                var memoryStream = new MemoryStream(pkData) { Position = 0, };
+                PrivateKeyFile privateKeyFile;
+                if (pkPassword == null)
+                {
+                    privateKeyFile = new(memoryStream);
+                    log.LogDebug("Using private key {Size} bytes", pkData.Length);
+                }
+                else
+                {
+                    privateKeyFile = new(memoryStream, pkPassword);
+                    log.LogDebug("Using (password protected) private key {Size} bytes", pkData.Length);
+                }
+                
+                list.Add(privateKeyFile);
+            }
+            
+            return list.ToArray();
+        }
     }
 
     #endregion Create Clients
@@ -134,7 +140,7 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
         Dispose(c, log);
     }
 
-    public static void Dispose(BaseClient? client, ILogger log)
+    public static void Dispose(IBaseClient? client, ILogger log)
     {
         if (client == null) return;
         //var log = GetLogger();
@@ -157,4 +163,19 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
             log.LogWarning(e, "Error disposing of {Type}", client.GetType().FullNameFormatted());
         }
     }
+}
+
+[PublicAPI]
+public class SshConfig
+{
+    public string Host { get; set; } = "localhost";
+    public ushort Port { get; set; } = 22;
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public List<(byte[], string?)> PrivateKeys { get; set; } = new();
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan ChannelCloseTimeout { get; set; } = TimeSpan.FromSeconds(1);
+    public Encoding Encoding { get; set; } = Encoding.UTF8;
+    public ushort RetryAttempts { get; set; } = 10;
+    public ushort MaxSessions { get; set; } = 10;
 }

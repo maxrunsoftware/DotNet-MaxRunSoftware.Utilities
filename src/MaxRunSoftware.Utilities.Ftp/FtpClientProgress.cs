@@ -14,10 +14,7 @@
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
-public class FtpClientProgress
+public record FtpClientProgress(Percent Progress, long BytesTransferred)
 {
-    public Percent Progress { get; set; }
-    public long BytesTransferred { get; set; }
-
     public override string ToString() => $"Progress: {Progress.ToString(0)}%  ({BytesTransferred})";
 }

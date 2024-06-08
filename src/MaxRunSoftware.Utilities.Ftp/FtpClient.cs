@@ -36,13 +36,13 @@ public interface IFtpClient : IDisposable
 
     void DeleteFile(string remoteFile);
 
-    FtpClientRemoteFileSystemObject CreateDirectory(string remotePath);
+    FtpClientRemoteObject CreateDirectory(string remotePath);
 
     bool DeleteDirectory(string remotePath);
 
-    IEnumerable<FtpClientRemoteFileSystemObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException);
+    IEnumerable<FtpClientRemoteObject> ListObjects(string remotePath, bool recursive, Func<string, Exception, bool>? handlerException);
 
-    FtpClientRemoteFileSystemObject? GetObject(string remotePath);
+    FtpClientRemoteObject? GetObject(string remotePath);
 
     string GetAbsolutePath(string remotePath);
 }

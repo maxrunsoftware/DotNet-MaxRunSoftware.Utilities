@@ -20,32 +20,21 @@ namespace MaxRunSoftware.Utilities.Ftp;
 
 public class FtpClientSFtp : FtpClientBase
 {
-    public FtpClientSFtp(FtpClientSftpConfig config, ILoggerFactory loggerFactory) : base(loggerFactory)
+    public FtpClientSFtp(FtpClientSFtpConfig config, ILoggerFactory loggerFactory) : base(loggerFactory)
     {
         log = loggerFactory.CreateLogger<FtpClientSFtp>();
         client = Ssh.CreateSftpClient(config, loggerFactory);
-
         if (config.WorkingDirectory != null) WorkingDirectory = config.WorkingDirectory;
     }
 
     private readonly ILogger log;
 
     private SftpClient? client;
-
-    private SftpClient Client
-    {
-        get
-        {
-            var c = client;
-            if (c == null) throw new ObjectDisposedException(GetType().FullNameFormatted());
-
-            return c;
-        }
-    }
-
-    protected override string GetDirectorySeparatorInternal() => "/"; // https://stackoverflow.com/a/45693117
-    protected override string GetWorkingDirectoryInternal() => Client.WorkingDirectory ?? DirectorySeparator;
-    protected override void SetWorkingDirectoryInternal(string directory) => Client.ChangeDirectory(directory);
+    private SftpClient Client => client ?? throw new ObjectDisposedException(GetType().FullNameFormatted());
+    
+    protected override string DirectorySeparatorGet() => "/"; // https://stackoverflow.com/a/45693117
+    protected override string WorkingDirectoryGet() => Client.WorkingDirectory ?? DirectorySeparator;
+    protected override void WorkingDirectorySet(string directory) => Client.ChangeDirectory(directory);
 
 
     private static Percent CalcProgress(long? total, ulong bytes)
@@ -73,15 +62,12 @@ public class FtpClientSFtp : FtpClientBase
         {
             log.LogDebug(e, "Could not get remote file length {RemoteFile}", remoteFile);
         }
-
-        Client.DownloadFile(remoteFile, localStream, bytes =>
-        {
-            handlerProgress(new()
-            {
-                BytesTransferred = (long)bytes,
-                Progress = CalcProgress(remoteFileLength, bytes),
-            });
-        });
+        
+        Client.DownloadFile(
+            remoteFile,
+            localStream,
+            bytes => handlerProgress(new(bytes, CalcProgress(remoteFileLength, bytes)))
+        );
     }
 
     protected override void PutFileInternal(string remoteFile, Stream localStream, Action<FtpClientProgress> handlerProgress)
@@ -98,17 +84,14 @@ public class FtpClientSFtp : FtpClientBase
         }
 
         var remoteFileAbsolute = GetAbsolutePath(remoteFile);
-
-
-        void UploadFile() =>
-            Client.UploadFile(localStream, remoteFileAbsolute, true, bytes =>
-            {
-                handlerProgress(new()
-                {
-                    BytesTransferred = (long)bytes,
-                    Progress = CalcProgress(localStreamLength, bytes),
-                });
-            });
+        
+        
+        void UploadFile() => Client.UploadFile(
+            localStream,
+            remoteFileAbsolute,
+            true,
+            bytes => handlerProgress(new(bytes, CalcProgress(localStreamLength, bytes)))
+        );
 
 
         try
@@ -195,18 +178,18 @@ public class FtpClientSFtp : FtpClientBase
         log.LogInformation("Deleted remote directory {RemotePath}", remotePath);
     }
 
-    protected virtual FtpClientRemoteFileSystemObject? CreateFileSystemObject(ISftpFile? item)
+    protected virtual FtpClientRemoteObject? CreateFileSystemObject(ISftpFile? item)
     {
         if (item == null) return null;
-        var type = FtpClientRemoteFileSystemObjectType.Unknown;
-        if (item.IsDirectory) { type = FtpClientRemoteFileSystemObjectType.Directory; }
-        else if (item.IsRegularFile) { type = FtpClientRemoteFileSystemObjectType.File; }
-        else if (item.IsSymbolicLink) type = FtpClientRemoteFileSystemObjectType.Link;
+        var type = FtpClientRemoteObjectType.Unknown;
+        if (item.IsDirectory) { type = FtpClientRemoteObjectType.Directory; }
+        else if (item.IsRegularFile) { type = FtpClientRemoteObjectType.File; }
+        else if (item.IsSymbolicLink) type = FtpClientRemoteObjectType.Link;
 
         return CreateFileSystemObject(item.Name, item.FullName, type);
     }
     
-    protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteFileSystemObject> list) =>
+    protected override void ListObjectsInternal(string remotePath, List<FtpClientRemoteObject> list) =>
         list.AddRange(
             Client.ListDirectory(remotePath)
                 .OrEmpty()
@@ -214,7 +197,7 @@ public class FtpClientSFtp : FtpClientBase
                 .WhereNotNull()
         );
     
-    protected override string? GetServerInfoInternal() => Client.ConnectionInfo?.ClientVersion;
+    protected override string? ServerInfoGet() => Client.ConnectionInfo?.ClientVersion;
 
     protected override void DeleteFileInternal(string remoteFile)
     {
@@ -247,85 +230,14 @@ public class FtpClientSFtp : FtpClientBase
         Ssh.Dispose(c, log);
     }
 
-    protected override FtpClientRemoteFileSystemObject? GetObjectInternal(string remotePath)
+    protected override FtpClientRemoteObject? GetObjectInternal(string remotePath)
     {
         if (!Client.Exists(remotePath)) return null;
         var obj = Client.Get(remotePath);
         if (obj == null) return null;
         return CreateFileSystemObject(obj);
     }
-
-    private class SftpSessionCanonicalPathWrapper
-    {
-        private readonly FieldSlim? fieldSlim;
-        private readonly MethodSlim? methodSlim;
-
-        public bool IsValid => fieldSlim != null && methodSlim != null;
-        public string? GetCanonicalPath(string path, SftpClient instance)
-        {
-            if (!IsValid) return null;
-            if (fieldSlim == null || methodSlim == null) return null;
-
-            var sftpSession = fieldSlim.GetValue(instance);
-            if (sftpSession == null) instance.Connect();
-            sftpSession = fieldSlim.GetValue(instance);
-            if (sftpSession == null) return null;
-
-            var pathNew = methodSlim.Invoke(sftpSession, [path, ]);
-            return pathNew as string;
-        }
-
-        public SftpSessionCanonicalPathWrapper(Type type)
-        {
-            var fm = FindFieldMethod(type);
-            fieldSlim = fm?.Item1;
-            methodSlim = fm?.Item2;
-        }
-
-        private static (FieldSlim, MethodSlim)? FindFieldMethod(Type type)
-        {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            var fields = type.GetFieldSlims(flags);
-            foreach (var field in fields.Where(o => o.Type.Name == "ISftpSession"))
-            {
-                var method = FindMethod(field);
-                if (method != null) return (field, method);
-            }
-
-            foreach (var field in fields.Where(o => o.Name == "_sftpSession"))
-            {
-                var method = FindMethod(field);
-                if (method != null) return (field, method);
-            }
-
-            foreach (var field in fields)
-            {
-                var method = FindMethod(field);
-                if (method != null) return (field, method);
-            }
-
-            return null;
-        }
-
-        private static MethodSlim? FindMethod(FieldSlim field)
-        {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-
-            foreach (var method in field.Type.GetMethodSlims(flags))
-            {
-                if (method.Name != "GetCanonicalPath") continue;
-                if (method.Parameters.Length != 1) continue;
-                if (method.Parameters[0].Parameter.Type.Type != typeof(string)) continue;
-                if (method.ReturnType != null && method.ReturnType.Type != typeof(string)) continue;
-                return method;
-            }
-
-            return null;
-        }
-    }
-
-    // ReSharper disable once InconsistentNaming
-    private static readonly DictionaryWeakType<SftpSessionCanonicalPathWrapper> canonicalPathCache = new();
+    
     protected override string? GetAbsolutePathInternal(string remotePath)
     {
         try
@@ -340,19 +252,22 @@ public class FtpClientSFtp : FtpClientBase
         {
             log.LogDebugMethod(new(remotePath), pathNotFoundException, LOG_FAILED + " path does not exist: {RemotePath}", remotePath);
         }
-
-        var canonicalPathWrapper = canonicalPathCache.GetOrAdd(Client.GetType(), t => new(t));
-        if (canonicalPathWrapper.IsValid)
+        
+        log.LogTraceMethod(new(remotePath), "Attempting reflection to retrieve canonical path");
+        if (Client.TryGetCanonicalPathInternal(remotePath, out var canonicalPath))
         {
-            log.LogTraceMethod(new(remotePath), "Attempting reflection to retrieve canonical path");
-            var pathFull = canonicalPathWrapper.GetCanonicalPath(remotePath, Client);
-            if (pathFull != null && IsAbsolutePath(pathFull)) return pathFull;
+            if (canonicalPath != null && IsAbsolutePath(canonicalPath)) return canonicalPath;
         }
         else
         {
             log.LogWarningMethod(new(remotePath), "Could not find GetCanonicalPath method");
         }
-
+        
         return null;
     }
+}
+
+public class FtpClientSFtpConfig : SshConfig
+{
+    public string? WorkingDirectory { get; set; }
 }

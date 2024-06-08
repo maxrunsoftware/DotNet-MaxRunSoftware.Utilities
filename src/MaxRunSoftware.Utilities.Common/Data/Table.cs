@@ -16,57 +16,39 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public interface ITable
 {
-    IReadOnlyList<ITableColumn>? Columns { get; }
-    IReadOnlyList<ITableRow> Rows { get; }
-}
-
-public class Table : ITable
-{
-    public Table(IReadOnlyList<ITableColumn>? columns, IReadOnlyList<ITableRow> rows)
-    {
-        Columns = columns;
-        Rows = rows;
-    }
-
     public IReadOnlyList<ITableColumn>? Columns { get; }
     public IReadOnlyList<ITableRow> Rows { get; }
 }
 
-public interface ITableColumn
+public class Table(IReadOnlyList<ITableColumn>? columns, IReadOnlyList<ITableRow> rows) : ITable
 {
-    int Index { get; }
-    string? Name { get; }
+    public IReadOnlyList<ITableColumn>? Columns { get; } = columns;
+    public IReadOnlyList<ITableRow> Rows { get; } = rows;
 }
 
-public class TableColumn : ITableColumn
+public interface ITableColumn
 {
-    public TableColumn(int index, string? name)
-    {
-        Index = index;
-        Name = name;
-    }
-
     public int Index { get; }
     public string? Name { get; }
 }
 
-public interface ITableRow : IReadOnlyList<object?>
+public class TableColumn(int index, string? name) : ITableColumn
 {
-    int Index { get; }
+    public int Index { get; } = index;
+    public string? Name { get; } = name;
 }
 
-public class TableRow : ITableRow
+public interface ITableRow : IReadOnlyList<object?>
 {
-    private readonly IReadOnlyList<object?> data;
-    public TableRow(int index, IReadOnlyList<object?> data)
-    {
-        Index = index;
-        this.data = data;
-    }
+    public int Index { get; }
+}
+
+public class TableRow(int index, IReadOnlyList<object?> data) : ITableRow
+{
     public IEnumerator<object?> GetEnumerator() => data.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     public int Count => data.Count;
     public object? this[int index] => data[index];
-
-    public int Index { get; }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    
+    public int Index { get; } = index;
 }
