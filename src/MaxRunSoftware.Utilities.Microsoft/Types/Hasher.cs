@@ -179,4 +179,16 @@ public static class HasherExtensions
         await stream.DisposeAsync();
         return result;
     }
+
+    public static byte[] Hash(this IHasher hasher, FileInfo info)
+    {
+        using var stream = Util.FileOpenRead(info.FullName);
+        return hasher.Hash(stream);
+    }
+    
+    public static async Task<byte[]> HashAsync(this IHasher hasher, FileInfo info, CancellationToken cancellationToken = default)
+    {
+        await using var stream = Util.FileOpenRead(info.FullName);
+        return await hasher.HashAsync(stream, cancellationToken);
+    }
 }

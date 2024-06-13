@@ -40,6 +40,26 @@ public class HasherTests(ITestOutputHelper testOutputHelper) : TestBaseBase(test
         }
 
     }
+    
+    [SkippableFact]
+    public void Zero_Bytes_Hash()
+    {
+        var hashers = Hasher.Factories
+                .Select(o => o.Key)
+                .Select(Hasher.GetHasher)
+                .OrderBy(o => o.Name, Constant.StringComparer_OrdinalIgnoreCase_Ordinal)
+                .ToArray()
+            ;
+
+        var bytes = Array.Empty<byte>();
+        foreach (var hasher in hashers)
+        {
+            var hash = hasher.Hash(bytes);
+            var hashHex = Util.Base16(hash);
+            log.LogInformation("{Hasher} -> [{Length}] -> {Hash}", hasher.Name, hash.Length, hashHex);    
+        }
+
+    }
 
    
 }

@@ -151,7 +151,9 @@ public static class ExtensionsCollection
     /// <param name="str">The string to check for null</param>
     /// <returns>The same string or an empty string if null</returns>
     public static string OrEmpty(this string? str) => str ?? string.Empty;
-
+    
+    public static T[] ToArrayOrEmpty<T>(this IEnumerable<T>? enumerable) => enumerable == null ? Array.Empty<T>() : enumerable.ToArray();
+    
     public static T? DequeueOrDefault<T>(this Queue<T> queue) => queue.Count < 1 ? default : queue.Dequeue();
 
     public static void Populate<T>(this T[] array, T value)

@@ -158,8 +158,8 @@ public static class ExtensionsIO
         
         return new(
             directory,
-            directories == null ? Array.Empty<DirectoryInfo>() : directories.ToArray(),
-            files == null ? Array.Empty<FileInfo>() : files.ToArray(),
+            directories.ToArrayOrEmpty(),
+            files.ToArrayOrEmpty(),
             exception
         );
     }
@@ -182,6 +182,8 @@ public static class ExtensionsIO
             yield return item;
         }
     }
+    
+    
     
     
     
