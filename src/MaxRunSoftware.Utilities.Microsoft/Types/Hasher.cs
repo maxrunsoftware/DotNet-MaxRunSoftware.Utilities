@@ -1,14 +1,7 @@
 using System.IO.Hashing;
 using System.Security.Cryptography;
 
-namespace MaxRunSoftware.Utilities.Common;
-
-public interface IHasher
-{
-    public string Name { get; }
-    public byte[] Hash(Stream stream);
-    public Task<byte[]> HashAsync(Stream stream, CancellationToken cancellationToken = default);
-}
+namespace MaxRunSoftware.Utilities.Microsoft;
 
 public static class Hasher
 {
@@ -62,6 +55,7 @@ public static class Hasher
         public string Name { get; } = name;
         public byte[] Hash(Stream stream)
         {
+            
             algorithm.Append(stream);
             return algorithm.GetHashAndReset();
         }
