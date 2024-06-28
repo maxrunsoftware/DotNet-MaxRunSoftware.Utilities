@@ -63,6 +63,117 @@ public static partial class Util
 
     #endregion Base16
 
+    #region Base32
+    
+    
+    /// <summary>
+    /// https://stackoverflow.com/a/7135008
+    /// https://www.rfc-editor.org/rfc/rfc4648#section-6
+    /// </summary>
+    public static byte[] Base32(string base32String)
+    {
+        if (string.IsNullOrEmpty(base32String)) throw new ArgumentNullException(nameof(base32String));
+
+        base32String = base32String.TrimEnd('='); //remove padding characters
+        var byteCount = base32String.Length * 5 / 8; //this must be TRUNCATED
+        var returnArray = new byte[byteCount];
+
+        byte curByte = 0;
+        byte bitsRemaining = 8;
+        var arrayIndex = 0;
+        foreach (var c in base32String)
+        {
+            var cValue = CharToValue(c);
+            
+            if (bitsRemaining > 5)
+            {
+                var mask = cValue << (bitsRemaining - 5);
+                curByte = (byte)(curByte | mask);
+                bitsRemaining -= 5;
+            }
+            else
+            {
+                var mask = cValue >> (5 - bitsRemaining);
+                curByte = (byte)(curByte | mask);
+                returnArray[arrayIndex++] = curByte;
+                curByte = (byte)(cValue << (3 + bitsRemaining));
+                bitsRemaining += 3;
+            }
+        }
+
+        // if we didn't end with a full byte
+        if (arrayIndex != byteCount) returnArray[arrayIndex] = curByte;
+
+        return returnArray;
+
+        static int CharToValue(int value) => value switch
+        {
+            // 65-90 == uppercase letters
+            < 91 and > 64 => value - 65,
+            
+            // 50-55 == numbers 2-7
+            < 56 and > 49 => value - 24,
+            
+            // 97-122 == lowercase letters
+            < 123 and > 96 => value - 97,
+            
+            _ => throw new ArgumentException("Character is not a Base32 character.", nameof(value)),
+        };
+    }
+
+    /// <summary>
+    /// https://stackoverflow.com/a/7135008
+    /// https://www.rfc-editor.org/rfc/rfc4648#section-6
+    /// </summary>
+    public static string Base32(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length == 0) throw new ArgumentNullException(nameof(bytes));
+
+        var charCount = (int)Math.Ceiling(bytes.Length / 5d) * 8;
+        var returnArray = new char[charCount];
+
+        byte nextChar = 0;
+        byte bitsRemaining = 5;
+        var arrayIndex = 0;
+
+        foreach (var b in bytes)
+        {
+            nextChar = (byte)(nextChar | (b >> (8 - bitsRemaining)));
+            returnArray[arrayIndex++] = ValueToChar(nextChar);
+            
+            if (bitsRemaining < 4)
+            {
+                nextChar = (byte)((b >> (3 - bitsRemaining)) & 31);
+                returnArray[arrayIndex++] = ValueToChar(nextChar);
+                bitsRemaining += 5;
+            }
+            
+            bitsRemaining -= 3;
+            nextChar = (byte)((b << bitsRemaining) & 31);
+        }
+
+        // if we didn't end with a full char
+        if (arrayIndex != charCount)
+        {
+            returnArray[arrayIndex++] = ValueToChar(nextChar);
+            while (arrayIndex != charCount)
+            {
+                returnArray[arrayIndex++] = '='; //padding
+            }
+        }
+
+        return new(returnArray);
+
+        static char ValueToChar(byte b) => b switch
+        {
+            < 26 => (char)(b + 65),
+            < 32 => (char)(b + 24),
+            _ => throw new ArgumentException("Byte is not a value Base32 value.", nameof(b)),
+        };
+    }
+    
+    #endregion Base32
+    
     #region Base64
 
     public static string Base64(byte[] bytes) => Convert.ToBase64String(bytes);

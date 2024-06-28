@@ -15,7 +15,6 @@ public class LoggerForwarderProvider(IEnumerable<ILoggerForwarderHandler> handle
     public ICollection<ILoggerForwarderHandler> Handlers { get; set; } = handlers.ToList();
     public LogLevel LogLevel { get; set; } = LogLevel.Trace;
     
-    
     public virtual ILogger CreateLogger(string categoryName) => loggers.GetOrAdd(categoryName, name => new(name, this));
     
     protected virtual void Add(LogEvent logEvent)
@@ -52,5 +51,15 @@ public class LoggerForwarderProvider(IEnumerable<ILoggerForwarderHandler> handle
         public override bool IsEnabled(LogLevel logLevel) => logLevel.IsActiveFor(loggerForwarderProvider.LogLevel);
         
         protected override void Log(LogEvent logEvent) => loggerForwarderProvider.Add(logEvent);
+    }
+}
+
+public static class LoggerForwarderProviderExtensions
+{
+    public static IServiceCollection AddLoggerForwarderProvider(this IServiceCollection services)
+    {
+        var descriptor = new ServiceDescriptor(typeof(ILoggerProvider), typeof(LoggerForwarderProvider), ServiceLifetime.Singleton);
+        services.Add(descriptor);
+        return services;
     }
 }

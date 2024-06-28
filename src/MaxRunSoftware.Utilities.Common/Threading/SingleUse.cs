@@ -39,4 +39,18 @@ public sealed class SingleUse
     }
 
     public bool IsUsed => isUsed;
+
+    public void ThrowIfUsed_ObjectDisposedException(object self, string? message = null)
+    {
+        if (!IsUsed) return;
+        
+        if (message == null)
+        {
+            throw new ObjectDisposedException(self.GetType().FullNameFormatted());
+        }
+        else
+        {
+            throw new ObjectDisposedException(self.GetType().FullNameFormatted(), message);
+        }
+    }
 }

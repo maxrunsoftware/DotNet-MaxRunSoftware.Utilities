@@ -400,7 +400,7 @@ public static class ExtensionsReflection
             }
             else
             {
-                if (attributeType.IsAssignableTo(attr.GetType())) list.Add(attr);
+                if (attr.GetType().IsAssignableTo(attributeType)) list.Add(attr);
             }
         }
         

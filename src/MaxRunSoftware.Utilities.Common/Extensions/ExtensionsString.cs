@@ -216,6 +216,21 @@ public static class ExtensionsString
     public static int IndexOfAny(this string str, params char[] chars) => str.IndexOfAny(chars);
 
     #endregion IndexOfAny
+    
+    #region IndexesOfAny
+
+    [Pure]
+    public static int[] IndexesOf(this string str, char c)
+    {
+        var list = new List<int>();
+        for (var i = 0; i < str.Length; i++)
+        {
+            if (str[i] == c) list.Add(i);
+        }
+        return list.ToArray();
+    }
+
+    #endregion IndexOfAny
 
     #region ContainsAny
 

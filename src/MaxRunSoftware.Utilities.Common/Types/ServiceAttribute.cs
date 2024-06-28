@@ -49,26 +49,14 @@ public static class ServiceAttributeExtensions
         
         return services;
     }
-    
+
     public static IServiceCollection AddServiceAttributeServices(
         this IServiceCollection services,
         Assembly assembly,
         Func<Type, ServiceAttribute, bool>? predicate = null
-    )
-    {
-        return AddServiceAttributeServices(
-            services,
-            assembly.GetTypesWithAttribute<ServiceAttribute>(),
-            predicate: predicate
-        );
-    }
-    
-    public static IServiceCollection AddServiceAttributeServices<TInAssembly>(
-        this IServiceCollection services,
-        Func<Type, ServiceAttribute, bool>? predicate = null
     ) => AddServiceAttributeServices(
         services,
-        typeof(TInAssembly).Assembly.GetTypesWithAttribute<ServiceAttribute>(),
+        assembly.GetTypesWithAttribute<ServiceAttribute>(),
         predicate: predicate
     );
 }
