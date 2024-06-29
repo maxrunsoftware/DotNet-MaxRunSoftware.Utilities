@@ -19,10 +19,8 @@ public static partial class Util
     #region Base16
 
     // ReSharper disable once InconsistentNaming
-    private static readonly uint[] Base16_Chars = Base16();
-
-    private static readonly string[] Base16_Strings = Enumerable.Range(0, 255).Select(i => i.ToString("X2")).ToArray();
-    private static uint[] Base16()
+    private static readonly uint[] Base16_Chars = Base16_Chars_Create();
+    private static uint[] Base16_Chars_Create()
     {
         var result = new uint[256];
         for (var i = 0; i < 256; i++)
@@ -33,22 +31,27 @@ public static partial class Util
 
         return result;
     }
+    private static readonly string[] Base16_Strings = Enumerable.Range(0, 255).Select(i => i.ToString("X2")).ToArray();
+    
 
     public static string Base16(byte b) => Base16_Strings[b];
 
     public static string Base16(byte[] bytes)
     {
-        // https://stackoverflow.com/a/24343727/48700 https://stackoverflow.com/a/624379
+        // https://stackoverflow.com/a/24343727/48700
+        // https://stackoverflow.com/a/624379
 
         var lookup32 = Base16_Chars;
-        var result = new char[bytes.Length * 2];
-        for (var i = 0; i < bytes.Length; i++)
+        var len = bytes.Length;
+        var result = new char[len * 2];
+        for (var i = 0; i < len; i++)
         {
             var val = lookup32[bytes[i]];
             result[2 * i] = (char)val;
             result[2 * i + 1] = (char)(val >> 16);
         }
 
+        
         return new(result);
     }
 
