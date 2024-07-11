@@ -243,7 +243,7 @@ public class FtpClientFtpConfig
             DataConnectionReadTimeout = 1000 * 60,
             EncryptionMode = FtpEncryptionMode.Auto,
             ValidateAnyCertificate = false,
-            SslBuffering = FtpsBuffering.Off,
+            // SslBuffering = FtpsBuffering.Off,
         };
         //FtpConfig.Clone();
     }

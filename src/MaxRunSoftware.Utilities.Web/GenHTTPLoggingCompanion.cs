@@ -41,17 +41,17 @@ public class GenHTTPLoggingCompanion(ILogger log) : IServerCompanion
         }
         
     }
-    
-    public void OnServerError(ServerErrorScope scope, Exception error)
+
+    public void OnServerError(ServerErrorScope scope, IPAddress? client, Exception error)
     {
         log.LogError(
             error,
-            "ERROR - {Scope} - {Error}",
+            "ERROR - {IPAddress} - {Scope} - {Error}",
+            client == null ? "?.?.?.?" : client.MapToIPv4().ToString(),
             scope,
             error.Message
         );
     }
-    
 }
 
 public static class GenHTTPLoggingCompanionExtensions

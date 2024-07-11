@@ -151,7 +151,7 @@ public class GenHTTPServer(ILogger log) : IDisposable
             var companion = Host.Instance?.Companion;
             if (companion is not null)
             {
-                companion.OnServerError(ServerErrorScope.General, e);
+                companion.OnServerError(ServerErrorScope.General, null, e);
             }
             else
             {
