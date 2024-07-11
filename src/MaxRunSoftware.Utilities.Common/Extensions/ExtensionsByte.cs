@@ -198,21 +198,18 @@ public static class ExtensionsByte
     /// <returns>The compressed data</returns>
     public static byte[] CompressGZip(this byte[] data, CompressionLevel compressionLevel = CompressionLevel.Optimal)
     {
-        using (var stream = new MemoryStream())
-        {
-            using (var gZipStream = new GZipStream(stream, compressionLevel))
-            {
-                gZipStream.Write(data, 0, data.Length);
+        using var streamWrite = new MemoryStream();
+        using var streamCompression = new GZipStream(streamWrite, compressionLevel);
+        
+        streamCompression.Write(data, 0, data.Length);
 
-                gZipStream.Flush();
-                stream.Flush();
+        streamCompression.Flush();
+        streamWrite.Flush();
 
-                gZipStream.Close();
-                stream.Close();
+        streamCompression.Close();
+        streamWrite.Close();
 
-                return stream.ToArray();
-            }
-        }
+        return streamWrite.ToArray();
     }
 
     /// <summary>
@@ -222,62 +219,39 @@ public static class ExtensionsByte
     /// <returns>The decompressed data</returns>
     public static byte[] DecompressGZip(this byte[] data)
     {
-        using (var stream = new MemoryStream(data))
-        {
-            using (var gZipStream = new GZipStream(stream, CompressionMode.Decompress))
-            {
-                using (var stream2 = new MemoryStream())
-                {
-                    gZipStream.CopyTo(stream2);
-                    stream2.Flush();
-                    stream2.Close();
-                    return stream2.ToArray();
-                }
-            }
-        }
+        using var streamRead = new MemoryStream(data);
+        using var streamCompression = new GZipStream(streamRead, CompressionMode.Decompress);
+        using var streamWrite = new MemoryStream();
+        
+        streamCompression.CopyTo(streamWrite);
+        streamWrite.Flush();
+        streamWrite.Close();
+        
+        return streamWrite.ToArray();
     }
 
     #endregion Compression
 
-    public static bool EqualsBytes(this Span<byte> b1, Span<byte> b2) => b1.SequenceEqual(b2);
+    public static bool EqualsBytes(this Span<byte> x, Span<byte> y) => EqualsBytes((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
 
-    // https://stackoverflow.com/a/48599119
-    public static bool EqualsBytes(this byte[] b1, byte[] b2) =>
-        // alternative unsafe option https://stackoverflow.com/a/8808245
-        EqualsBytes(b1, b2, false);
+    public static bool EqualsBytes(this ReadOnlySpan<byte> x, Span<byte> y) => EqualsBytes(x, (ReadOnlySpan<byte>)y);
 
-    public static bool EqualsBytes(this byte[]? b1, byte[]? b2, bool reverse)
+    public static bool EqualsBytes(this Span<byte> x, ReadOnlySpan<byte> y) => EqualsBytes((ReadOnlySpan<byte>)x, y);
+
+    public static bool EqualsBytes(this ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
     {
-        if (b1 == b2) return true; //reference equality check
+        if (x.Length != y.Length) return false;
+        if (x.Length == 0) return true;
+        if (x[0] != y[0]) return false; // compare first byte
+        if (x[^1] != y[^1]) return false; // compare last byte
+        if (x[x.Length / 2] != y[y.Length / 2]) return false; // compare middle byte
+        return x.SequenceEqual(y);
+    }
 
-        if (b1 == null || b2 == null) return false;
-
-        if (b1.Length != b2.Length) return false;
-
-        var len = b1.Length;
-        if (len == 0) return true;
-
-        if (b1[0] != b2[0]) return false; // compare first byte
-
-        if (b1[len - 1] != b2[len - 1]) return false; // compare last byte
-
-        if (b1[len / 2] != b2[len / 2]) return false; // compare middle byte
-
-        if (reverse)
-        {
-            for (var i = len - 1; i >= 0; i--)
-            {
-                if (b1[i] != b2[i]) return false;
-            }
-        }
-        else
-        {
-            for (var i = 0; i < len; i++)
-            {
-                if (b1[i] != b2[i]) return false;
-            }
-        }
-
-        return true;
+    public static bool EqualsBytes(this byte[]? x, byte[]? y)
+    {
+        if (ReferenceEquals(x, y)) return true; //reference equality check
+        if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
+        return EqualsBytes((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
     }
 }

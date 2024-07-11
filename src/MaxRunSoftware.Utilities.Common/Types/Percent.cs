@@ -17,6 +17,8 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // ReSharper disable RedundantCast
@@ -26,9 +28,12 @@ namespace MaxRunSoftware.Utilities.Common;
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct Percent :
-    IConvertible, ISpanFormattable,
-    IComparable, IComparable<Percent>, IComparable<Percent?>,
-    IEquatable<Percent>, IEquatable<Percent?>
+    IConvertible, 
+    IComparable<Percent?>,
+    IEquatable<Percent?>, 
+    INumber<Percent>,
+    IUnsignedNumber<Percent>,
+    IMinMaxValue<Percent>
 {
     static Percent() => valuesInt = Lzy.Create(() => Enumerable.Range(0, 101).Select(o => new Percent(o)).ToImmutableArray());
 
@@ -37,30 +42,55 @@ public readonly struct Percent :
     /// </summary>
     private const string DOUBLE_FIXED_POINT = "0.###################################################################################################################################################################################################################################################################################################################################################";
 
-    private const double MIN_VALUE_DOUBLE = 0;
-    private const double ONE_VALUE_DOUBLE = 1;
-    private const double MAX_VALUE_DOUBLE = 100;
+    private const long MIN_LONG = 0;
+    private const long MAX_LONG = 100;
+    private const ulong MAX_ULONG = 100;
+    
+    private const double ZERO_DOUBLE = 0.0;
+    public static Percent Zero => (Percent)ZERO_DOUBLE;
 
-    public static readonly Percent MinValue = (Percent)MIN_VALUE_DOUBLE;
-    public static readonly Percent OneValue = (Percent)ONE_VALUE_DOUBLE;
-    public static readonly Percent MaxValue = (Percent)MAX_VALUE_DOUBLE;
+    private const double ONE_DOUBLE = 1.0;
+    public static Percent One => (Percent)ONE_DOUBLE;
 
+    public static Percent MinValue => (Percent)ZERO_DOUBLE;
+    
+    private const double MAX_DOUBLE = 100.0;
+    public static Percent MaxValue => (Percent)MAX_DOUBLE;
+    
+    public static int Radix { get; } = 2;
+    
     private readonly double m_value; // Do not rename (binary serialization)
 
     private static readonly Lzy<ImmutableArray<Percent>> valuesInt;
     public static ImmutableArray<Percent> ValuesInt => valuesInt.Value;
 
-    public Percent() : this(MIN_VALUE_DOUBLE) { }
+    public Percent() : this(Zero.m_value) { }
 
     private Percent(double value) => m_value = value switch
     {
-        < MIN_VALUE_DOUBLE => MIN_VALUE_DOUBLE,
-        > MAX_VALUE_DOUBLE => MAX_VALUE_DOUBLE,
+        < ZERO_DOUBLE => ZERO_DOUBLE,
+        > MAX_DOUBLE => MAX_DOUBLE,
         _ => value,
     };
+    
+    private Percent(long value) => m_value = value switch
+    {
+        < MIN_LONG => ZERO_DOUBLE,
+        > MAX_LONG => MAX_DOUBLE,
+        _ => value,
+    }; 
 
+    private Percent(ulong value) => m_value = value switch
+    {
+        > MAX_ULONG => MAX_DOUBLE,
+        _ => value,
+    }; 
+    
     #region operator
 
+    public static Percent AdditiveIdentity => Zero;
+    public static Percent MultiplicativeIdentity => One;
+    
     // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/operator-overloading
     public static bool operator <(Percent left, Percent right) => left.CompareTo(right) < 0;
     public static bool operator >(Percent left, Percent right) => left.CompareTo(right) > 0;
@@ -68,25 +98,26 @@ public readonly struct Percent :
     public static bool operator >=(Percent left, Percent right) => left.CompareTo(right) >= 0;
     public static bool operator ==(Percent left, Percent right) => left.Equals(right);
     public static bool operator !=(Percent left, Percent right) => !left.Equals(right);
-
+    
     public static Percent operator +(Percent left) => left;
     public static Percent operator -(Percent left) => new(MaxValue.m_value - left.m_value);
     public static Percent operator +(Percent left, Percent right) => new(left.m_value + right.m_value);
     public static Percent operator -(Percent left, Percent right) => new(left.m_value - right.m_value);
     public static Percent operator *(Percent left, Percent right) => new(left.m_value * right.m_value);
     public static Percent operator /(Percent left, Percent right) => new(left.m_value / right.m_value);
+    public static Percent operator %(Percent left, Percent right) => new(left.m_value % right.m_value);
 
     public static Percent operator ++(Percent left)
     {
         // Behave like uint.MaxValue++
-        var d = left.m_value + OneValue.m_value;
-        return d > MAX_VALUE_DOUBLE ? MinValue : new(d);
+        var d = left.m_value + ONE_DOUBLE;
+        return d > MAX_DOUBLE ? MinValue : new(d);
     }
     public static Percent operator --(Percent left)
     {
         // Behave like uint.MinValue--
-        var d = left.m_value - OneValue.m_value;
-        return d < MIN_VALUE_DOUBLE ? MaxValue : new(d);
+        var d = left.m_value - ONE_DOUBLE;
+        return d < ZERO_DOUBLE ? MaxValue : new(d);
     }
 
     public static implicit operator byte(Percent percent) => Convert.ToByte(percent.m_value);
@@ -238,6 +269,8 @@ public readonly struct Percent :
 
     public static Percent Parse(ReadOnlySpan<char> s, NumberStyles style = NumberStyles.Integer, IFormatProvider? provider = null) => (Percent)double.Parse(s, style, provider);
 
+    public static Percent Parse(ReadOnlySpan<char> s, IFormatProvider? provider = null) => Parse(s, style: NumberStyles.Integer, provider: null);
+
     private static Percent Parse(ReadOnlySpan<char> s, NumberStyles style, NumberFormatInfo info) => (Percent)double.Parse(s, style, info);
 
     #endregion Parse
@@ -256,7 +289,9 @@ public readonly struct Percent :
         result = MinValue;
         return false;
     }
-
+    
+    public static bool TryParse(string? s, IFormatProvider? provider, out Percent result) => throw new NotImplementedException();
+    
     public static bool TryParse(ReadOnlySpan<char> s, out Percent result)
     {
         var r = double.TryParse(s, out var o);
@@ -296,8 +331,89 @@ public readonly struct Percent :
         return false;
     }
 
+    public static bool TryParse(ReadOnlySpan<char> s, IFormatProvider? provider, out Percent result) => TryParse(s, NumberStyles.Integer, provider, out result);
+
     #endregion TryParse
 
+    #region TryConvert
+
+#nullable disable
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertFromChecked<TOther>(TOther value, out Percent result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertFromChecked_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertFromChecked_Internal<TOther, T>(TOther value, out T result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertFromChecked(value, out result);
+    
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertFromSaturating<TOther>(TOther value, out Percent result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertFromSaturating_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertFromSaturating_Internal<TOther, T>(TOther value, out T result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertFromSaturating(value, out result);
+    
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertFromTruncating<TOther>(TOther value, out Percent result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertFromTruncating_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertFromTruncating_Internal<TOther, T>(TOther value, out T result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertFromTruncating(value, out result);
+
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertToChecked<TOther>(Percent value, out TOther result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertToChecked_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertToChecked_Internal<TOther, T>(T value, out TOther result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertToChecked(value, out result);
+
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertToSaturating<TOther>(Percent value, out TOther result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertToSaturating_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertToSaturating_Internal<TOther, T>(T value, out TOther result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertToSaturating(value, out result);
+    
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryConvertToTruncating<TOther>(Percent value, out TOther result) where TOther : INumberBase<TOther>
+    {
+        var b = TryConvertToTruncating_Internal<TOther, double>(value, out var r);
+        result = r;
+        return b;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool TryConvertToTruncating_Internal<TOther, T>(T value, out TOther result) where TOther : INumberBase<TOther> where T : INumberBase<T> => T.TryConvertToTruncating(value, out result);
+    
+#nullable enable
+    
+    #endregion TryConvert
+    
     #region IConvertible
 
     public TypeCode GetTypeCode() => TypeCode.Double;
@@ -333,4 +449,55 @@ public readonly struct Percent :
     object IConvertible.ToType(Type type, IFormatProvider? provider) => ((IConvertible)m_value).ToType(type, provider);
 
     #endregion IConvertible
+    
+    #region INumber
+    
+    
+    public static Percent Abs(Percent value) => double.Abs(value);
+
+    public static bool IsCanonical(Percent value) => true;
+
+    public static bool IsComplexNumber(Percent value) => false;
+
+    public static bool IsEvenInteger(Percent value) => double.IsEvenInteger(value);
+
+    public static bool IsFinite(Percent value) => double.IsFinite(value);
+
+    public static bool IsImaginaryNumber(Percent value) => IsImaginaryNumber_Internal(value.m_value);
+    public static bool IsImaginaryNumber_Internal<T>(T value) where T : INumber<T> => T.IsImaginaryNumber(value);
+
+    public static bool IsInfinity(Percent value) => double.IsInfinity(value);
+
+    public static bool IsInteger(Percent value) => double.IsInteger(value);
+
+    public static bool IsNaN(Percent value) => double.IsNaN(value);
+
+    public static bool IsNegative(Percent value) => double.IsNegative(value);
+
+    public static bool IsNegativeInfinity(Percent value) => double.IsNegativeInfinity(value);
+
+    public static bool IsNormal(Percent value) => double.IsNormal(value);
+
+    public static bool IsOddInteger(Percent value) => double.IsOddInteger(value);
+
+    public static bool IsPositive(Percent value) => double.IsPositive(value);
+
+    public static bool IsPositiveInfinity(Percent value) => double.IsPositiveInfinity(value);
+
+    public static bool IsRealNumber(Percent value) => double.IsRealNumber(value);
+
+    public static bool IsSubnormal(Percent value) => double.IsSubnormal(value);
+
+    public static bool IsZero(Percent value) => value == Zero;
+
+    public static Percent MaxMagnitude(Percent x, Percent y) => double.MaxMagnitude(x, y);
+
+    public static Percent MaxMagnitudeNumber(Percent x, Percent y) => double.MaxMagnitudeNumber(x, y);
+
+    public static Percent MinMagnitude(Percent x, Percent y) => double.MinMagnitude(x, y);
+
+    public static Percent MinMagnitudeNumber(Percent x, Percent y) => double.MinMagnitudeNumber(x, y);
+    
+    #endregion INumber
+
 }

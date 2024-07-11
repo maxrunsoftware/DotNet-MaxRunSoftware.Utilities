@@ -110,5 +110,19 @@ public static partial class Constant
         return d.ToFrozenDictionary(equalityComparer);
     }
     
+    /// <summary>
+    /// For checking whether the specified type implements a specific interface. Mainly useful for generic interfaces because
+    /// you cannot "if (value is INumber&lt;T&gt;)"
+    /// https://stackoverflow.com/a/76539302
+    /// https://stackoverflow.com/a/76820581
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="otherType"></param>
+    /// <returns></returns>
+    internal static bool ImplementsInterfaceGeneric(Type type, Type otherType)
+    {
+        return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == otherType);
+    }
+    
     #endregion Helpers
 }

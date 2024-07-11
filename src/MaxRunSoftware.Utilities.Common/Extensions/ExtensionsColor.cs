@@ -39,7 +39,7 @@ public static class ExtensionsColor
 
     public static Color Shift(this Color startColor, Color endColor, double percentShifted)
     {
-        percentShifted.CheckMin(Constant.Double_Zero).CheckMax(Constant.Double_One);
+        percentShifted.CheckMin(ConstantNumber<double>.Zero).CheckMax(ConstantNumber<double>.One);
 
         //int rStart = startColor.R;
         //int rEnd = endColor.R;

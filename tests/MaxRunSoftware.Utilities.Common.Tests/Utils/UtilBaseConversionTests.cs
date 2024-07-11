@@ -17,28 +17,33 @@ public class UtilBaseConversionTests(ITestOutputHelper testOutputHelper) : TestB
     [InlineData(new byte[] {255, 1}, "FF01")]
     [InlineData(new byte[] {255, 255}, "FFFF")]
     [InlineData(new byte[] {1, 2, 3}, "010203")]
-    public void Base16_Encode(byte[] bytes, string expected)
+    public void Base16(byte[] bytes, string str)
     {
-        Assert.Equal(expected, Util.Base16(bytes));
+        Assert.Equal(str, Util.Base16(bytes));
+        Assert.Equal(bytes, Util.Base16(str));
+
+        ReadOnlySpan<byte> spanByte = bytes.AsSpan();
+        Span<char> spanChar = new char[spanByte.Length * 2];
+        Util.Base16(spanByte, spanChar);
+        var spanString = new string(spanChar);
+        Assert.Equal(str, spanString);
+    }
+    
+    
+
+    [SkippableTheory]
+    [InlineData(0, "00")]
+    [InlineData(1, "01")]
+    [InlineData(15, "0F")]
+    [InlineData(16, "10")]
+    [InlineData(255, "FF")]
+    public void Base16_Encode_Single(byte b, string expected)
+    {
+        Assert.Equal(expected, Util.Base16(b));
     }
 
-    [SkippableFact]
-    public void Base16_Encode_Benchmark()
-    {
-        var random = new Random(42);
-        var bytes = random.NextBytes((int)Constant.Bytes_Mega * 10);
-        var stopwatch = new Stopwatch();
-        var ts = TimeSpan.Zero;
-        var loopCount = 10;
-        for (var i = 0; i < loopCount; i++)
-        {
-            stopwatch.Restart();
-            _ = Util.Base16(bytes);
-            stopwatch.Stop();
-            ts = ts + stopwatch.Elapsed;
-        }
-        
-        log.LogInformation("Time: {Time} ms", ts.TotalMilliseconds);
-    }
+    
+    
+   
 
 }

@@ -20,6 +20,9 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    public static readonly IPAddress IPAddress_Min = IPAddress.Any;
+    public static readonly IPAddress IPAddress_Max = IPAddress.Broadcast;
+
     /// <summary>
     /// Map of HttpRequestHeader types to the HTTP header name
     /// </summary>

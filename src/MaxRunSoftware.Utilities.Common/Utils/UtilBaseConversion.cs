@@ -18,41 +18,50 @@ public static partial class Util
 {
     #region Base16
 
-    // ReSharper disable once InconsistentNaming
-    private static readonly uint[] Base16_Chars = Base16_Chars_Create();
-    private static uint[] Base16_Chars_Create()
-    {
-        var result = new uint[256];
-        for (var i = 0; i < 256; i++)
-        {
-            var s = i.ToString("X2");
-            result[i] = s[0] + ((uint)s[1] << 16);
-        }
-
-        return result;
-    }
-    private static readonly string[] Base16_Strings = Enumerable.Range(0, 255).Select(i => i.ToString("X2")).ToArray();
-    
-
+    private static readonly ImmutableArray<string> Base16_Strings = Enumerable.Range(0, 256).Select(i => i.ToString("X2")).ToImmutableArray();
     public static string Base16(byte b) => Base16_Strings[b];
+
+    /*
+    // ReSharper disable once InconsistentNaming
+    private static readonly uint[] Base16_Chars = Enumerable.Range(0, 256).Select(o => o.ToString("X2")).Select(o => o[0] + ((uint)o[1] << 16)).ToArray();
 
     public static string Base16(byte[] bytes)
     {
         // https://stackoverflow.com/a/24343727/48700
         // https://stackoverflow.com/a/624379
 
-        var lookup32 = Base16_Chars;
+        ReadOnlySpan<uint> ary = Base16_Chars;
         var len = bytes.Length;
         var result = new char[len * 2];
         for (var i = 0; i < len; i++)
         {
-            var val = lookup32[bytes[i]];
-            result[2 * i] = (char)val;
-            result[2 * i + 1] = (char)(val >> 16);
+            var u = ary[bytes[i]];
+            result[2 * i] = (char)u;
+            result[2 * i + 1] = (char)(u >> 16);
         }
 
-        
         return new(result);
+    }
+    */
+
+    public static string Base16(byte[] bytes)
+    {
+        Span<char> output = new char[bytes.Length * 2];
+        Base16(bytes, output);
+        return new(output);
+    }
+    
+    public static void Base16(ReadOnlySpan<byte> bytes, Span<char> output)
+    {
+        ReadOnlySpan<char> ary = stackalloc char[16] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', };
+        
+        var len = bytes.Length;
+        for (var i = len-1; i >= 0; --i)
+        {
+            var b = bytes[i];
+            output[2 * i + 1] = ary[b % 16]; // assign to the greater array index first
+            output[2 * i] = ary[b / 16];
+        }
     }
 
     public static byte[] Base16(string base16String)

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Security;
+
 namespace MaxRunSoftware.Utilities.Common;
 
 // ReSharper disable once InconsistentNaming
@@ -45,19 +47,42 @@ public static class ExtensionsIO
 
         return list.ToArray();
     }
-
-    public static long GetLength(this FileInfo? file)
+    
+    public static long GetLength(this FileInfo? file, bool suppressException = false, long defaultLength = -1)
     {
-        if (file == null) return -1;
-
+        if (file == null) return defaultLength;
         // https://stackoverflow.com/a/26473940
-        if (file.IsSymbolic())
+        if (file.IsSymbolic(suppressException: suppressException))
         {
             // https://stackoverflow.com/a/57454136
-            using (Stream fs = Util.FileOpenRead(file.FullName)) { return fs.Length; }
+            if (!suppressException) return GetLengthByStream(file);
+
+            try
+            {
+                return GetLengthByStream(file);
+            }
+            catch (SecurityException) { }
+            catch (IOException) { }
+
+            return defaultLength;
+
         }
 
-        return file.Length;
+        if (!suppressException) return file.Length;
+        try
+        {
+            return file.Length;
+        }
+        catch (SecurityException) { }
+        catch (IOException) { }
+        
+        return defaultLength;
+        
+        static long GetLengthByStream(FileInfo info)
+        {
+            using Stream fs = Util.FileOpenRead(info.FullName);
+            return fs.Length;
+        }
     }
 
     /// <summary>
@@ -65,12 +90,33 @@ public static class ExtensionsIO
     /// This is unreliable https://stackoverflow.com/a/26473940
     /// </summary>
     /// <param name="info">File to check</param>
+    /// <param name="suppressException">If true then no exception is thrown and instead just false is returned</param>
     /// <returns>true if file is a symbolic link, otherwise false</returns>
-    public static bool IsSymbolic(this FileSystemInfo? info)
+    public static bool IsSymbolic(this FileSystemInfo? info, bool suppressException = false)
     {
         if (info == null) return false;
-        var attr = info.Attributes;
-        return (attr & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+        FileAttributes? attr = null;
+        if (suppressException)
+        {
+            try
+            {
+                attr = info.Attributes;
+            }
+            catch (SecurityException)
+            {
+            }
+            catch (IOException)
+            {
+            }
+        }
+        else
+        {
+            attr = info.Attributes;
+        }
+
+        if (attr == null) return false;
+
+        return (attr.Value & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
     }
 
     public static bool IsFile(this FileSystemInfo info)
