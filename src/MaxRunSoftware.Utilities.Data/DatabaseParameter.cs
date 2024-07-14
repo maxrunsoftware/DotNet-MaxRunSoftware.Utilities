@@ -14,21 +14,24 @@
 
 namespace MaxRunSoftware.Utilities.Data;
 
-public class DatabaseParameter
+/// <summary>
+/// Describes a parameter for query parameter substitution.
+/// </summary>
+/// <param name="name">The name of the parameter</param>
+/// <param name="type">The database type for the parameter</param>
+public class DatabaseParameter(string name, DbType type)
 {
-    public DatabaseParameter(string name, DbType type)
-    {
-        Name = name;
-        Type = type;
-    }
-
-    public string Name { get; }
-    public DbType Type { get; }
+    public string Name { get; } = name;
+    public DbType Type { get; } = type;
 }
 
-public class DatabaseParameterValue : DatabaseParameter
+/// <summary>
+/// Describes a parameter for query parameter substitution with a value.
+/// </summary>
+/// <param name="name">The name of the parameter</param>
+/// <param name="type">The database type for the parameter</param>
+/// <param name="value">The value of the parameter</param>
+public class DatabaseParameterValue(string name, DbType type, object? value) : DatabaseParameter(name, type)
 {
-    public DatabaseParameterValue(string name, DbType type, object? value) : base(name, type) => Value = value;
-
-    public object? Value { get; }
+    public object? Value { get; } = value;
 }

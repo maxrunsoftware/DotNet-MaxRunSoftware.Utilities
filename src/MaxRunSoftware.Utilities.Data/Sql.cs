@@ -413,6 +413,12 @@ public abstract class Sql : IDisposable
             .Select(o => tableAlias + (skipEscaping ? o.Value : Escape(o.Value)))
             .ToStringDelimited(",");
     }
+    
+    public virtual DatabaseSchemaTable CreateDatabaseSchemaTable(string? database, string? schema, string table) => new(
+        database ?? CurrentDatabaseName ?? throw new ArgumentException("No database name provided and could not determine current database name"),
+        schema ?? CurrentSchemaName,
+        table
+    );
 
     #region CreateCommand
 

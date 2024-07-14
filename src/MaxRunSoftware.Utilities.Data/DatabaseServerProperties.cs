@@ -14,10 +14,9 @@
 
 namespace MaxRunSoftware.Utilities.Data;
 
-public abstract class DatabaseServerProperties
+public abstract class DatabaseServerProperties(Dictionary<string, string?> dictionary)
 {
-    protected Dictionary<string, string?> Dictionary { get; set; }
-    protected DatabaseServerProperties(Dictionary<string, string?> dictionary) => Dictionary = dictionary;
+    protected Dictionary<string, string?> Dictionary { get; set; } = dictionary;
 
     public static Dictionary<string, string?> ToDictionaryHorizontal(DataReaderResult result)
     {

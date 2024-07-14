@@ -78,23 +78,17 @@ public static class SqlExtensions
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<(string ColumnName, string? ColumnValue)> values) =>
         instance.Insert(table, values.Select(o => (o.ColumnName, (object?)o.ColumnValue)));
 
+    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<KeyValuePair<string, object?>> values) =>
+        instance.Insert(table, values.Select(o => (o.Key, o.Value)));
+
+    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<KeyValuePair<string, string?>> values) =>
+        instance.Insert(table, values.Select(o => (o.Key, o.Value)));
+
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, object?> values) =>
         instance.Insert(table, values.Select(o => (o.Key, o.Value)));
 
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, string?> values) =>
         instance.Insert(table, values.Select(o => (o.Key, (object?)o.Value)));
-
-    private static DatabaseSchemaTable InsertCreateTable(Sql instance, string? database, string? schema, string table) => new(
-        database ?? instance.CurrentDatabaseName ?? throw new ArgumentException("No database name provided and could not determine current database name"),
-        schema ?? instance.CurrentSchemaName,
-        table
-    );
-
-    public static int Insert(this Sql instance, string? database, string? schema, string table, IDictionary<string, object?> values) =>
-        instance.Insert(InsertCreateTable(instance, database, schema, table), values);
-
-    public static int Insert(this Sql instance, string? database, string? schema, string table, IDictionary<string, string?> values) =>
-        instance.Insert(InsertCreateTable(instance, database, schema, table), values);
 
     #endregion Insert
 

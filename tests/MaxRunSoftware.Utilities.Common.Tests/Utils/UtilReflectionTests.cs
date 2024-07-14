@@ -28,4 +28,27 @@ public class UtilReflectionTests(ITestOutputHelper testOutputHelper) : TestBaseB
         var vDateTime = Util.CreateInstanceFactory(typeof(DateTime))();
         Assert.NotNull(vDateTime);
     }
+
+    public static IEnumerable<object[]> GetCount_Data
+    {
+        get
+        {
+            var list = new List<object[]>();
+            void A(int? expected, object oo) => list.Add([oo, expected,]);
+
+            A(null, null);
+            A(0, new int[] { });
+            A(4, new[] {"a", "bb", null, "dddd"});
+            A(4, new List<string>{ "aaa", "bbb", null, "ddd" });
+            A(3, new Dictionary<string, string> { ["A"]="AAA", ["B"]="BBB", ["C"]="CCC" });
+            A(4, "abcd");
+            A(null, 'a');
+            
+            return list;
+        }
+    }
+    
+    [SkippableTheory]
+    [MemberData(nameof(GetCount_Data))]
+    public void GetCount(object enumerable, int? expected) => Assert.Equal(expected, Util.GetCount(enumerable));
 }

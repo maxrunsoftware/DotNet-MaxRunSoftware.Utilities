@@ -35,29 +35,25 @@ public static class Csv
         IReadOnlyList<ITableColumn>? columns = null;
         var rows = new List<ITableRow>();
 
-        using (var r = new StringReader(data))
+        using var r = new StringReader(data);
+        using var csv = new CsvReader(r, config);
+        if (!csv.Read()) return new Table(columns, rows);
+
+        if (config.HasHeaderRecord)
         {
-            using (var csv = new CsvReader(r, config))
-            {
-                if (!csv.Read()) return new Table(columns, rows);
-
-                if (config.HasHeaderRecord)
-                {
-                    columns = csv.ReadColumns();
-                    if (!csv.Read()) return new Table(columns, rows);
-                }
-
-                var rowIndex = 0;
-                do
-                {
-                    var row = csv.ReadRow(rowIndex);
-                    rows.Add(row);
-                    rowIndex++;
-                } while (csv.Read());
-
-                return new Table(columns, rows);
-            }
+            columns = csv.ReadColumns();
+            if (!csv.Read()) return new Table(columns, rows);
         }
+
+        var rowIndex = 0;
+        do
+        {
+            var row = csv.ReadRow(rowIndex);
+            rows.Add(row);
+            rowIndex++;
+        } while (csv.Read());
+
+        return new Table(columns, rows);
     }
 
     public static ITable ReadFile(string file, CsvConfiguration config, long streamThreshold = Constant.Bytes_Mega * 100L, Encoding? encoding = null)

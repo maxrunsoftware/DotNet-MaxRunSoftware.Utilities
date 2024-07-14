@@ -52,22 +52,14 @@ public class CsvTableStreaming : ITable
 
     public IReadOnlyList<ITableRow> Rows { get; }
 
-    private class RowCollection : IReadOnlyList<ITableRow>
+    private class RowCollection(CsvTableStreaming table) : IReadOnlyList<ITableRow>
     {
-        private class RowCollectionEnumerator : IEnumerator<ITableRow>
+        private class RowCollectionEnumerator(CsvTableStreaming table) : IEnumerator<ITableRow>
         {
-            private readonly CsvTableStreaming table;
-            private int index;
+            private int index = -1;
 
             private StreamReader? reader;
             private CsvReader? csv;
-
-            public RowCollectionEnumerator(CsvTableStreaming table)
-            {
-                this.table = table;
-                index = -1;
-                Current = default!;
-            }
 
             public bool MoveNext()
             {
@@ -100,7 +92,7 @@ public class CsvTableStreaming : ITable
                 return true;
             }
             public void Reset() => DisposeStreams();
-            public ITableRow Current { get; private set; }
+            public ITableRow Current { get; private set; } = default!;
 
             object IEnumerator.Current => Current;
 
@@ -119,8 +111,6 @@ public class CsvTableStreaming : ITable
             public void Dispose() => DisposeStreams();
         }
 
-        private readonly CsvTableStreaming table;
-        public RowCollection(CsvTableStreaming table) => this.table = table;
         public IEnumerator<ITableRow> GetEnumerator() => new RowCollectionEnumerator(table);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         private int? count;

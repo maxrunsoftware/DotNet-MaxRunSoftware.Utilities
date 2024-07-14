@@ -15,11 +15,9 @@
 namespace MaxRunSoftware.Utilities.Data;
 
 [AttributeUsage(AttributeTargets.Enum)]
-public class DatabaseTypesAttribute : Attribute
+public class DatabaseTypesAttribute(DatabaseAppType databaseAppType) : Attribute
 {
-    public DatabaseAppType DatabaseAppType { get; }
-
-    public DatabaseTypesAttribute(DatabaseAppType databaseAppType) => DatabaseAppType = databaseAppType;
+    public DatabaseAppType DatabaseAppType { get; } = databaseAppType;
 
     public Type? ExternalEnum { get; set; }
 }
@@ -127,15 +125,13 @@ public class DatabaseTypes
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class DatabaseTypeAttribute : Attribute
+public class DatabaseTypeAttribute(DbType dbType) : Attribute
 {
-    public DbType DbType { get; }
+    public DbType DbType { get; } = dbType;
     public Type? DotNetType { get; set; }
 
     public string[]? DatabaseTypeNames { get; set; }
     public object? AliasFor { get; set; }
-
-    public DatabaseTypeAttribute(DbType dbType) => DbType = dbType;
 }
 
 public class DatabaseType

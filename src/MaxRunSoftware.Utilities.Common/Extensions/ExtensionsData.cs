@@ -149,7 +149,8 @@ public static class ExtensionsData
         return p;
     }
 
-    public static IDataParameter AddParameter(this IDbCommand command,
+    public static IDataParameter AddParameter(
+        this IDbCommand command,
         DbType? dbType = null,
         ParameterDirection? direction = null,
         string? parameterName = null,
@@ -162,19 +163,12 @@ public static class ExtensionsData
     {
         var p = command.CreateParameter();
         if (dbType.HasValue) p.DbType = dbType.Value;
-
         if (direction.HasValue) p.Direction = direction.Value;
-
         if (parameterName != null) p.ParameterName = parameterName;
-
         if (precision.HasValue) p.Precision = precision.Value;
-
         if (scale.HasValue) p.Scale = scale.Value;
-
         if (size.HasValue) p.Size = size.Value;
-
         if (sourceColumn != null) p.SourceColumn = sourceColumn;
-
         if (sourceVersion.HasValue) p.SourceVersion = sourceVersion.Value;
 
         p.Value = value ?? DBNull.Value;

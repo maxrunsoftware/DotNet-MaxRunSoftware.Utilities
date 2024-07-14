@@ -21,14 +21,28 @@ public abstract class ComparableClass<T, TComparer> : IEquatable<T>, IComparable
     where TComparer : IEqualityComparer<T>, IEqualityComparer, IComparer<T>, IComparer
 {
     private readonly TComparer comparer;
-    protected ComparableClass(TComparer comparer)
+    protected ComparableClass(TComparer comparer, bool lazyHashCode = true)
     {
         this.comparer = comparer;
-        getHashCode = Lzy.Create(() => this.comparer.GetHashCode(this));
+        if (lazyHashCode)
+        {
+            getHashCodeLazy = Lzy.Create(() => this.comparer.GetHashCode(this));
+        }
+        else
+        {
+            getHashCode = this.comparer.GetHashCode(this);
+        }
     }
 
-    private readonly Lzy<int> getHashCode;
-    public override int GetHashCode() => getHashCode.Value;
+    private readonly Lzy<int>? getHashCodeLazy;
+    private readonly int? getHashCode;
+    public override int GetHashCode()
+    {
+        if (getHashCode != null) return getHashCode.Value;
+        if (getHashCodeLazy != null) return getHashCodeLazy.Value;
+        return 0;
+    }
+
     public override bool Equals([NotNullWhen(true)] object? obj) => comparer.Equals(this, obj);
     public bool Equals([NotNullWhen(true)] T? other) => comparer.Equals(this, other);
     public int CompareTo(object? obj) => comparer.Compare(this, obj);

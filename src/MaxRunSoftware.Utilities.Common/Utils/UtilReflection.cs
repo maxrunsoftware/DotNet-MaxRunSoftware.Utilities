@@ -12,14 +12,109 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq.Expressions;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MaxRunSoftware.Utilities.Common;
 
 public static partial class Util
 {
+    #region GetCount
+    
+    private sealed class GetCount_CacheObject(ImmutableArray<ISlimValueGetter> array)
+    {
+        public ImmutableArray<ISlimValueGetter> Array { get; } = array;
+        public ISlimValueGetter? Getter { get; set; }
+    }
+    
+    private static readonly ConcurrentDictionary<Type, GetCount_CacheObject?> GetCount_Methods = new();
+
+    public static int? GetCount(object? enumerable, bool enumerate = false) => (int?)GetCountLong(enumerable, enumerate: enumerate);
+    
+    public static long? GetCountLong(object? enumerable, bool enumerate = false)
+    {
+        if (enumerable == null) return null;
+        if (enumerable is ICollection collection) return collection.Count;
+        if (enumerable is Array array) return array.Length;
+
+        var cacheObject = GetCount_Methods.GetOrAdd(enumerable.GetType(), GetMethodCaller);
+
+        if (cacheObject != null)
+        {
+            if (cacheObject.Getter != null)
+            {
+                try
+                {
+                    var o = cacheObject.Getter.GetValue(enumerable);
+                    if (o != null)
+                    {
+                        var oLong = (long)o;
+                        return oLong;
+                    }
+                }
+                catch (Exception)
+                {
+                    /* ignore */
+                }
+            }
+
+            foreach (var getter in cacheObject.Array)
+            {
+                try
+                {
+                    var o = getter.GetValue(enumerable);
+                    if (o != null)
+                    {
+                        var oLong = Convert.ToInt64(o);
+                        cacheObject.Getter = getter;
+                        return oLong;
+                    }
+                }
+                catch (Exception)
+                {
+                    /* ignore */
+                }
+            }
+        }
+
+        if (enumerate && enumerable is IEnumerable enumerableTyped)
+        {
+            return enumerableTyped.Cast<object?>().LongCount();
+        }
+
+        return null;
+
+        static GetCount_CacheObject? GetMethodCaller(Type type)
+        {
+            var p = type.ToTypeSlim().GetPropertySlims(BindingFlags.Public | BindingFlags.Instance).Select(o => (o.Name, (ISlimValueGetter)o)).ToArray();
+            var f = type.ToTypeSlim().GetFieldSlims(BindingFlags.Public | BindingFlags.Instance).Select(o => (o.Name, (ISlimValueGetter)o)).ToArray();
+            var scs = new[] { StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase };
+            var arrays = new[] { p, f };
+            var names = new[] { nameof(Array.LongLength), nameof(ICollection.Count), nameof(Array.Length) };
+
+            var list = new List<ISlimValueGetter>();
+            foreach (var sc in scs)
+            {
+                foreach (var ary in arrays)
+                {
+                    foreach (var name in names)
+                    {
+                        foreach (var svg in ary.Where(o => sc.Equals(o.Item1, name)))
+                        {
+                            list.Add(svg.Item2);
+                        }
+                    }
+                }
+            }
+
+            if (list.Count < 1) return null;
+            return new(list.ToImmutableArray());
+        }
+    }
+    
+    #endregion GetCount
+    
     #region Type and Assembly Scanning
 
     /// <summary>Gets all non-system types in all visible assemblies.</summary>
@@ -40,10 +135,10 @@ public static partial class Util
 
                     foreach (var t in asm.GetTypes()) set.Add(t);
                 }
-                catch (Exception) { }
+                catch (Exception) { /* ignore */ }
             }
         }
-        catch (Exception) { }
+        catch (Exception) { /* ignore */ }
 
         return d.Values.SelectMany(o => o).WhereNotNull().ToArray();
     }
@@ -53,30 +148,27 @@ public static partial class Util
     public static Assembly[] GetAssemblies()
     {
         var items = new Stack<Assembly?>();
-        try { items.Push(Assembly.GetEntryAssembly()); }
-        catch (Exception) { }
-
-        try { items.Push(Assembly.GetCallingAssembly()); }
-        catch (Exception) { }
-
-        try { items.Push(Assembly.GetExecutingAssembly()); }
-        catch (Exception) { }
-
-        try { items.Push(MethodBase.GetCurrentMethod()!.DeclaringType?.Assembly); }
-        catch (Exception) { }
-
+        
+        // @formatter:off
+        
+        try { items.Push(Assembly.GetEntryAssembly()); } catch (Exception) { /* ignore */ }
+        try { items.Push(Assembly.GetCallingAssembly()); } catch (Exception) { /* ignore */ }
+        try { items.Push(Assembly.GetExecutingAssembly()); } catch (Exception) { /* ignore */ }
+        try { items.Push(MethodBase.GetCurrentMethod()!.DeclaringType?.Assembly); } catch (Exception) { /* ignore */ }
+        
         try
         {
             var stackTrace = new StackTrace(); // get call stack
             var stackFrames = stackTrace.GetFrames(); // get method calls (frames)
             foreach (var stackFrame in stackFrames)
             {
-                try { items.Push(stackFrame.GetMethod()?.GetType().Assembly); }
-                catch (Exception) { }
+                try { items.Push(stackFrame.GetMethod()?.GetType().Assembly); } catch (Exception) { /* ignore */ }
             }
         }
-        catch (Exception) { }
+        catch (Exception) { /* ignore */ }
 
+        // @formatter:on
+        
         var assemblyDictionary = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
         while (items.Count > 0)
         {
@@ -90,9 +182,8 @@ public static partial class Util
                 if (name.StartsWith("System.", StringComparison.OrdinalIgnoreCase)) continue;
                 if (name.StartsWith("System,", StringComparison.OrdinalIgnoreCase)) continue;
                 if (name.StartsWith("mscorlib,", StringComparison.OrdinalIgnoreCase)) continue;
-                if (assemblyDictionary.ContainsKey(name)) continue;
+                if (!assemblyDictionary.TryAdd(name, a)) continue;
 
-                assemblyDictionary.Add(name, a);
                 var referencedAssemblies = a.GetReferencedAssemblies();
                 foreach (var referencedAssembly in referencedAssemblies)
                 {
@@ -103,10 +194,10 @@ public static partial class Util
                         var referencedAssemblyLoadedFullName = referencedAssemblyLoaded.FullName;
                         if (referencedAssemblyLoadedFullName != null && !assemblyDictionary.ContainsKey(referencedAssemblyLoadedFullName)) items.Push(referencedAssemblyLoaded);
                     }
-                    catch (Exception) { }
+                    catch (Exception) { /* ignore */ }
                 }
             }
-            catch (Exception) { }
+            catch (Exception) { /* ignore */ }
         }
 
         return assemblyDictionary.Values.WhereNotNull().ToArray();

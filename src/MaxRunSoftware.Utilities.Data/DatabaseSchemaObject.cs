@@ -18,12 +18,11 @@ namespace MaxRunSoftware.Utilities.Data;
 
 public abstract class DatabaseSchemaObject { }
 
-public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>, IComparable<DatabaseSchemaDatabase>
+public class DatabaseSchemaDatabase(string databaseName) : DatabaseSchemaObject, IEquatable<DatabaseSchemaDatabase>, IComparable<DatabaseSchemaDatabase>
 {
     //public DatabaseSchemaDatabase(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0])) { }
-    public DatabaseSchemaDatabase(string databaseName) => DatabaseName = databaseName;
 
-    public string DatabaseName { get; }
+    public string DatabaseName { get; } = databaseName;
 
     #region Override
 
@@ -55,18 +54,13 @@ public class DatabaseSchemaDatabase : DatabaseSchemaObject, IEquatable<DatabaseS
     #endregion Override
 }
 
-public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSchemaSchema>, IComparable<DatabaseSchemaSchema>
+public class DatabaseSchemaSchema(DatabaseSchemaDatabase database, string? schemaName) : DatabaseSchemaObject, IEquatable<DatabaseSchemaSchema>, IComparable<DatabaseSchemaSchema>
 {
     //public DatabaseSchemaSchema(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0]), row[1].CheckNotNull(columns[1])) { }
     public DatabaseSchemaSchema(string databaseName, string? schemaName) : this(new DatabaseSchemaDatabase(databaseName), schemaName) { }
-    public DatabaseSchemaSchema(DatabaseSchemaDatabase database, string? schemaName)
-    {
-        Database = database;
-        SchemaName = schemaName;
-    }
 
-    public DatabaseSchemaDatabase Database { get; }
-    public string? SchemaName { get; }
+    public DatabaseSchemaDatabase Database { get; } = database;
+    public string? SchemaName { get; } = schemaName;
 
     #region Override
 
@@ -101,18 +95,13 @@ public class DatabaseSchemaSchema : DatabaseSchemaObject, IEquatable<DatabaseSch
     #endregion Override
 }
 
-public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>, IComparable<DatabaseSchemaTable>
+public class DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName) : DatabaseSchemaObject, IEquatable<DatabaseSchemaTable>, IComparable<DatabaseSchemaTable>
 {
     //public DatabaseSchemaTable(string?[] row, Dictionary<int, string> columns) : this(row[0].CheckNotNull(columns[0]), row[1].CheckNotNull(columns[1]), row[2].CheckNotNull(columns[2])) { }
     public DatabaseSchemaTable(string databaseName, string? schemaName, string tableName) : this(new(databaseName, schemaName), tableName) { }
-    public DatabaseSchemaTable(DatabaseSchemaSchema schema, string tableName)
-    {
-        Schema = schema;
-        TableName = tableName;
-    }
 
-    public DatabaseSchemaSchema Schema { get; }
-    public string TableName { get; }
+    public DatabaseSchemaSchema Schema { get; } = schema;
+    public string TableName { get; } = tableName;
 
     #region Override
 
@@ -147,41 +136,27 @@ public class DatabaseSchemaTable : DatabaseSchemaObject, IEquatable<DatabaseSche
     #endregion Override
 }
 
-public class DatabaseSchemaColumn : DatabaseSchemaObject
+public class DatabaseSchemaColumn(
+    string columnName,
+    string columnType,
+    DbType columnDbType,
+    bool isNullable,
+    int ordinal,
+    long? characterLengthMax = null,
+    int? numericPrecision = null,
+    int? numericScale = null,
+    string? columnDefault = null)
+    : DatabaseSchemaObject
 {
-    public DatabaseSchemaColumn(
-        string columnName,
-        string columnType,
-        DbType columnDbType,
-        bool isNullable,
-        int ordinal,
-        long? characterLengthMax = null,
-        int? numericPrecision = null,
-        int? numericScale = null,
-        string? columnDefault = null
-    )
-    {
-        ColumnName = columnName;
-        ColumnType = columnType.CheckNotNullTrimmed();
-
-        ColumnDbType = columnDbType;
-        IsNullable = isNullable;
-        Ordinal = ordinal;
-        CharacterLengthMax = characterLengthMax;
-        NumericPrecision = numericPrecision;
-        NumericScale = numericScale;
-        ColumnDefault = columnDefault;
-    }
-
-    public string ColumnName { get; }
-    public string ColumnType { get; }
-    public DbType ColumnDbType { get; }
-    public bool IsNullable { get; }
-    public int Ordinal { get; }
-    public long? CharacterLengthMax { get; }
-    public int? NumericPrecision { get; }
-    public int? NumericScale { get; }
-    public string? ColumnDefault { get; }
+    public string ColumnName { get; } = columnName;
+    public string ColumnType { get; } = columnType.CheckNotNullTrimmed();
+    public DbType ColumnDbType { get; } = columnDbType;
+    public bool IsNullable { get; } = isNullable;
+    public int Ordinal { get; } = ordinal;
+    public long? CharacterLengthMax { get; } = characterLengthMax;
+    public int? NumericPrecision { get; } = numericPrecision;
+    public int? NumericScale { get; } = numericScale;
+    public string? ColumnDefault { get; } = columnDefault;
 
     #region Override
 
@@ -217,16 +192,10 @@ public class DatabaseSchemaColumn : DatabaseSchemaObject
     #endregion Override
 }
 
-public class DatabaseSchemaTableColumn : DatabaseSchemaObject, IEquatable<DatabaseSchemaTableColumn>, IComparable<DatabaseSchemaTableColumn>
+public class DatabaseSchemaTableColumn(DatabaseSchemaTable table, DatabaseSchemaColumn column) : DatabaseSchemaObject, IEquatable<DatabaseSchemaTableColumn>, IComparable<DatabaseSchemaTableColumn>
 {
-    public DatabaseSchemaTableColumn(DatabaseSchemaTable table, DatabaseSchemaColumn column)
-    {
-        Table = table;
-        Column = column;
-    }
-
-    public DatabaseSchemaTable Table { get; }
-    public DatabaseSchemaColumn Column { get; }
+    public DatabaseSchemaTable Table { get; } = table;
+    public DatabaseSchemaColumn Column { get; } = column;
 
     #region Override
 
