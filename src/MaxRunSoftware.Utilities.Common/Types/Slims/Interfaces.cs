@@ -14,6 +14,15 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
+public interface INamed
+{
+    string? Name { get; }
+}
+
+public interface INamedFull
+{
+    string? NameFull { get; }
+}
 
 public interface ISlimValueGetter
 {

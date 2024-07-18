@@ -386,8 +386,7 @@ public static partial class Util
         var c = Expression.Lambda<Func<object>>(converted).Compile();
         return c;
     }
-
-
+    
     private static string GetMethodName(MethodInfo? method) => (method == null ? "?" : method.DeclaringType == null ? "?" : method.DeclaringType.FullNameFormatted()) + "." + (method == null ? "?" : method.Name);
 
     /// <summary>
@@ -433,5 +432,27 @@ public static partial class Util
         return compiledExp;
     }
 
+    private static class GetSingleton_Instance<T> where T : class, new()
+    {
+        public static readonly T instance = new();
+    }
+    
+    public static T GetSingleton<T>() where T : class, new() => GetSingleton_Instance<T>.instance;
+
     #endregion New and Reflection
+
+    public static int? GetMetadataToken(MemberInfo info)
+    {
+        try
+        {
+            // https://learn.microsoft.com/en-us/dotnet/api/System.Reflection.MemberInfo.MetadataToken?view=net-8.0
+            return info.MetadataToken;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+    
+    
 }

@@ -14,72 +14,55 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-
-public sealed class FieldSlim : ComparableClass<FieldSlim, FieldSlim.Comparer>, ISlimValueGetter, ISlimValueSetter
+public sealed class FieldSlim : MemberSlim<FieldSlim, FieldInfo>, ISlimValueGetter, ISlimValueSetter
 {
-    public string Name { get; }
-    public string NameClassFull { get; }
-    public string NameClass { get; }
-    public TypeSlim TypeDeclaring { get; }
-    public TypeSlim Type { get; }
-    public FieldInfo Info { get; }
+    // ReSharper disable once RedundantOverriddenMember
+    public override bool Equals(object? other) => base.Equals(other);
 
-    public bool IsStatic { get; }
-    public bool IsSettable { get; }
+    // ReSharper disable once RedundantOverriddenMember
+    public override int GetHashCode() => base.GetHashCode();
+
+    private readonly Lzy<TypeSlim> type;
+    public TypeSlim Type => type.Value;
+    
+    public bool IsConstant => Info.IsLiteral;
+    public bool IsReadonly => Info.IsInitOnly;
+    public bool IsStatic => Info.IsStatic;
     private readonly Lzy<Func<object?, object?>> getMethodCompiled;
     private readonly Lzy<Action<object?, object?>> setMethodCompiled;
-
-    public IEnumerable<Attribute> Attributes => Info.GetCustomAttributes();
-
-    public FieldSlim(FieldInfo info) : base(Comparer.Instance)
+    
+    private FieldSlim(FieldInfo info) : base(info)
     {
-        Info = info.CheckNotNull(nameof(info));
-        TypeDeclaring = info.DeclaringType.CheckNotNull(nameof(info) + "." + nameof(info.DeclaringType));
-        Type = info.FieldType;
-        Name = info.Name;
-        NameClassFull = string.IsNullOrWhiteSpace(TypeDeclaring.NameFull) ? Name : TypeDeclaring.NameFull + "." + Name;
-        NameClass = string.IsNullOrWhiteSpace(TypeDeclaring.Name) ? Name : TypeDeclaring.Name + "." + Name;
-
-        IsStatic = info.IsStatic;
-        IsSettable = info.IsSettable();
+        type = Lzy.Create(() => (TypeSlim)Info.FieldType);
         getMethodCompiled = Lzy.Create(() => Info.CreateFieldGetter());
         setMethodCompiled = Lzy.Create(() => Info.CreateFieldSetter());
     }
-
-    // ReSharper disable RedundantOverriddenMember
-    public override bool Equals(object? obj) => base.Equals(obj);
-    public override int GetHashCode() => base.GetHashCode();
-    // ReSharper restore RedundantOverriddenMember
-    public override string ToString() => NameClassFull;
-
+    
     public static bool operator ==(FieldSlim? left, FieldSlim? right) => Equals(left, right);
     public static bool operator !=(FieldSlim? left, FieldSlim? right) => !Equals(left, right);
-
+    
     public static implicit operator FieldInfo(FieldSlim obj) => obj.Info;
     public static implicit operator FieldSlim(FieldInfo obj) => new(obj);
+    
+    protected override bool Equals_Internal(FieldSlim other) => 
+        Equals(DeclaringType, other.DeclaringType)
+        && StringComparer.Ordinal.Equals(Name, other.Name)
+        && Equals(Type, other.Type);
 
-    public sealed class Comparer : ComparerBaseClass<FieldSlim>
+    protected override int GetHashCode_Internal()
     {
-        public static Comparer Instance { get; } = new();
-
-        protected override bool EqualsInternal(FieldSlim x, FieldSlim y) =>
-            EqualsStruct(x.GetHashCode(), y.GetHashCode())
-            && EqualsClass(x.TypeDeclaring, y.TypeDeclaring)
-            && EqualsOrdinal(x.Name, y.Name)
-            && EqualsClass(x.Type, y.Type);
-
-        protected override int GetHashCodeInternal(FieldSlim obj) => Hash(
-            obj.TypeDeclaring,
-            HashOrdinal(obj.Name),
-            obj.Type
-        );
-
-        protected override int CompareInternal(FieldSlim x, FieldSlim y) =>
-            CompareClass(x.TypeDeclaring, y.TypeDeclaring)
-            ?? CompareOrdinalIgnoreCaseThenOrdinal(x.Name, y.Name)
-            ?? CompareClass(x.Type, y.Type)
-            ?? 0;
+        var h = new HashCode();
+        h.Add(DeclaringType);
+        h.Add(Name, StringComparer.Ordinal);
+        h.Add(Type);
+        return h.ToHashCode();
     }
+
+    protected override int CompareTo_Internal(FieldSlim other) =>
+        Compare(DeclaringType, other.DeclaringType)
+        ?? Compare_OrdinalIgnoreCase_Ordinal(Name, other.Name)
+        ?? Compare(Type, other.Type)
+        ?? 0;
 
     public object? GetValue(object? instance) => getMethodCompiled.Value(instance);
 
@@ -90,13 +73,13 @@ public sealed class FieldSlim : ComparableClass<FieldSlim, FieldSlim.Comparer>, 
 public static class FieldSlimExtensions
 {
     public static FieldInfo ToFieldInfo(this FieldSlim obj) => obj;
-    public static FieldSlim ToPropertySlim(this FieldInfo obj) => obj;
+    public static FieldSlim ToFieldSlim(this FieldInfo obj) => obj;
     
     public static ImmutableArray<FieldSlim> GetFieldSlims(this TypeSlim type, BindingFlags flags) =>
         type.Type.GetFieldSlims(flags);
     
     public static ImmutableArray<FieldSlim> GetFieldSlims(this Type type, BindingFlags flags) =>
-        type.GetFields(flags).Select(o => new FieldSlim(o)).ToImmutableArray();
+        type.GetFields(flags).Select(o => o.ToFieldSlim()).ToImmutableArray();
     
     public static FieldSlim? GetFieldSlim(this TypeSlim type, string name, BindingFlags? flags = null) =>
         type.Type.GetFieldSlim(name, flags);

@@ -21,6 +21,7 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public static class ExtensionsReflection
 {
+    /*
     #region BindingFlags
 
     public static bool IsIgnoreCase(this BindingFlags flags) => (flags & BindingFlags.IgnoreCase) != 0;
@@ -46,39 +47,46 @@ public static class ExtensionsReflection
 
     public static bool IsOptionalParamBinding(this BindingFlags flags) => (flags & BindingFlags.OptionalParamBinding) != 0;
 
-    public static bool IsIgnoreReturn(this BindingFlags flags) => (flags & BindingFlags.IgnoreReturn) != 0;
+    public static bool IsIgnoreReturn(this BindingFlags flags) => flags.HasFlag() (flags & BindingFlags.IgnoreReturn) != 0;
     public static bool IsDoNotWrapExceptions(this BindingFlags flags) => (flags & BindingFlags.DoNotWrapExceptions) != 0;
 
     #endregion BindingFlags
-
+    */
+    
     public static string? GetFileVersion(this Assembly assembly) => FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion;
 
     public static string? GetVersion(this Assembly assembly) => assembly.GetCustomAttribute<AssemblyVersionAttribute>()?.Version;
 
-    private static readonly string MAGIC_TAG_ANONYMOUS;
-    private static readonly string MAGIC_TAG_INNER;
-    public static bool IsAnonymous(this MethodInfo mi) => mi.Name.Contains(MAGIC_TAG_ANONYMOUS);
-    public static bool IsInner(this MethodInfo mi) => mi.Name.Contains(MAGIC_TAG_INNER);
+    private static readonly string IsAnonymous_MagicTag;
+    private static readonly string IsInner_MagicTag;
+    public static bool IsAnonymous(this MethodInfo info) => info.Name.Contains(IsAnonymous_MagicTag);
+    public static bool IsInner(this MethodInfo info) => info.Name.Contains(IsInner_MagicTag);
 
-    private static string GetNameMagicTag(this MethodInfo mi)
+    private static string GetNameMagicTag(this MethodInfo info)
     {
-        var match = new Regex(">([a-zA-Z]+)__").Match(mi.Name);
+        // https://stackoverflow.com/a/56496797
+        var match = new Regex(">([a-zA-Z]+)__").Match(info.Name);
         if (match.Success && match.Value is { } val && !match.NextMatch().Success) return val;
-
-        throw new ArgumentException($"Cant find magic tag of {mi}");
+        throw new ArgumentException($"Cant find magic tag of {info}");
     }
 
     static ExtensionsReflection()
     {
+        // ReSharper disable EmptyStatement
+        // ReSharper disable MoveLocalFunctionAfterJumpStatement
+
         // https://stackoverflow.com/a/56496797
         void Inner() { }
-        // ReSharper disable once EmptyStatement
         ;
+        
         var inner = Inner;
-        MAGIC_TAG_INNER = GetNameMagicTag(inner.Method);
+        IsInner_MagicTag = GetNameMagicTag(inner.Method);
 
         var anonymous = () => { };
-        MAGIC_TAG_ANONYMOUS = GetNameMagicTag(anonymous.Method);
+        IsAnonymous_MagicTag = GetNameMagicTag(anonymous.Method);
+        
+        // ReSharper restore MoveLocalFunctionAfterJumpStatement
+        // ReSharper restore EmptyStatement
     }
 
 
@@ -97,30 +105,24 @@ public static class ExtensionsReflection
             "Microsoft.VisualStudio",
         };
 
-        foreach (var module in assembly.Modules)
+        foreach (var name in AssemblyNames(assembly))
         {
-            var scopeName = module.ScopeName.TrimOrNull();
-            if (scopeName == null) continue;
-            if (scopeName.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
+            var s = name?.ToString().TrimOrNull();
+            if (s != null && s.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
         }
 
-        var name = assembly.FullName.TrimOrNull();
-        if (name != null && name.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
-
-        name = assembly.ToString().TrimOrNull();
-        if (name != null && name.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
-
-        var assemblyName = assembly.GetName();
-        name = assemblyName.ToString().TrimOrNull();
-        if (name != null && name.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
-
-        name = assemblyName.FullName.TrimOrNull();
-        if (name != null && name.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
-
-        name = assemblyName.Name.TrimOrNull();
-        if (name != null && name.StartsWithAny(StringComparison.OrdinalIgnoreCase, namePrefixes)) return true;
-
         return false;
+
+        static IEnumerable<object?> AssemblyNames(Assembly a)
+        {
+            foreach (var module in a.Modules) yield return module.ScopeName;
+            yield return a.FullName;
+            yield return a;
+            var an = a.GetName();
+            yield return an;
+            yield return an.FullName;
+            yield return an.Name;
+        }
     }
 
     #region PropertyInfo
@@ -434,4 +436,119 @@ public static class ExtensionsReflection
         (TAttribute?)GetAttribute(info, typeof(TAttribute), inherited: inherited, exactType: exactType);
     
     #endregion Attribute
+    
+    public static int? MetadataTokenNullable(this MemberInfo info)
+    {
+        try
+        {
+            // https://learn.microsoft.com/en-us/dotnet/api/System.Reflection.MemberInfo.MetadataToken?view=net-8.0
+            return info.MetadataToken;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+    
+    public static Module? ModuleNullable(this MemberInfo info)
+    {
+        try
+        {
+            // https://learn.microsoft.com/en-us/dotnet/api/System.Reflection.MemberInfo.Module?view=net-8.0
+            return info.Module;
+        }
+        catch (NotImplementedException)
+        {
+            return null;
+        }
+    }
+
+    public static bool? HasSameMetadataDefinitionAsNullable(this MemberInfo x, MemberInfo y)
+    {
+        try
+        {
+            // https://github.com/dotnet/runtime/issues/16288
+            return x.HasSameMetadataDefinitionAs(y);
+        }
+        catch (NotImplementedException)
+        {
+            return null;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+        catch (Exception e)
+        {
+            if (e is NotImplementedException) return null;
+            if (e is not InvalidOperationException) return null;
+            throw;
+        }
+    }
+
+    public static bool EqualsDeep(
+        this MemberInfo x, 
+        MemberInfo y, 
+        bool checkMetadataDefinition = false, 
+        bool checkMetadataToken = false, 
+        bool checkModule = false,
+        bool checkAttributes = false
+        )
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return true;
+
+        if (x.Name != y.Name) return false;
+        if (x.MemberType != y.MemberType) return false;
+        if (x.DeclaringType != y.DeclaringType) return false;
+        if (x.IsCollectible != y.IsCollectible) return false;
+
+        if (checkMetadataDefinition)
+        {
+            var b = x.HasSameMetadataDefinitionAsNullable(y);
+            if (b != null) return b.Value;
+        }
+
+        if (checkMetadataToken)
+        {
+            var xt = x.MetadataTokenNullable();
+            var yt = y.MetadataTokenNullable();
+
+            if (xt == null && yt != null) return false;
+            if (xt != null && yt == null) return false;
+            if (xt != null && yt != null && xt.Value != yt.Value) return false;
+        }
+
+        if (checkModule)
+        {
+            var xm = x.ModuleNullable();
+            var ym = y.ModuleNullable();
+
+            if (xm == null && ym != null) return false;
+            if (xm != null && ym == null) return false;
+            if (xm != null && ym != null && !xm.Equals(ym)) return false;
+        }
+
+        if (checkAttributes)
+        {
+            var xAttrs = Attribute.GetCustomAttributes(x);
+            var yAttrs = Attribute.GetCustomAttributes(y);
+            if (xAttrs.Length != yAttrs.Length) return false;
+
+            var xAttrTypeCounts = xAttrs.Select(o => o.GetType()).GroupBy(o => o).ToDictionary(o => o.Key, o => o.Count());
+            var yAttrTypeCounts = yAttrs.Select(o => o.GetType()).GroupBy(o => o).ToDictionary(o => o.Key, o => o.Count());
+            if (xAttrTypeCounts.Count != yAttrTypeCounts.Count) return false;
+
+            foreach (var (xAttrType, xAttrTypeCount) in xAttrTypeCounts)
+            {
+                if (!yAttrTypeCounts.TryGetValue(xAttrType, out var yAttrTypeCount)) return false;
+                if (xAttrTypeCount != yAttrTypeCount) return false;
+            }
+        }
+
+        
+        
+        return true;
+    }
 }
