@@ -39,82 +39,82 @@ public enum DeclarationFlags
 
 public static class DeclarationFlagsExtensions
 {
-    public static bool IsPublic(this DeclarationFlags flags) => (flags & DeclarationFlags.Public) != 0;
-    public static bool IsProtected(this DeclarationFlags flags) => (flags & DeclarationFlags.Protected) != 0;
-    public static bool IsPrivate(this DeclarationFlags flags) => (flags & DeclarationFlags.Private) != 0;
-    public static bool IsInternal(this DeclarationFlags flags) => (flags & DeclarationFlags.Internal) != 0;
-    public static bool IsStatic(this DeclarationFlags flags) => (flags & DeclarationFlags.Static) != 0;
-    public static bool IsInstance(this DeclarationFlags flags) => (flags & DeclarationFlags.Instance) != 0;
-    public static bool IsAbstract(this DeclarationFlags flags) => (flags & DeclarationFlags.Abstract) != 0;
-    public static bool IsVirtual(this DeclarationFlags flags) => (flags & DeclarationFlags.Virtual) != 0;
-    public static bool IsOverride(this DeclarationFlags flags) => (flags & DeclarationFlags.Override) != 0;
-    public static bool IsNewShadowSignature(this DeclarationFlags flags) => (flags & DeclarationFlags.NewShadowSignature) != 0;
-    public static bool IsNewShadowName(this DeclarationFlags flags) => (flags & DeclarationFlags.NewShadowName) != 0;
-    public static bool IsExplicit(this DeclarationFlags flags) => (flags & DeclarationFlags.Explicit) != 0;
-    public static bool IsSealed(this DeclarationFlags flags) => (flags & DeclarationFlags.Sealed) != 0;
-    public static bool IsReadonly(this DeclarationFlags flags) => (flags & DeclarationFlags.Readonly) != 0;
-    public static bool IsInherited(this DeclarationFlags flags) => (flags & DeclarationFlags.Inherited) != 0;
-    public static bool IsGenericParameter(this DeclarationFlags flags) => (flags & DeclarationFlags.GenericParameter) != 0;
+    public static bool IsPublic(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Public) != 0;
+    public static bool IsProtected(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Protected) != 0;
+    public static bool IsPrivate(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Private) != 0;
+    public static bool IsInternal(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Internal) != 0;
+    public static bool IsStatic(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Static) != 0;
+    public static bool IsInstance(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Instance) != 0;
+    public static bool IsAbstract(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Abstract) != 0;
+    public static bool IsVirtual(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Virtual) != 0;
+    public static bool IsOverride(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Override) != 0;
+    public static bool IsNewShadowSignature(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.NewShadowSignature) != 0;
+    public static bool IsNewShadowName(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.NewShadowName) != 0;
+    public static bool IsExplicit(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Explicit) != 0;
+    public static bool IsSealed(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Sealed) != 0;
+    public static bool IsReadonly(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Readonly) != 0;
+    public static bool IsInherited(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.Inherited) != 0;
+    public static bool IsGenericParameter(this DeclarationFlags flags) => (flags & Common.DeclarationFlags.GenericParameter) != 0;
 
     public static bool IsOverridable(this DeclarationFlags flags) => flags.IsVirtual() && flags.IsSealed(); // https://docs.microsoft.com/en-us/dotnet/api/system.reflection.methodbase.isfinal
 
 
     #region GetDeclarationFlags
 
-    public static DeclarationFlags GetDeclarationFlags(this Type type) => type.GetTypeInfo().GetDeclarationFlags();
+    public static DeclarationFlags DeclarationFlags(this Type type) => type.GetTypeInfo().DeclarationFlags();
 
-    public static DeclarationFlags GetDeclarationFlags(this TypeInfo info)
+    public static DeclarationFlags DeclarationFlags(this TypeInfo info)
     {
         // https://stackoverflow.com/a/34394502
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
-        flags |= info.IsAbstract && info.IsSealed ? DeclarationFlags.Static : DeclarationFlags.Instance; // https://stackoverflow.com/questions/1175888/determine-if-a-type-is-static
+        flags |= info.IsAbstract && info.IsSealed ? Common.DeclarationFlags.Static : Common.DeclarationFlags.Instance; // https://stackoverflow.com/questions/1175888/determine-if-a-type-is-static
 
         // https://stackoverflow.com/a/16024302
-        if (info.IsPublic) flags |= DeclarationFlags.Public;
-        if (info.IsNestedPublic) flags |= DeclarationFlags.Public;
+        if (info.IsPublic) flags |= Common.DeclarationFlags.Public;
+        if (info.IsNestedPublic) flags |= Common.DeclarationFlags.Public;
 
-        if (!info.IsVisible) flags |= DeclarationFlags.Internal;
-        if (info.IsNestedAssembly) flags |= DeclarationFlags.Internal;
+        if (!info.IsVisible) flags |= Common.DeclarationFlags.Internal;
+        if (info.IsNestedAssembly) flags |= Common.DeclarationFlags.Internal;
 
-        if (info.IsNestedFamily) flags |= DeclarationFlags.Protected;
-        if (info.IsNestedPrivate) flags |= DeclarationFlags.Private;
-        if (info.IsNestedFamORAssem) flags |= DeclarationFlags.Protected | DeclarationFlags.Internal;
-        if (info.IsNestedFamANDAssem) flags |= DeclarationFlags.Private | DeclarationFlags.Protected;
+        if (info.IsNestedFamily) flags |= Common.DeclarationFlags.Protected;
+        if (info.IsNestedPrivate) flags |= Common.DeclarationFlags.Private;
+        if (info.IsNestedFamORAssem) flags |= Common.DeclarationFlags.Protected | Common.DeclarationFlags.Internal;
+        if (info.IsNestedFamANDAssem) flags |= Common.DeclarationFlags.Private | Common.DeclarationFlags.Protected;
 
-        if (info.IsAbstract) flags |= DeclarationFlags.Abstract;
-        if (info.IsSealed) flags |= DeclarationFlags.Sealed;
+        if (info.IsAbstract) flags |= Common.DeclarationFlags.Abstract;
+        if (info.IsSealed) flags |= Common.DeclarationFlags.Sealed;
 
-        if (info.IsGenericParameter) flags |= DeclarationFlags.GenericParameter;
+        if (info.IsGenericParameter) flags |= Common.DeclarationFlags.GenericParameter;
 
         return flags;
     }
 
 
-    public static DeclarationFlags GetDeclarationFlags(this ConstructorInfo info)
+    public static DeclarationFlags DeclarationFlags(this ConstructorInfo info)
     {
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
-        flags |= info.IsStatic ? DeclarationFlags.Static : DeclarationFlags.Instance;
+        flags |= info.IsStatic ? Common.DeclarationFlags.Static : Common.DeclarationFlags.Instance;
 
         // https://stackoverflow.com/a/16024302
-        if (info.IsPublic) flags |= DeclarationFlags.Public;
-        if (info.IsPrivate) flags |= DeclarationFlags.Private;
-        if (info.IsFamily) flags |= DeclarationFlags.Protected;
-        if (info.IsAssembly) flags |= DeclarationFlags.Internal;
-        if (info.IsFamilyOrAssembly) flags |= DeclarationFlags.Protected | DeclarationFlags.Internal;
-        if (info.IsFamilyAndAssembly) flags |= DeclarationFlags.Private | DeclarationFlags.Protected;
-        if (info.IsAbstract) flags |= DeclarationFlags.Abstract;
-        if (info.IsFinal) flags |= DeclarationFlags.Sealed;
-        if (info.IsVirtual) flags |= DeclarationFlags.Virtual;
+        if (info.IsPublic) flags |= Common.DeclarationFlags.Public;
+        if (info.IsPrivate) flags |= Common.DeclarationFlags.Private;
+        if (info.IsFamily) flags |= Common.DeclarationFlags.Protected;
+        if (info.IsAssembly) flags |= Common.DeclarationFlags.Internal;
+        if (info.IsFamilyOrAssembly) flags |= Common.DeclarationFlags.Protected | Common.DeclarationFlags.Internal;
+        if (info.IsFamilyAndAssembly) flags |= Common.DeclarationFlags.Private | Common.DeclarationFlags.Protected;
+        if (info.IsAbstract) flags |= Common.DeclarationFlags.Abstract;
+        if (info.IsFinal) flags |= Common.DeclarationFlags.Sealed;
+        if (info.IsVirtual) flags |= Common.DeclarationFlags.Virtual;
 
         var attrs = info.Attributes;
-        if ((attrs & MethodAttributes.Virtual) != 0) flags |= DeclarationFlags.Virtual;
+        if ((attrs & MethodAttributes.Virtual) != 0) flags |= Common.DeclarationFlags.Virtual;
 
         var baseType = info.ReflectedType?.BaseType;
 
-        if (info.DeclaringType != info.ReflectedType) flags |= DeclarationFlags.Override;
-        else if ((attrs & MethodAttributes.Virtual) != 0 && (attrs & MethodAttributes.NewSlot) == 0) flags |= DeclarationFlags.Override;
+        if (info.DeclaringType != info.ReflectedType) flags |= Common.DeclarationFlags.Override;
+        else if ((attrs & MethodAttributes.Virtual) != 0 && (attrs & MethodAttributes.NewSlot) == 0) flags |= Common.DeclarationFlags.Override;
         else if (info.IsHideBySig && baseType != null)
         {
             // https://stackoverflow.com/a/288928
@@ -123,17 +123,17 @@ public static class DeclarationFlagsExtensions
             flagsSig |= BindingFlags.ExactBinding; //https://stackoverflow.com/questions/288357/how-does-reflection-tell-me-when-a-property-is-hiding-an-inherited-member-with-t#comment75338322_288928
             var paramTypes = info.GetParameters().Select(p => p.ParameterType).ToArray();
             var baseMethod = baseType.GetMethod(info.Name, flagsSig, null, paramTypes, null);
-            if (baseMethod != null) flags |= DeclarationFlags.NewShadowSignature;
+            if (baseMethod != null) flags |= Common.DeclarationFlags.NewShadowSignature;
 
-            if (baseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance).Any(m => StringComparer.Ordinal.Equals(m.Name, info.Name))) flags |= DeclarationFlags.NewShadowName;
+            if (baseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance).Any(m => StringComparer.Ordinal.Equals(m.Name, info.Name))) flags |= Common.DeclarationFlags.NewShadowName;
         }
 
         return flags;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this EventInfo info)
+    public static DeclarationFlags DeclarationFlags(this EventInfo info)
     {
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
         var mis = new List<MethodInfo?>();
         mis.Add(info.GetAddMethod(true));
@@ -143,57 +143,57 @@ public static class DeclarationFlagsExtensions
 
         foreach (var mi in mis.WhereNotNull())
         {
-            flags |= mi.GetDeclarationFlags();
+            flags |= mi.DeclarationFlags();
         }
 
         return flags;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this FieldInfo info)
+    public static DeclarationFlags DeclarationFlags(this FieldInfo info)
     {
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
-        flags |= info.IsStatic ? DeclarationFlags.Static : DeclarationFlags.Instance;
+        flags |= info.IsStatic ? Common.DeclarationFlags.Static : Common.DeclarationFlags.Instance;
 
         // https://stackoverflow.com/a/16024302
-        if (info.IsPublic) flags |= DeclarationFlags.Public;
-        if (info.IsPrivate) flags |= DeclarationFlags.Private;
-        if (info.IsFamily) flags |= DeclarationFlags.Protected;
-        if (info.IsAssembly) flags |= DeclarationFlags.Internal;
-        if (info.IsFamilyOrAssembly) flags |= DeclarationFlags.Protected | DeclarationFlags.Internal;
-        if (info.IsFamilyAndAssembly) flags |= DeclarationFlags.Private | DeclarationFlags.Protected;
+        if (info.IsPublic) flags |= Common.DeclarationFlags.Public;
+        if (info.IsPrivate) flags |= Common.DeclarationFlags.Private;
+        if (info.IsFamily) flags |= Common.DeclarationFlags.Protected;
+        if (info.IsAssembly) flags |= Common.DeclarationFlags.Internal;
+        if (info.IsFamilyOrAssembly) flags |= Common.DeclarationFlags.Protected | Common.DeclarationFlags.Internal;
+        if (info.IsFamilyAndAssembly) flags |= Common.DeclarationFlags.Private | Common.DeclarationFlags.Protected;
 
-        if (info.IsInitOnly) flags |= DeclarationFlags.Readonly;
+        if (info.IsInitOnly) flags |= Common.DeclarationFlags.Readonly;
 
         return flags;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this MethodInfo info)
+    public static DeclarationFlags DeclarationFlags(this MethodInfo info)
     {
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
-        flags |= info.IsStatic ? DeclarationFlags.Static : DeclarationFlags.Instance;
+        flags |= info.IsStatic ? Common.DeclarationFlags.Static : Common.DeclarationFlags.Instance;
 
         // https://stackoverflow.com/a/16024302
-        if (info.IsPublic) flags |= DeclarationFlags.Public;
-        if (info.IsPrivate) flags |= DeclarationFlags.Private;
-        if (info.IsFamily) flags |= DeclarationFlags.Protected;
-        if (info.IsAssembly) flags |= DeclarationFlags.Internal;
-        if (info.IsFamilyOrAssembly) flags |= DeclarationFlags.Protected | DeclarationFlags.Internal;
-        if (info.IsFamilyAndAssembly) flags |= DeclarationFlags.Private | DeclarationFlags.Protected;
-        if (info.IsAbstract) flags |= DeclarationFlags.Abstract;
-        if (info.IsFinal) flags |= DeclarationFlags.Sealed;
-        if (info.IsVirtual) flags |= DeclarationFlags.Virtual;
+        if (info.IsPublic) flags |= Common.DeclarationFlags.Public;
+        if (info.IsPrivate) flags |= Common.DeclarationFlags.Private;
+        if (info.IsFamily) flags |= Common.DeclarationFlags.Protected;
+        if (info.IsAssembly) flags |= Common.DeclarationFlags.Internal;
+        if (info.IsFamilyOrAssembly) flags |= Common.DeclarationFlags.Protected | Common.DeclarationFlags.Internal;
+        if (info.IsFamilyAndAssembly) flags |= Common.DeclarationFlags.Private | Common.DeclarationFlags.Protected;
+        if (info.IsAbstract) flags |= Common.DeclarationFlags.Abstract;
+        if (info.IsFinal) flags |= Common.DeclarationFlags.Sealed;
+        if (info.IsVirtual) flags |= Common.DeclarationFlags.Virtual;
 
-        if (IsExplicitInterfaceImplementation(info)) flags |= DeclarationFlags.Explicit; // https://stackoverflow.com/a/17854048
+        if (IsExplicitInterfaceImplementation(info)) flags |= Common.DeclarationFlags.Explicit; // https://stackoverflow.com/a/17854048
 
         var attrs = info.Attributes;
-        if ((attrs & MethodAttributes.Virtual) != 0) flags |= DeclarationFlags.Virtual;
+        if ((attrs & MethodAttributes.Virtual) != 0) flags |= Common.DeclarationFlags.Virtual;
 
         var baseType = info.ReflectedType?.BaseType;
 
-        if (info.DeclaringType != info.ReflectedType) flags |= DeclarationFlags.Override;
-        else if ((attrs & MethodAttributes.Virtual) != 0 && (attrs & MethodAttributes.NewSlot) == 0) flags |= DeclarationFlags.Override;
+        if (info.DeclaringType != info.ReflectedType) flags |= Common.DeclarationFlags.Override;
+        else if ((attrs & MethodAttributes.Virtual) != 0 && (attrs & MethodAttributes.NewSlot) == 0) flags |= Common.DeclarationFlags.Override;
         else if (info.IsHideBySig && baseType != null)
         {
             // https://stackoverflow.com/a/288928
@@ -202,9 +202,9 @@ public static class DeclarationFlagsExtensions
             flagsSig |= BindingFlags.ExactBinding; //https://stackoverflow.com/questions/288357/how-does-reflection-tell-me-when-a-property-is-hiding-an-inherited-member-with-t#comment75338322_288928
             var paramTypes = info.GetParameters().Select(p => p.ParameterType).ToArray();
             var baseMethod = baseType.GetMethod(info.Name, flagsSig, null, paramTypes, null);
-            if (baseMethod != null) flags |= DeclarationFlags.NewShadowSignature;
+            if (baseMethod != null) flags |= Common.DeclarationFlags.NewShadowSignature;
 
-            if (baseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance).Any(m => StringComparer.Ordinal.Equals(m.Name, info.Name))) flags |= DeclarationFlags.NewShadowName;
+            if (baseType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance).Any(m => StringComparer.Ordinal.Equals(m.Name, info.Name))) flags |= Common.DeclarationFlags.NewShadowName;
         }
 
         return flags;
@@ -266,35 +266,35 @@ public static class DeclarationFlagsExtensions
         return false;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this PropertyInfo info)
+    public static DeclarationFlags DeclarationFlags(this PropertyInfo info)
     {
-        var flags = DeclarationFlags.None;
+        var flags = Common.DeclarationFlags.None;
 
         var methodGet = info.GetGetMethod(true);
         if (methodGet != null)
         {
-            flags |= methodGet.GetDeclarationFlags();
+            flags |= methodGet.DeclarationFlags();
         }
 
         var methodSet = info.GetSetMethod(true);
         if (methodSet != null)
         {
-            flags |= methodSet.GetDeclarationFlags();
+            flags |= methodSet.DeclarationFlags();
         }
 
-        if (methodGet != null && methodSet == null) flags |= DeclarationFlags.Readonly;
+        if (methodGet != null && methodSet == null) flags |= Common.DeclarationFlags.Readonly;
 
         return flags;
     }
 
-    public static DeclarationFlags GetDeclarationFlags(this MemberInfo info) => info switch
+    public static DeclarationFlags DeclarationFlags(this MemberInfo info) => info switch
     {
-        ConstructorInfo c => c.GetDeclarationFlags(),
-        EventInfo e => e.GetDeclarationFlags(),
-        FieldInfo f => f.GetDeclarationFlags(),
-        MethodInfo m => m.GetDeclarationFlags(),
-        PropertyInfo p => p.GetDeclarationFlags(),
-        TypeInfo t => t.GetDeclarationFlags(),
+        ConstructorInfo c => c.DeclarationFlags(),
+        EventInfo e => e.DeclarationFlags(),
+        FieldInfo f => f.DeclarationFlags(),
+        MethodInfo m => m.DeclarationFlags(),
+        PropertyInfo p => p.DeclarationFlags(),
+        TypeInfo t => t.DeclarationFlags(),
         _ => throw new NotImplementedException(),
     };
 

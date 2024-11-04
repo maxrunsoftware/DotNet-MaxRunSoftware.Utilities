@@ -24,35 +24,35 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static class ExtensionsStringConversion
 {
-    public static ImmutableDictionary<Type, MethodSlim> Converters => converters.Value;
-    private static readonly Lzy<ImmutableDictionary<Type, MethodSlim>> converters;
-    private static ImmutableDictionary<Type, MethodSlim> Converters_Build()
+    public static ImmutableDictionary<Type, MethodInfo> Converters => converters.Value;
+    private static readonly Lzy<ImmutableDictionary<Type, MethodInfo>> converters;
+    private static ImmutableDictionary<Type, MethodInfo> Converters_Build()
     {
-        var b = ImmutableDictionary.CreateBuilder<Type, MethodSlim>();
-        foreach (var m in ((TypeSlim)typeof(ExtensionsStringConversion)).GetMethodSlims(BindingFlags.Public | BindingFlags.Static))
+        var b = ImmutableDictionary.CreateBuilder<Type, MethodInfo>();
+        foreach (var m in typeof(ExtensionsStringConversion).GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
             if (!m.Name.StartsWith("To")) continue;
-            if (m.ReturnType == null) continue;
+            if (m.ReturnType == typeof(void)) continue;
             if (m.Name.EndsWithAny(StringComparison.OrdinalIgnoreCase, "Try", "Nullable", "OrNull")) continue;
 
-            b.Add(m.ReturnType.Type, m);
+            b.Add(m.ReturnType, m);
         }
 
         return b.ToImmutable();
     }
 
-    public static ImmutableDictionary<Type, MethodSlim> ConvertersNullable => convertersNullable.Value;
-    private static readonly Lzy<ImmutableDictionary<Type, MethodSlim>> convertersNullable;
-    private static ImmutableDictionary<Type, MethodSlim> ConvertersNullable_Build()
+    public static ImmutableDictionary<Type, MethodInfo> ConvertersNullable => convertersNullable.Value;
+    private static readonly Lzy<ImmutableDictionary<Type, MethodInfo>> convertersNullable;
+    private static ImmutableDictionary<Type, MethodInfo> ConvertersNullable_Build()
     {
-        var b = ImmutableDictionary.CreateBuilder<Type, MethodSlim>();
-        foreach (var m in ((TypeSlim)typeof(ExtensionsStringConversion)).GetMethodSlims(BindingFlags.Public | BindingFlags.Static))
+        var b = ImmutableDictionary.CreateBuilder<Type, MethodInfo>();
+        foreach (var m in typeof(ExtensionsStringConversion).GetMethods(BindingFlags.Public | BindingFlags.Static))
         {
             if (m.Name.EndsWith("Try")) continue;
             if (!m.Name.StartsWith("To")) continue;
-            if (m.ReturnType == null) continue;
+            if (m.ReturnType == typeof(void)) continue;
             if (!m.Name.EndsWith("Nullable")) continue;
-            b.Add(m.ReturnType.Type, m);
+            b.Add(m.ReturnType, m);
         }
 
         return b.ToImmutable();
@@ -575,7 +575,7 @@ public static class ExtensionsStringConversion
         {
             return ColorTranslator.FromHtml(str);
         }
-        catch (Exception) { }
+        catch (Exception) { /* ignored */ }
 
         var commaCount = str.CountOccurrences(",");
         if (commaCount.In(2, 3))
@@ -602,7 +602,7 @@ public static class ExtensionsStringConversion
             {
                 return ColorTranslator.FromHtml(str);
             }
-            catch (Exception) { }
+            catch (Exception) { /* ignored */ }
         }
 
         throw new ArgumentException($"Could not parse to {nameof(Color)} -> " + str, nameof(str));
@@ -617,7 +617,7 @@ public static class ExtensionsStringConversion
                 output = ToColor(str);
                 return true;
             }
-            catch (Exception) { }
+            catch (Exception) { /* ignored */ }
         }
 
         output = default;

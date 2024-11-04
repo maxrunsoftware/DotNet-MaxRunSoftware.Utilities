@@ -19,139 +19,98 @@ namespace MaxRunSoftware.Utilities.Common;
 // ReSharper disable InconsistentNaming
 public static partial class Constant
 {
+    static Constant()
+    {
+        Path_Current_Locations_Extensions = new(() => new[] { "exe", "dll", }.SelectMany(PermuteCase).Distinct(Path_StringComparer).ToImmutableArray());
+        Path_Current_Locations = new(Path_Current_Locations_DirectoriesAndFiles);
+        path_Current_Directories = new (() => Path_Current_Locations.Value.Select(o => o as DirectoryInfo).Where(o => o != null).Select(o => o!).ToImmutableArray());
+        path_Current_Files = new (() => Path_Current_Locations.Value.Select(o => o as FileInfo).Where(o => o != null).Select(o => o!).ToImmutableArray());
+    }
+    
     #region Path_Current_Locations
 
-    public static readonly ImmutableArray<string> Path_Current_Locations = [..Path_Current_Locations_Create()];
-
-    private static List<string> Path_Current_Locations_Create()
-    {
-        // https://stackoverflow.com/questions/616584/how-do-i-get-the-name-of-the-current-executable-in-c
-        var queries = new List<Func<string?>>
-        {
-            () => Environment.CurrentDirectory,
-            () => Process.GetCurrentProcess().MainModule?.FileName,
-            () => AppDomain.CurrentDomain.FriendlyName,
-            () => Process.GetCurrentProcess().ProcessName,
-            () => typeof(Constant).Assembly.Location,
-            () => Path.GetFullPath("."),
-        };
-
-        var extensions = new[] { "exe", "dll" }.SelectMany(PermuteCase).ToHashSet(Path_StringComparer);
-
-        var set = new HashSet<string>(Path_StringComparer);
-        var list = new List<string>();
-        foreach (var query in queries)
-        {
-            string path = null!;
-            try
-            {
-                var pathNullable = query();
-                pathNullable = TrimOrNull(pathNullable);
-                if (pathNullable == null) continue;
-                path = pathNullable;
-            }
-            catch { /* swallow */ }
-
-            try
-            {
-                path = Path.GetFullPath(path);
-            }
-            catch { /* swallow */ }
-
-            try
-            {
-                if (!File.Exists(path) && !Directory.Exists(path))
-                {
-                    foreach (var extension in extensions)
-                    {
-                        try
-                        {
-                            if (!File.Exists(path + "." + extension)) continue;
-                            path += "." + extension;
-                            break;
-                        }
-                        catch { /* swallow */ }
-                    }
-                }
-            }
-            catch { /* swallow */ }
-
-            if (!set.Add(path)) continue;
-
-            list.Add(path);
-        }
-
-        return list;
-    }
-
-    #endregion Path_Current_Locations
-
-    #region Path_Current_Directories
-
-    public static readonly ImmutableArray<string> Path_Current_Directories = [..Path_Current_Directories_Create()];
-
-    private static List<string> Path_Current_Directories_Create()
-    {
-        var list = new List<string>();
-        var set = new HashSet<string>(Path_StringComparer);
-
-        foreach (var location in Path_Current_Locations)
-        {
-            try
-            {
-                if (Directory.Exists(location))
-                {
-                    if (set.Add(location)) list.Add(location);
-                }
-                else if (File.Exists(location))
-                {
-                    var location2 = Path.GetDirectoryName(location);
-                    if (location2 == null) continue;
-
-                    location2 = Path.GetFullPath(location2);
-                    if (!Directory.Exists(location2)) continue;
-
-                    if (set.Add(location2)) list.Add(location2);
-                }
-            }
-            catch { /* swallow */ }
-        }
-
-        return list;
-    }
-
-    public static readonly string? Path_Current_Directory = Path_Current_Directories.FirstOrDefault();
-
-    #endregion Path_Current_Directories
-
-    #region Path_Current_Files
-
-    public static readonly ImmutableArray<string> Path_Current_Files = [..Path_Current_Files_Create()];
-
-    private static List<string> Path_Current_Files_Create()
-    {
-        var list = new List<string>();
-        var set = new HashSet<string>(Path_IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
-
-        foreach (var location in Path_Current_Locations)
-        {
-            try
-            {
-                if (!File.Exists(location)) continue;
-                if (set.Add(location)) list.Add(location);
-            }
-            catch { /* swallow */ }
-        }
-
-        return list;
-    }
+    private static readonly Lazy<ImmutableArray<string>> Path_Current_Locations_Extensions;
+    private static readonly Lazy<ImmutableArray<FileSystemInfo>> Path_Current_Locations;
 
     /// <summary>
-    /// The current EXE file name. Could be a full file path, or a partial file path, or null
+    /// https://stackoverflow.com/questions/616584/how-do-i-get-the-name-of-the-current-executable-in-c
+    /// https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview?tabs=cli#api-incompatibility
     /// </summary>
-    public static readonly string? Path_Current_File = Path_Current_Files.FirstOrDefault();
+    /// <returns></returns>
+    private static IEnumerable<Func<string?>> Path_Current_Locations_DirectoriesAndFiles_Functions() =>
+    [
+        () => Environment.ProcessPath,
+        () => Environment.GetCommandLineArgs().FirstOrDefault(),
+        () => Environment.CurrentDirectory,
+        () => Process.GetCurrentProcess().MainModule?.FileName,
+        () => AppDomain.CurrentDomain.FriendlyName,
+        () => Process.GetCurrentProcess().ProcessName,
+        () => typeof(Constant).Assembly.Location,
+        () => Path.GetFullPath("."),
+    ];
 
-    #endregion Path_Current_Files
+    private static ImmutableArray<FileSystemInfo> Path_Current_Locations_DirectoriesAndFiles() =>
+        Path_Current_Locations_DirectoriesAndFiles_Functions()
+            .Select(o => o.InternalExecuteSafe())
+            .Where(o => !string.IsNullOrEmpty(o))
+            .Select(o => o!)
+            .Distinct(Path_StringComparer)
+            .SelectMany(Path_Current_Locations_DirectoriesAndFiles_Single)
+            .ToImmutableArray();
+
+    private static IEnumerable<FileSystemInfo> Path_Current_Locations_DirectoriesAndFiles_Single(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return [];
+
+        var fi = GetFile(s);
+        if (fi != null) return [fi];
+        
+        var di = GetDirectory(s);
+        if (di != null) return [di];
+
+        var list = new List<FileSystemInfo>();
+
+        foreach (var ext in Path_Current_Locations_Extensions.Value)
+        {
+            fi = GetFile(s + "." + ext);
+            if (fi != null) list.Add(fi);
+        }
+
+        return list;
+        
+        static FileInfo? GetFile(string path)
+        {
+            var info = InternalExecuteSafe(() => new FileInfo(path));
+            if (info == null) return null;
+            if (!InternalExecuteSafe(() => info.IsFile() ?? false, false)) return null;
+            if (!InternalExecuteSafe(() => info.Exists, false)) return null;
+            return info;
+        }
+        
+        static DirectoryInfo? GetDirectory(string path)
+        {
+            var info = InternalExecuteSafe(() => new DirectoryInfo(path));
+            if (info == null) return null;
+            if (!InternalExecuteSafe(() => info.IsDirectory() ?? false, false)) return null;
+            if (!InternalExecuteSafe(() => info.Exists, false)) return null;
+            return info;
+        }
+        
+    }
+
+    private static readonly Lazy<ImmutableArray<DirectoryInfo>> path_Current_Directories;
+    
+    public static ImmutableArray<DirectoryInfo> Path_Current_Directories => path_Current_Directories.Value;
+    
+    public static DirectoryInfo? Path_Current_Directory => Path_Current_Directories.Length == 0 ? null : Path_Current_Directories[0];
+
+    private static readonly Lazy<ImmutableArray<FileInfo>> path_Current_Files;
+    
+    public static ImmutableArray<FileInfo> Path_Current_Files => path_Current_Files.Value;
+    
+    public static FileInfo? Path_Current_File => Path_Current_Files.Length == 0 ? null : Path_Current_Files[0];
+
+    #endregion Path_Current_Locations
 
     #region IsScriptExecuted
 

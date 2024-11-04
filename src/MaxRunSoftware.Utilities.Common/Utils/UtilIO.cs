@@ -101,7 +101,7 @@ public static partial class Util
             var file1Bytes = FileRead(file1);
             var file2Bytes = FileRead(file2);
 
-            return file1Bytes.EqualsBytes(file2Bytes);
+            return file1Bytes.IsEqual(file2Bytes);
         }
         // No buffer needed http://stackoverflow.com/a/2069317 http://blogs.msdn.com/b/brada/archive/2004/04/15/114329.aspx
 

@@ -22,10 +22,10 @@ public static partial class Util
 {
     #region GetCount
     
-    private sealed class GetCount_CacheObject(ImmutableArray<ISlimValueGetter> array)
+    private sealed class GetCount_CacheObject(IEnumerable<Func<object, object?>> array)
     {
-        public ImmutableArray<ISlimValueGetter> Array { get; } = array;
-        public ISlimValueGetter? Getter { get; set; }
+        public ImmutableArray<Func<object, object?>> Array { get; } = array.ToImmutableArray();
+        public Func<object, object?>? Getter { get; set; }
     }
     
     private static readonly ConcurrentDictionary<Type, GetCount_CacheObject?> GetCount_Methods = new();
@@ -46,7 +46,7 @@ public static partial class Util
             {
                 try
                 {
-                    var o = cacheObject.Getter.GetValue(enumerable);
+                    var o = cacheObject.Getter(enumerable);
                     if (o != null)
                     {
                         var oLong = (long)o;
@@ -63,7 +63,7 @@ public static partial class Util
             {
                 try
                 {
-                    var o = getter.GetValue(enumerable);
+                    var o = getter(enumerable);
                     if (o != null)
                     {
                         var oLong = Convert.ToInt64(o);
@@ -87,25 +87,30 @@ public static partial class Util
 
         static GetCount_CacheObject? GetMethodCaller(Type type)
         {
-            var p = type.ToTypeSlim().GetPropertySlims(BindingFlags.Public | BindingFlags.Instance).Select(o => (o.Name, (ISlimValueGetter)o)).ToArray();
-            var f = type.ToTypeSlim().GetFieldSlims(BindingFlags.Public | BindingFlags.Instance).Select(o => (o.Name, (ISlimValueGetter)o)).ToArray();
+            var propertyAndFieldGetters = new List<(string, Func<Func<object, object?>>)>();
+            
+            type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => o.IsGettable())
+                .Where(o => o.GetMethod?.IsPublic ?? false)
+                .ForEach(o => propertyAndFieldGetters.Add((o.Name, o.CreatePropertyGetter)));
+            
+            type.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => o.IsPublic)
+                .ForEach(o => propertyAndFieldGetters.Add((o.Name, o.CreateFieldGetter)));
+            
             var scs = new[] { StringComparer.Ordinal, StringComparer.OrdinalIgnoreCase };
-            var arrays = new[] { p, f };
             var names = new[] { nameof(Array.LongLength), nameof(ICollection.Count), nameof(Array.Length) };
 
-            var list = new List<ISlimValueGetter>();
+            var list = new List<Func<object, object?>>();
             foreach (var sc in scs)
             {
-                foreach (var ary in arrays)
-                {
                     foreach (var name in names)
                     {
-                        foreach (var svg in ary.Where(o => sc.Equals(o.Item1, name)))
+                        foreach (var getter in propertyAndFieldGetters.Where(o => sc.Equals(o.Item1, name)))
                         {
-                            list.Add(svg.Item2);
+                            list.Add(getter.Item2());
                         }
                     }
-                }
             }
 
             if (list.Count < 1) return null;

@@ -87,16 +87,22 @@ public class MethodCallerTests(ITestOutputHelper testOutputHelper) : TestBase(te
         //argTypes ??= [];
         var genericTypeArgs = genericArgs ?? [];
         
-        var objectMethodsToSkip = typeof(object).GetMethodSlims(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).ToHashSet(); 
-        var msAll = clazz.GetMethodSlims(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).Where(o => !objectMethodsToSkip.Contains(o)).ToImmutableArray();
-        log.LogInformationMethod(new(clazz, name, argTypes), "Found {Count} methods on class [{Class}]: {Methods}", msAll.Length, clazz.NameFormatted(), msAll.Select(o => o.Name).OrderByOrdinalIgnoreCaseThenOrdinal().ToStringDelimited(", "));
+        var methodsToSkip = typeof(object).GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).ToHashSet(MethodInfoComparer.Default); 
+        var methods = clazz.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).Where(o => !methodsToSkip.Contains(o)).ToImmutableArray();
+        log.LogInformationMethod(
+            new(clazz, name, argTypes),
+            "Found {Count} methods on class [{Class}]: {Methods}",
+            methods.Length,
+            clazz.NameFormatted(),
+            methods.Select(o => o.Name).OrderBy_OrdinalIgnoreCase_Ordinal().ToStringDelimited(", ")
+        );
         
-        var ms = new List<MethodSlim>();
-        for (int i = 0; i < msAll.Length; i++)
+        var ms = new List<MethodInfo>();
+        for (int i = 0; i < methods.Length; i++)
         {
             log.LogInformation("");
-            var m = msAll[i];
-            log.LogInformation("  [{Index}] {Method}", i.ToStringRunningCount(msAll.Length), m.Name);
+            var m = methods[i];
+            log.LogInformation("  [{Index}] {Method}", i.ToStringRunningCount(methods.Length), m.Name);
             
             var checkName = name.EqualsOrdinal(m.Name);
             log.LogInformation("    " + nameof(checkName) + ": {Name1} {Equals} {Name2}", name, checkName ? "==" : "!=", m.Name);
@@ -108,15 +114,16 @@ public class MethodCallerTests(ITestOutputHelper testOutputHelper) : TestBase(te
             
             if (argTypes != null)
             {
-                var checkArgsLength = argTypes.Length == m.Parameters.Length;
-                log.LogInformation("    " + nameof(checkArgsLength) + ": {ArgsLength1} {Equals} {ArgsLength2}", argTypes.Length, checkArgsLength ? "==" : "!=", m.Parameters.Length);
+                var mParameters = m.GetParameters();
+                var checkArgsLength = argTypes.Length == mParameters.Length;
+                log.LogInformation("    " + nameof(checkArgsLength) + ": {ArgsLength1} {Equals} {ArgsLength2}", argTypes.Length, checkArgsLength ? "==" : "!=", mParameters.Length);
                 if (!checkArgsLength)
                 {
                     log.LogInformation("      failed");
                     continue;
                 }
                 
-                var parameterTypes = m.Parameters.Select(oo => (Type)oo.Parameter.Type).ToArray();
+                var parameterTypes = mParameters.Select(oo => oo.ParameterType).ToArray();
                 var checkArgsTypes = argTypes.SequenceEqual(parameterTypes);
                 log.LogInformation("    " + nameof(checkArgsTypes) + ": {ArgsTypes1} {Equals} {ArgsTypes2}",
                     "(" + argTypes.Select(o => o.NameFormatted()).ToStringDelimited(", ") + ")",
@@ -130,10 +137,11 @@ public class MethodCallerTests(ITestOutputHelper testOutputHelper) : TestBase(te
                 }
             }
             
-            if (m.GenericArguments.Length > 0)
+            var mGenericArguments = m.GetGenericArguments();
+            if (mGenericArguments.Length > 0)
             {
-                var checkGenericArgsLength = genericTypeArgs.Length == m.GenericArguments.Length;
-                log.LogInformation("    " + nameof(checkGenericArgsLength) + ": {GenericTypeArgsLength1} {Equals} {GenericTypeArgsLength2}", genericTypeArgs.Length, checkGenericArgsLength ? "==" : "!=", m.GenericArguments.Length);
+                var checkGenericArgsLength = genericTypeArgs.Length == mGenericArguments.Length;
+                log.LogInformation("    " + nameof(checkGenericArgsLength) + ": {GenericTypeArgsLength1} {Equals} {GenericTypeArgsLength2}", genericTypeArgs.Length, checkGenericArgsLength ? "==" : "!=", mGenericArguments.Length);
                 if (!checkGenericArgsLength)
                 {
                     log.LogInformation("      failed");
@@ -203,14 +211,14 @@ public class MethodCallerTests(ITestOutputHelper testOutputHelper) : TestBase(te
         var mc1 = GetMC(typeof(MethodCallerTests_Class_Static), nameof(MethodCallerTests_Class_Static.AddOptions), [typeof(string),], [typeof(Uri),]);
         var o2 = (MethodCallerTests_Class_Static_Builder<Uri>)mc1.Invoke(null, ["foo",]);
         Assert.Equal(o1.GetType(), o2.GetType());
-        var mcmcList = mc1.MethodInfo.ReturnType.GetMethodSlims(BindingFlags.Public | BindingFlags.Instance)
+        var mcmcList = mc1.MethodInfo.ReturnType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(o => o.Name.EqualsOrdinal(nameof(MethodCallerTests_Class_Static_Builder<object>.DoSomething)))
-            .Where(o => o.Parameters.Select(oo => oo.Parameter.Type.Type).SequenceEqual([typeof(string),]))
+            .Where(o => o.GetParameters().Select(oo => oo.ParameterType).SequenceEqual([typeof(string),]))
             .ToList();
         
         Assert.Single(mcmcList);
         var mc2 = mcmcList.First().GetMethodCaller();
-        var cObject = o2.GetType().GetPropertySlim(nameof(MethodCallerTests_Class_Static_Builder<object>.C)).GetValue(o2);
+        var cObject = o2.GetType().GetProperty(nameof(MethodCallerTests_Class_Static_Builder<object>.C)).GetValue(o2);
         Assert.NotNull(cObject);
         
         Assert.Empty((ICollection<string>)cObject);

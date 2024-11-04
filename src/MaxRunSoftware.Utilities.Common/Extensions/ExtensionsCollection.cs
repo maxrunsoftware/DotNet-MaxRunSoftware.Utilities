@@ -1097,15 +1097,7 @@ public static class ExtensionsCollection
     }
 
     #endregion Enumerator
-
-    #region ToImmutable
-
-    public static ImmutableArray<T> AsImmutableArray<T>(this IEnumerable<T> enumerable) => ImmutableArray.Create(enumerable.OrEmpty().ToArray());
-
-    public static ImmutableList<T> AsImmutableList<T>(this IEnumerable<T> enumerable) => ImmutableList.Create(enumerable.OrEmpty().ToArray());
-
-    #endregion ToImmutable
-
+    
     #region CompareTo
 
     /// <summary>
@@ -1159,8 +1151,8 @@ public static class ExtensionsCollection
         return c;
     }
 
-    public static IOrderedEnumerable<string> OrderByOrdinalIgnoreCaseThenOrdinal(this IEnumerable<string> obj) => obj.OrderBy(o => o, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
-    public static IOrderedEnumerable<T> OrderByOrdinalIgnoreCaseThenOrdinal<T>(this IEnumerable<T> obj, Func<T, string> keySelector) => obj.OrderBy(keySelector, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+    public static IOrderedEnumerable<string> OrderBy_OrdinalIgnoreCase_Ordinal(this IEnumerable<string> obj) => obj.OrderBy(o => o, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
+    public static IOrderedEnumerable<T> OrderBy_OrdinalIgnoreCase_Ordinal<T>(this IEnumerable<T> obj, Func<T, string> keySelector) => obj.OrderBy(keySelector, Constant.StringComparer_OrdinalIgnoreCase_Ordinal);
 
     #endregion CompareTo
 

@@ -12,9 +12,71 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.Diagnostics;
 using System.Numerics;
 
 namespace MaxRunSoftware.Utilities.Common;
+
+public class VersionPartComparer : ComparerBaseDefault<VersionPart, VersionPartComparer>
+{
+    public override bool Equals(VersionPart? x, VersionPart? y)
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null))
+        {
+            Debug.Assert(y != null);
+            if (y.ValueBigInteger == null) return false;
+            return y.ValueBigInteger.Value == BigInteger.Zero;
+        }
+
+        if (ReferenceEquals(y, null))
+        {
+            Debug.Assert(x != null);
+            if (x.ValueBigInteger == null) return false;
+            return x.ValueBigInteger.Value == BigInteger.Zero;
+        }
+
+        if (x.GetHashCode() != y.GetHashCode()) return false;
+        if (!x.ValueInt.IsEqual(y.ValueInt)) return false;
+        if (!x.ValueLong.IsEqual(y.ValueLong)) return false;
+        if (!x.ValueBigInteger.IsEqual(y.ValueBigInteger)) return false;
+        if (!x.Value.EqualsOrdinalIgnoreCase(y.Value)) return false;
+        return true;
+    }
+    
+    protected override int GetHashCode_Internal(VersionPart obj) => 
+        obj.ValueInt?.GetHashCode()
+        ?? obj.ValueLong?.GetHashCode()
+        ?? obj.ValueBigInteger?.GetHashCode()
+        ?? StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Value);
+
+    protected override int Compare_Internal(VersionPart x, VersionPart y)
+    {
+        if (x.ValueBigInteger != null)
+        {
+            if (y.ValueBigInteger != null) return x.ValueBigInteger.Value.CompareTo(y.ValueBigInteger.Value);
+            return -1;
+        }
+
+        if (y.ValueBigInteger != null)
+        {
+            return 1;
+        }
+
+        if (x.ValueDateTime != null)
+        {
+            if (y.ValueDateTime != null) return x.ValueDateTime.Value.CompareTo(y.ValueDateTime.Value);
+            return -1;
+        }
+
+        if (y.ValueDateTime != null)
+        {
+            return 1;
+        }
+        
+        return Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x.Value, y.Value);
+    }
+}
 
 public sealed class VersionPart : IEquatable<VersionPart>, IComparable<VersionPart>, IComparable
 {
@@ -130,14 +192,15 @@ public sealed class VersionPart : IEquatable<VersionPart>, IComparable<VersionPa
     #endregion CompareTo
 }
 
-public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, IComparable<Version>
+public sealed class VersionParts : IReadOnlyList<VersionPart>, IEquatable<VersionParts>, IComparable<VersionParts>
 {
-    private static readonly ImmutableHashSet<char> CHARS = Constant.Chars_A_Z_Upper.Concat(Constant.Chars_A_Z_Lower).ToImmutableHashSet();
-    private static readonly ImmutableHashSet<char> NUMS = Constant.Chars_0_9.ToImmutableHashSet();
+    private static readonly FrozenSet<char> CHARS = Constant.Chars_A_Z_Upper.Concat(Constant.Chars_A_Z_Lower).ToFrozenSet();
+    private static readonly FrozenSet<char> NUMS = Constant.Chars_0_9.ToFrozenSet();
 
-    private readonly ImmutableList<VersionPart> parts;
+    private readonly ImmutableArray<VersionPart> parts;
     private readonly string toString;
-    public Version(string value)
+    
+    public VersionParts(string value)
     {
         toString = value;
         const int isChar = 1, isNum = 2, isOther = 3;
@@ -160,8 +223,8 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
         }
 
         list.Add(new(sb.ToString()));
-        parts = list.Where(o => !string.IsNullOrWhiteSpace(o.Value)).ToImmutableList();
-        if (parts.Count == 0) throw new ArgumentException($"'{value}' is not a valid version", nameof(value));
+        parts = [..list.Where(o => !string.IsNullOrWhiteSpace(o.Value))];
+        if (parts.Length == 0) throw new ArgumentException($"'{value}' is not a valid version", nameof(value));
         getHashCode = Util.HashEnumerable(parts);
     }
 
@@ -174,14 +237,14 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
     public VersionPart? Build => this.GetAtIndexOrDefault(2);
     public VersionPart? Revision => this.GetAtIndexOrDefault(3);
 
-    public System.Version ToSystemVersion()
+    public Version ToSystemVersion()
     {
         var (a, b, c, d) = this.Take4Nullable();
-        var exceptionMessage = $"Could not convert '{0}' to int for {typeof(System.Version).FullNameFormatted()}.{1}";
-        if (a != null && a.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(System.Version.Major), a.Value, string.Format(exceptionMessage, a.Value, nameof(System.Version.Major)));
-        if (b != null && b.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(System.Version.Minor), b.Value, string.Format(exceptionMessage, b.Value, nameof(System.Version.Minor)));
-        if (c != null && c.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(System.Version.Build), c.Value, string.Format(exceptionMessage, c.Value, nameof(System.Version.Build)));
-        if (d != null && d.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(System.Version.Revision), d.Value, string.Format(exceptionMessage, d.Value, nameof(System.Version.Revision)));
+        var exceptionMessage = $"Could not convert '{0}' to int for {typeof(Version).FullNameFormatted()}.{1}";
+        if (a != null && a.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(Version.Major), a.Value, string.Format(exceptionMessage, a.Value, nameof(Version.Major)));
+        if (b != null && b.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(Version.Minor), b.Value, string.Format(exceptionMessage, b.Value, nameof(Version.Minor)));
+        if (c != null && c.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(Version.Build), c.Value, string.Format(exceptionMessage, c.Value, nameof(Version.Build)));
+        if (d != null && d.ValueInt == null) throw new ArgumentOutOfRangeException(nameof(Version.Revision), d.Value, string.Format(exceptionMessage, d.Value, nameof(Version.Revision)));
 
         return new(a?.ValueInt ?? 0, b?.ValueInt ?? 0, c?.ValueInt ?? 0, d?.ValueInt ?? 0);
     }
@@ -192,10 +255,10 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
 
     #region IReadOnlyList
 
-    public IEnumerator<VersionPart> GetEnumerator() => parts.GetEnumerator();
+    public IEnumerator<VersionPart> GetEnumerator() => ((IReadOnlyList<VersionPart>)parts).GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public int Count => parts.Count;
+    public int Count => parts.Length;
 
     public VersionPart this[int index] => parts[index];
 
@@ -206,12 +269,12 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
     private readonly int getHashCode;
     public override int GetHashCode() => getHashCode;
 
-    public bool Equals(Version? other) => Equals(this, other);
-    public override bool Equals(object? obj) => Equals(obj as Version);
-    public static bool operator ==(Version? left, Version? right) => Equals(left, right);
-    public static bool operator !=(Version? left, Version? right) => !Equals(left, right);
+    public bool Equals(VersionParts? other) => Equals(this, other);
+    public override bool Equals(object? obj) => Equals(obj as VersionParts);
+    public static bool operator ==(VersionParts? left, VersionParts? right) => Equals(left, right);
+    public static bool operator !=(VersionParts? left, VersionParts? right) => !Equals(left, right);
 
-    public static bool Equals(Version? left, Version? right)
+    public static bool Equals(VersionParts? left, VersionParts? right)
     {
         if (ReferenceEquals(left, right)) return true;
         if (ReferenceEquals(left, null) || ReferenceEquals(right, null)) return false;
@@ -228,16 +291,16 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
 
     #region CompareTo
 
-    public int CompareTo(Version? other) => CompareTo(this, other);
+    public int CompareTo(VersionParts? other) => CompareTo(this, other);
     public int CompareTo(object? obj)
     {
         if (ReferenceEquals(null, obj)) return 1;
         if (ReferenceEquals(this, obj)) return 0;
-        if (obj is Version other) return CompareTo(other);
-        throw new ArgumentException($"Object must be of type {nameof(Version)}");
+        if (obj is VersionParts other) return CompareTo(other);
+        throw new ArgumentException($"Object must be of type {nameof(VersionParts)}");
     }
 
-    private static int CompareTo(Version? left, Version? right)
+    private static int CompareTo(VersionParts? left, VersionParts? right)
     {
         if (ReferenceEquals(left, right)) return 0;
         if (ReferenceEquals(left, null))
@@ -262,10 +325,10 @@ public sealed class Version : IReadOnlyList<VersionPart>, IEquatable<Version>, I
         return left.Count.CompareTo(right.Count);
     }
 
-    public static bool operator <(Version? left, Version? right) => CompareTo(left, right) < 0;
-    public static bool operator >(Version? left, Version? right) => CompareTo(left, right) > 0;
-    public static bool operator <=(Version? left, Version? right) => CompareTo(left, right) <= 0;
-    public static bool operator >=(Version? left, Version? right) => CompareTo(left, right) >= 0;
+    public static bool operator <(VersionParts? left, VersionParts? right) => CompareTo(left, right) < 0;
+    public static bool operator >(VersionParts? left, VersionParts? right) => CompareTo(left, right) > 0;
+    public static bool operator <=(VersionParts? left, VersionParts? right) => CompareTo(left, right) <= 0;
+    public static bool operator >=(VersionParts? left, VersionParts? right) => CompareTo(left, right) >= 0;
 
     #endregion CompareTo
 }

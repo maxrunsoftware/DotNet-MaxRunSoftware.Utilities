@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public static class ExtensionsType
+public static class ExtensionsReflectionType
 {
     public static bool IsAssignableTo<T>(this Type type) => type.IsAssignableTo(typeof(T));
 
@@ -374,7 +374,7 @@ public static class ExtensionsType
 
     public static bool IsCompilerGenerated(this Type type) => type.GetCustomAttributes(typeof(CompilerGeneratedAttribute)).Any();
 
-    public static string GetEnumNames(this Type enumType, string delimiter, bool isSorted = false) => isSorted ? Enum.GetNames(enumType).OrderByOrdinalIgnoreCaseThenOrdinal().ToStringDelimited(delimiter) : Enum.GetNames(enumType).ToStringDelimited(delimiter);
+    public static string GetEnumNames(this Type enumType, string delimiter, bool isSorted = false) => isSorted ? Enum.GetNames(enumType).OrderBy_OrdinalIgnoreCase_Ordinal().ToStringDelimited(delimiter) : Enum.GetNames(enumType).ToStringDelimited(delimiter);
 
     public static bool IsRealType(this Type type)
     {

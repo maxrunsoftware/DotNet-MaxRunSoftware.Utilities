@@ -116,3 +116,24 @@ public sealed class MethodCaller
         Delegate = lambda.Compile();
     }
 }
+
+
+public static class MethodCallerExtensions
+{
+    public static MethodCaller GetMethodCaller(this MethodInfo info, Type[]? genericTypeArguments = null) => new(
+        genericTypeArguments != null && genericTypeArguments.Length > 0
+            ? info.MakeGenericMethod(genericTypeArguments)
+            : info
+    );
+
+    public static object? InvokeMethodCaller(
+        this MethodInfo info,
+        object? instance,
+        object?[]? args = null,
+        Type[]? genericTypeArguments = null
+    ) =>
+        GetMethodCaller(info, genericTypeArguments).Invoke(instance, args ?? []);
+    
+    public static object? GetMethodCallerValue(this MethodInfo info, object? instance) => InvokeMethodCaller(info, instance);
+
+}

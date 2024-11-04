@@ -96,7 +96,7 @@ public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
         var fileNewBytes = Client.GetFile("myfile.txt");
         Assert.NotEmpty(fileNewBytes);
         Assert.Equal(fileOldBytes.Length, fileNewBytes.Length);
-        Assert.True(fileOldBytes.EqualsBytes(fileNewBytes));
+        Assert.True(fileOldBytes.IsEqual(fileNewBytes));
 
         var fileNewString = ToString(fileNewBytes);
         Assert.Equal(fileOldString, fileNewString);

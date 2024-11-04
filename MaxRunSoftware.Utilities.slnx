@@ -1,0 +1,34 @@
+﻿<Solution>
+  <Folder Name="/Common/">
+    <Project Path="src\MaxRunSoftware.Utilities.Common\MaxRunSoftware.Utilities.Common.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Common.Tests\MaxRunSoftware.Utilities.Common.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Data/">
+    <Project Path="src\MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Data.Tests\MaxRunSoftware.Utilities.Data.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Ftp/">
+    <Project Path="src\MaxRunSoftware.Utilities.Ftp\MaxRunSoftware.Utilities.Ftp.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Ftp.Tests\MaxRunSoftware.Utilities.Ftp.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Microsoft/">
+    <Project Path="src\MaxRunSoftware.Utilities.Microsoft\MaxRunSoftware.Utilities.Microsoft.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Microsoft.Tests\MaxRunSoftware.Utilities.Microsoft.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Scheduler/">
+    <Project Path="src\MaxRunSoftware.Utilities.Scheduler\MaxRunSoftware.Utilities.Scheduler.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Scheduler.Tests\MaxRunSoftware.Utilities.Scheduler.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Testing/">
+    <Project Path="src\MaxRunSoftware.Utilities.Testing\MaxRunSoftware.Utilities.Testing.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Testing.Tests\MaxRunSoftware.Utilities.Testing.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Web/">
+    <Project Path="src\MaxRunSoftware.Utilities.Web\MaxRunSoftware.Utilities.Web.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Web.Tests\MaxRunSoftware.Utilities.Web.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Windows/">
+    <Project Path="src\MaxRunSoftware.Utilities.Windows\MaxRunSoftware.Utilities.Windows.csproj" Type="Classic C#" />
+    <Project Path="tests\MaxRunSoftware.Utilities.Windows.Tests\MaxRunSoftware.Utilities.Windows.Tests.csproj" Type="Classic C#" />
+  </Folder>
+</Solution>

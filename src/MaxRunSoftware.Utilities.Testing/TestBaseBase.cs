@@ -101,19 +101,25 @@ public abstract class TestBaseBase : IDisposable
 
     protected class TestOutputHelperWrapper
     {
-        private readonly FieldSlim buffer;
-        public StringBuilder Buffer => (StringBuilder)buffer.GetValue(TestOutputHelper).CheckNotNull();
+        private class WrapperField<T>(FieldInfo info)
+        {
+            // public FieldInfo Info { get; } = info;
+            private Func<object?, object?> Getter { get; } = info.CreateFieldGetter();
+            public T Get(object instance) => (T)Getter(instance).CheckNotNull();
+        }
+        private readonly WrapperField<StringBuilder> buffer;
+        public StringBuilder Buffer => buffer.Get(TestOutputHelper);
 
-        private readonly FieldSlim messageBus;
-        public IMessageBus MessageBus => (IMessageBus)messageBus.GetValue(TestOutputHelper).CheckNotNull();
+        private readonly WrapperField<IMessageBus> messageBus;
+        public IMessageBus MessageBus => messageBus.Get(TestOutputHelper);
 
-        private readonly FieldSlim test;
-        public ITest Test => (ITest)test.GetValue(TestOutputHelper).CheckNotNull();
+        private readonly WrapperField<ITest> test;
+        public ITest Test => test.Get(TestOutputHelper);
 
-        private readonly FieldSlim lockObject;
-        public object LockObject => lockObject.GetValue(TestOutputHelper).CheckNotNull();
+        private readonly WrapperField<object> lockObject;
+        public object LockObject => lockObject.Get(TestOutputHelper);
 
-        private readonly MethodSlim guardInitialized;
+        private readonly MethodCaller guardInitialized;
         public void GuardInitialized() => guardInitialized.Invoke(TestOutputHelper, []);
 
         public TestOutputHelper TestOutputHelper { get; }
@@ -131,27 +137,27 @@ public abstract class TestBaseBase : IDisposable
         }
 
 
-        private FieldSlim GetField<T>(string name)
+        private WrapperField<T> GetField<T>(string name)
         {
             var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var t = TestOutputHelper.GetType().ToTypeSlim();
+            var t = TestOutputHelper.GetType();
             var fieldType = typeof(T);
-            var field = t.GetFieldSlim(name, flags);
+            var field = t.GetFields(flags).Where(o => o.Name.EqualsOrdinalIgnoreCase(name)).FirstOrDefault();
             if (field == null && fieldType != typeof(object))
-                field = t.GetFieldSlims(flags).SingleOrDefault(o => o.Type.Type.IsAssignableTo<T>());
+                field = t.GetFields(flags).SingleOrDefault(o => o.FieldType.IsAssignableTo<T>());
 
-            if (field != null) return field;
+            if (field != null) return new(field);
 
             throw new NullReferenceException($"Could not find field {t.Name}.{name} [{fieldType.NameFormatted()}]");
         }
 
-        private MethodSlim GetMethod(string name)
+        private MethodCaller GetMethod(string name)
         {
             var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var t = TestOutputHelper.GetType().ToTypeSlim();
-            var method = t.GetMethodSlims(flags).SingleOrDefault(o => o.Name == name);
+            var t = TestOutputHelper.GetType();
+            var method = t.GetMethods(flags).SingleOrDefault(o => o.Name == name);
 
-            if (method != null) return method;
+            if (method != null) return method.GetMethodCaller();
 
             throw new NullReferenceException($"Could not find method {t.Name}.{name}");
         }

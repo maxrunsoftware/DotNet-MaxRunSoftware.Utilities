@@ -995,12 +995,12 @@ public static class ExtensionsString
     public static (string Left, string? Right) SplitOnLast(this string str, string stringToSplitOn, StringComparison? comparison = null)
     {
         // https://stackoverflow.com/a/21733934
-
+        
         // ReSharper disable once StringLastIndexOfIsCultureSpecific.1
         var i = comparison == null ? str.LastIndexOf(stringToSplitOn) : str.LastIndexOf(stringToSplitOn, comparison.Value);
         return i < 0
             ? (stringToSplitOn, null)
-            : (str.Substring(0, i), str.Substring(i + 1));
+            : (str[..i], str[(i + 1)..]);
     }
 
     #endregion Split

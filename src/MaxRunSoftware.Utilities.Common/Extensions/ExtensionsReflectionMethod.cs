@@ -13,89 +13,78 @@
 // limitations under the License.
 
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public enum MethodDeclarationType
-{
-    None,
-    Override,
-    ShadowSignature,
-    ShadowName,
-    Virtual,
-}
 
-public static class MethodDeclarationTypeExtensions
-{
-    public static MethodDeclarationType GetDeclarationType(this MethodBase? info)
-    {
-        // https://stackoverflow.com/a/288928
-        if (info == null) return MethodDeclarationType.None;
-        if (info.DeclaringType != info.ReflectedType)
-        {
-            //if (info.IsHideBySig) return MethodDeclarationType.Override;
-            return MethodDeclarationType.None;
-        }
-
-        var attrs = info.Attributes;
-
-        if ((attrs & MethodAttributes.Virtual) != 0 && (attrs & MethodAttributes.NewSlot) == 0) return MethodDeclarationType.Override;
-
-        var baseType = info.DeclaringType?.BaseType;
-        if (baseType == null) return MethodDeclarationType.None;
-
-        if (info.IsHideBySig)
-        {
-            var flagsSig = info.IsPublic ? BindingFlags.Public : BindingFlags.NonPublic;
-            flagsSig |= info.IsStatic ? BindingFlags.Static : BindingFlags.Instance;
-            flagsSig |= BindingFlags.ExactBinding; //https://stackoverflow.com/questions/288357/how-does-reflection-tell-me-when-a-property-is-hiding-an-inherited-member-with-t#comment75338322_288928
-            var paramTypes = info.GetParameters().Select(p => p.ParameterType).ToArray();
-            var baseMethod = baseType.GetMethod(info.Name, flagsSig, null, paramTypes, null);
-            if (baseMethod != null) return MethodDeclarationType.ShadowSignature;
-
-            // return MethodDeclarationType.None;
-        }
-
-
-        var flagsName = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
-        if (baseType.GetMethods(flagsName).Any(m => m.Name == info.Name)) return MethodDeclarationType.ShadowName;
-
-        if ((attrs & MethodAttributes.Virtual) != 0) return MethodDeclarationType.Virtual;
-
-        return MethodDeclarationType.None;
-    }
-}
 
 /// <summary>
 /// Formatting of methods for debugging
 /// https://github.com/kellyelton/System.Reflection.ExtensionMethods/tree/master/System.Reflection.ExtensionMethods
 /// </summary>
-public static class ExtensionsMethod
+public static class ExtensionsReflectionMethod
 {
-    public static string GetSignature(this MethodBase method, bool invokable)
+    private static readonly string IsAnonymous_MagicTag;
+    private static readonly string IsInner_MagicTag;
+    public static bool IsAnonymous(this MethodBase info) => info.Name.Contains(IsAnonymous_MagicTag);
+    public static bool IsInner(this MethodBase info) => info.Name.Contains(IsInner_MagicTag);
+
+    private static string GetNameMagicTag(this MethodInfo info)
     {
-        var sb = new StringBuilder();
-
-        // Add our method accessors if it's not invokable
-        if (!invokable)
-        {
-            sb.Append(GetMethodAccessorSignature(method));
-            sb.Append(' ');
-        }
-
-        // Add method name
-        sb.Append(method.Name);
-
-        // Add method generics
-        if (method.IsGenericMethod) sb.Append(BuildGenericSignature(method.GetGenericArguments()));
-
-        // Add method parameters
-        sb.Append(GetMethodArgumentsSignature(method, invokable));
-
-        return sb.ToString();
+        // https://stackoverflow.com/a/56496797
+        var match = new Regex(">([a-zA-Z]+)__").Match(info.Name);
+        if (match.Success && match.Value is { } val && !match.NextMatch().Success) return val;
+        throw new ArgumentException($"Cant find magic tag of {info}");
     }
 
-    private static string GetMethodAccessorSignature(this MethodBase method)
+    static ExtensionsReflectionMethod()
+    {
+        // ReSharper disable EmptyStatement
+        // ReSharper disable MoveLocalFunctionAfterJumpStatement
+
+        // https://stackoverflow.com/a/56496797
+        void Inner() { }
+        ;
+        
+        var inner = Inner;
+        IsInner_MagicTag = GetNameMagicTag(inner.Method);
+
+        var anonymous = () => { };
+        IsAnonymous_MagicTag = GetNameMagicTag(anonymous.Method);
+        
+        // ReSharper restore MoveLocalFunctionAfterJumpStatement
+        // ReSharper restore EmptyStatement
+    }
+    
+    public static string ToStringSignature(this MethodBase method, bool invokable) => ToStringSignature_Utils.ToStringSignature_Impl(method, invokable);
+
+    private static class ToStringSignature_Utils
+    {
+        public static string ToStringSignature_Impl(MethodBase method, bool invokable)
+        {
+            var sb = new StringBuilder();
+
+            // Add our method accessors if it's not invokable
+            if (!invokable)
+            {
+                sb.Append(GetMethodAccessorSignature(method));
+                sb.Append(' ');
+            }
+
+            // Add method name
+            sb.Append(method.Name);
+
+            // Add method generics
+            if (method.IsGenericMethod) sb.Append(BuildGenericSignature(method.GetGenericArguments()));
+
+            // Add method parameters
+            sb.Append(GetMethodArgumentsSignature(method, invokable));
+
+            return sb.ToString();
+        }
+        
+        private static string GetMethodAccessorSignature(MethodBase method)
     {
         var signature = string.Empty;
 
@@ -115,7 +104,7 @@ public static class ExtensionsMethod
         return signature;
     }
 
-    private static string GetMethodArgumentsSignature(this MethodBase method, bool invokable)
+    private static string GetMethodArgumentsSignature(MethodBase method, bool invokable)
     {
         var isExtensionMethod = method.IsDefined(typeof(ExtensionAttribute), false);
         var methodParameters = method.GetParameters().AsEnumerable();
@@ -143,7 +132,7 @@ public static class ExtensionsMethod
     /// <summary>Get a fully qualified signature for <paramref name="type" /></summary>
     /// <param name="type">Type. May be generic or <see cref="Nullable{T}" /></param>
     /// <returns>Fully qualified signature</returns>
-    private static string GetSignature(this Type type)
+    private static string GetSignature(Type type)
     {
         var isNullableType = type.IsNullable(out type);
         var signature = GetQualifiedTypeName(type);
@@ -174,7 +163,44 @@ public static class ExtensionsMethod
         if (type.IsGeneric()) signature = signature.Substring(0, signature.IndexOf('`'));
         return signature;
     }
+    }
+    
+    public static string ToStringSignature2(this MethodBase method)
+    {
+        var sb = new StringBuilder();
+        var declaringType = method.DeclaringType;
+        if (declaringType != null) sb.Append(declaringType.FullNameFormatted().Trim());
+        if (sb.Length > 0) sb.Append('.');
+        sb.Append(method.Name);
+        var genericArguments = method.GetGenericArguments();
+        if (genericArguments.Length > 0)
+        {
+            sb.Append('<');
+            sb.Append(genericArguments.Select(o => o.Name).ToStringDelimited(", "));
+            sb.Append('>');
+        }
 
+        var Parameters = method.GetParameters();
+        sb.Append('(');
+        if (Parameters.Length > 0)
+        {
+            var sb2 = new StringBuilder();
+            foreach (var p in Parameters)
+            {
+                if (sb2.Length > 0) sb2.Append(", ");
+                if (p.IsIn()) sb2.Append("in ");
+                if (p.IsOut()) sb2.Append("out ");
+                if (p.IsRef()) sb2.Append("ref ");
+                sb2.Append(p.ParameterType.NameFormatted());
+                if (p.Name != null) sb2.Append(" " + p.Name);
+            }
+
+            sb.Append(sb2);
+        }
+
+        sb.Append(')');
+        return sb.ToString();
+    }
 
     public static bool IsPropertyMethod(this MethodInfo info) => IsPropertyMethod(info, true, true);
     public static bool IsPropertyMethodGet(this MethodInfo info) => IsPropertyMethod(info, true, false);
@@ -235,5 +261,19 @@ public static class ExtensionsMethod
         }
 
         return true;
+    }
+    
+    
+    
+    public static bool IsOperatorImplicit(this MethodInfo info) => IsOperator(info, "op_Implicit");
+    
+    public static bool IsOperatorExplicit(this MethodInfo info) => IsOperator(info, "op_Explicit");
+
+    private static bool IsOperator(MethodInfo info, string name)
+    {
+        if (!info.IsStatic) return false;
+        var ps = info.GetParameters();
+        if (ps.Length != 1) return false;
+        return StringComparer.Ordinal.Equals(info.Name, name);
     }
 }

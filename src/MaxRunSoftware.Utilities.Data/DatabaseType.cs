@@ -25,13 +25,13 @@ public class DatabaseTypesAttribute(DatabaseAppType databaseAppType) : Attribute
 public class DatabaseTypes
 {
     public DatabaseAppType DatabaseAppType { get; }
-    public TypeSlim EnumType { get; }
+    public Type EnumType { get; }
     public ImmutableArray<DatabaseType> Types { get; }
     public ImmutableDictionary<EnumItem, DatabaseType> EnumItems { get; }
     public ImmutableDictionary<object, DatabaseType> EnumItemObjects { get; }
     public ImmutableDictionary<string, DatabaseType> TypeNames { get; }
 
-    public DatabaseTypes(DatabaseAppType databaseAppType, TypeSlim enumType, IEnumerable<DatabaseType> types)
+    public DatabaseTypes(DatabaseAppType databaseAppType, Type enumType, IEnumerable<DatabaseType> types)
     {
         DatabaseAppType = databaseAppType;
         EnumType = enumType;
@@ -107,7 +107,7 @@ public class DatabaseTypes
             {
                 if (kvp.Value.Count > 1)
                 {
-                    var itemsString = kvp.Value.Select(o => new TypeSlim(o)).OrderBy(o => o).Select(o => o.Type.FullNameFormatted()).ToStringDelimited(", ");
+                    var itemsString = kvp.Value.OrderBy(o => o, TypeComparer.Default).Select(o => o.FullNameFormatted()).ToStringDelimited(", ");
                     throw new ArgumentException($"Multiple {nameof(DatabaseAppType)}.{kvp.Key} defined in assembly " + itemsString, nameof(databaseAppType));
                 }
             }
@@ -189,10 +189,10 @@ public class DatabaseType
             var name = item.DatabaseType.EnumItem.Type.FullNameFormatted() + "." + item.DatabaseType.EnumItem.Name;
             var aliasForEnumItem = EnumItem.Get(item.Attr.AliasFor!);
             var nameAlias = aliasForEnumItem.Type.FullNameFormatted() + "." + aliasForEnumItem.Name;
-            if (!item.DatabaseType.EnumItem.TypeSlim.Equals(aliasForEnumItem.TypeSlim)) throw new ArgumentException($"{name} {nameof(AliasFor)} references item in different enum {nameAlias}", nameof(enumType));
+            if (item.DatabaseType.EnumItem.Type != aliasForEnumItem.Type) throw new ArgumentException($"{name} {nameof(AliasFor)} references item in different enum {nameAlias}", nameof(enumType));
             if (item.DatabaseType.EnumItem.Equals(aliasForEnumItem)) throw new ArgumentException($"{name} {nameof(AliasFor)} cannot reference itself", nameof(enumType));
-            if (!d.ContainsKey(aliasForEnumItem)) throw new ArgumentException($"{name} {nameof(AliasFor)} references unknown enum item {nameAlias}", nameof(enumType));
-            item.DatabaseType.AliasFor = d[aliasForEnumItem].DatabaseType;
+            if (!d.TryGetValue(aliasForEnumItem, out var value)) throw new ArgumentException($"{name} {nameof(AliasFor)} references unknown enum item {nameAlias}", nameof(enumType));
+            item.DatabaseType.AliasFor = value.DatabaseType;
         }
 
         // update SqlTypeName for objects without AliasOf

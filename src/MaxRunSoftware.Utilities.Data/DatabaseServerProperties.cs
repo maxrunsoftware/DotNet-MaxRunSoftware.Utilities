@@ -68,14 +68,13 @@ public abstract class DatabaseServerProperties(Dictionary<string, string?> dicti
     protected DateTime? GetDateTimeNullable(string name) => GetStringNullable(name).ToDateTimeNullable();
     protected DateTime GetDateTime(string name) => GetString(name).ToDateTime();
 
-    public virtual List<(PropertySlim Property, string Value)> ToStringProperties() =>
+    public virtual List<(PropertyInfo Property, string Value)> ToStringProperties() =>
         GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Select(o => o.ToPropertySlim())
-            .Where(o => o.IsGettablePublic)
+            .Where(o => o.IsGettable())
             .Select(p => (p, p.GetValue(this).ToStringGuessFormat() ?? string.Empty))
             .ToList();
 
-    public Dictionary<string, (PropertySlim Property, string Value)> ToStringPropertiesDictionary() => ToStringProperties().ToDictionary(o => o.Property.Name, o => o);
+    public Dictionary<string, (PropertyInfo Property, string Value)> ToStringPropertiesDictionary() => ToStringProperties().ToDictionary(o => o.Property.Name, o => o);
 
     public override string ToString() => GetType().NameFormatted() + "(" + ToStringProperties().Select(p => p.Property.Name + "=" + p.Value).ToStringDelimited(", ") + ")";
 

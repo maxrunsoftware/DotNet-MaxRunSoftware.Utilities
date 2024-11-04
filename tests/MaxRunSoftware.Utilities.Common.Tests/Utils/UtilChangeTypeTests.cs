@@ -175,8 +175,8 @@ public class UtilChangeTypeTests(ITestOutputHelper testOutputHelper) : TestBaseB
     {
         //var tc = new TypeConverter();
 
-        foreach (var m in typeof(CastImplicit_String).GetMethodSlims(BindingFlags.Public | BindingFlags.Static)) WriteLine(m.ToString());
-        foreach (var m in typeof(CastExplicit_Int).GetMethodSlims(BindingFlags.Public | BindingFlags.Static)) WriteLine(m.ToString());
+        foreach (var m in typeof(CastImplicit_String).GetMethods(BindingFlags.Public | BindingFlags.Static)) WriteLine(m.ToStringSignature(false));
+        foreach (var m in typeof(CastExplicit_Int).GetMethods(BindingFlags.Public | BindingFlags.Static)) WriteLine(m.ToStringSignature(false));
 
         var i = new CastImplicit_String("V");
         //var o = Convert.ChangeType(i, typeof(string));

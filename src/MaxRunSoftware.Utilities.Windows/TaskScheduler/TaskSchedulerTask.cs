@@ -31,17 +31,16 @@ public class TaskSchedulerTask
 
     public override string ToString()
     {
-        var t = GetType().ToTypeSlim();
-        var props = t.GetPropertySlims(BindingFlags.Public | BindingFlags.Instance);
-        var list = props
+        var t = GetType();
+        var properties = t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(prop => !prop.Name.In(StringComparer.OrdinalIgnoreCase, "Password"))
-            .Select(prop => (prop.Name, prop.GetValue(this).ToStringGuessFormat()))
+            .Select(prop => (PropertyName: prop.Name, PropertyValue: prop.GetValue(this).ToStringGuessFormat()))
             .ToArray();
 
         var sb = new StringBuilder();
         sb.Append(t.Name);
         sb.Append('(');
-        sb.Append(list.Select(o => $"{o.Item1}: {o.Item2}").ToStringDelimited(", "));
+        sb.Append(properties.Select(o => $"{o.PropertyName}: {o.PropertyValue}").ToStringDelimited(", "));
         sb.Append(')');
         return sb.ToString();
     }

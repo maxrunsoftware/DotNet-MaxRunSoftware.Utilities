@@ -14,47 +14,44 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class ReflectionScannerResult
+public class ReflectionScannerResult(Assembly assembly, HashSet<Type> typesInThisAssembly, HashSet<Type> typesInOtherAssemblies)
 {
-    public AssemblySlim Assembly { get; }
-    public HashSet<TypeSlim> TypesInThisAssembly { get; }
-    public HashSet<TypeSlim> TypesInOtherAssemblies { get; }
+    public ReflectionScannerResult(Assembly assembly) : this(assembly, [], []) { }
+    
+    public Assembly Assembly { get; } = assembly;
+    public HashSet<Type> TypesInThisAssembly { get; } = typesInThisAssembly;
+    public HashSet<Type> TypesInOtherAssemblies { get; } = typesInOtherAssemblies;
 
-    public ReflectionScannerResult(AssemblySlim assembly) : this(assembly, new(), new()) { }
-    public ReflectionScannerResult(AssemblySlim assembly, HashSet<TypeSlim> typesInThisAssembly, HashSet<TypeSlim> typesInOtherAssemblies)
-    {
-        Assembly = assembly;
-        TypesInThisAssembly = typesInThisAssembly;
-        TypesInOtherAssemblies = typesInOtherAssemblies;
-    }
+    
 }
 
 public class ReflectionScanner
 {
-    private AssemblySlim Assembly { get; }
+    private static readonly IEqualityComparer<Assembly> ASSEMBLY_COMPARER = AssemblyComparer.Default;
+    private Assembly Assembly { get; }
 
-    private HashSet<TypeSlim> TypesInThisAssembly { get; } = new();
-    private HashSet<TypeSlim> TypesInOtherAssemblies { get; } = new();
-    private HashSet<TypeSlim> TypesScanned { get; } = new();
+    private HashSet<Type> TypesInThisAssembly { get; } = new();
+    private HashSet<Type> TypesInOtherAssemblies { get; } = new();
+    private HashSet<Type> TypesScanned { get; } = new();
 
-    private HashSet<AssemblySlim> SystemAssemblies { get; } = new();
-    private HashSet<AssemblySlim> NonSystemAssemblies { get; } = new();
+    private HashSet<Assembly> SystemAssemblies { get; } = new(ASSEMBLY_COMPARER);
+    private HashSet<Assembly> NonSystemAssemblies { get; } = new(ASSEMBLY_COMPARER);
 
 
     public BindingFlags Flags { get; set; } = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
 
-    private ReflectionScanner(AssemblySlim assembly) => Assembly = assembly;
+    private ReflectionScanner(Assembly assembly) => Assembly = assembly;
 
 
-    public static ReflectionScannerResult Scan(AssemblySlim assembly)
+    public static ReflectionScannerResult Scan(Assembly assembly)
     {
         var scanner = new ReflectionScanner(assembly);
 
-        var typesToScan = GetTypes(assembly.Assembly).Select(o => new TypeSlim(o)).ToList();
+        var typesToScan = GetTypes(assembly).ToList();
 
         while (typesToScan.Count > 0)
         {
-            var typesScanned = new HashSet<TypeSlim>(scanner.TypesInThisAssembly);
+            var typesScanned = new HashSet<Type>(scanner.TypesInThisAssembly);
 
             scanner.Scan(typesToScan);
 
@@ -68,7 +65,8 @@ public class ReflectionScanner
         return new(scanner.Assembly, scanner.TypesInThisAssembly, scanner.TypesInOtherAssemblies);
     }
 
-    private static IEnumerable<Type> GetTypes(Assembly assembly) =>
+    private static Type[] GetTypes(Assembly assembly)
+    {
         /*
         // https://stackoverflow.com/a/7889272
         try
@@ -80,53 +78,60 @@ public class ReflectionScanner
             return e.Types.WhereNotNull().Where(o => o.TypeInitializer != null);
         }
         */
-        assembly.GetTypes();
-
-    private void Add(params Type?[]? types)
+        return assembly.GetTypes();
+    }
+    
+    private void Add(Type[] types)
     {
-        foreach (var type in types.OrEmpty().WhereNotNull())
+        foreach (var type in types)
         {
-            var typeSlim = new TypeSlim(type);
-            Add(typeSlim);
+            Add(type);
+        }
+    }
+    
+    private void Add(Type? type)
+    {
+        if (type == null) return;
+        if (ASSEMBLY_COMPARER.Equals(type.Assembly, Assembly)) TypesInThisAssembly.Add(type);
+        else TypesInOtherAssemblies.Add(type);
+    }
+
+    private void Scan(IEnumerable<Type> typesToScan)
+    {
+        foreach (var type in typesToScan)
+        {
+            Scan(type);
         }
     }
 
-    private void Add(TypeSlim typeSlim)
+    private void Scan(Type? type)
     {
-        if (typeSlim.Assembly.Equals(Assembly)) TypesInThisAssembly.Add(typeSlim);
-        else TypesInOtherAssemblies.Add(typeSlim);
-    }
-
-    private void Scan(IEnumerable<TypeSlim> typesToScan)
-    {
-        foreach (var typeSlim in typesToScan)
+        if (type == null) return;
+        if (!TypesScanned.Add(type)) return;
+        
+        Add(type);
+        var shouldSkip = SystemAssemblies.Contains(type.Assembly);
+        if (!shouldSkip)
         {
-            if (TypesScanned.Contains(typeSlim)) continue;
-            TypesScanned.Add(typeSlim);
-            Add(typeSlim);
-            var shouldSkip = SystemAssemblies.Contains(typeSlim.Assembly);
-            if (!shouldSkip)
+            if (!NonSystemAssemblies.Contains(type.Assembly))
             {
-                if (!NonSystemAssemblies.Contains(typeSlim.Assembly))
+                var isSystemAssembly = type.Assembly.IsSystemAssembly();
+                if (isSystemAssembly)
                 {
-                    var isSystemAssembly = typeSlim.Assembly.Assembly.IsSystemAssembly();
-                    if (isSystemAssembly)
-                    {
-                        SystemAssemblies.Add(typeSlim.Assembly);
-                        shouldSkip = true;
-                    }
-                    else
-                    {
-                        NonSystemAssemblies.Add(typeSlim.Assembly);
-                    }
+                    SystemAssemblies.Add(type.Assembly);
+                    shouldSkip = true;
+                }
+                else
+                {
+                    NonSystemAssemblies.Add(type.Assembly);
                 }
             }
-
-            if (shouldSkip) continue;
-
-            ScanType(typeSlim.Type);
-            Scan(typeSlim.Type.BaseTypes().Select(o => new TypeSlim(o)));
         }
+
+        if (shouldSkip) return;
+
+        ScanType(type);
+        Scan(type.BaseTypes());
     }
 
     private void ScanType(Type type)

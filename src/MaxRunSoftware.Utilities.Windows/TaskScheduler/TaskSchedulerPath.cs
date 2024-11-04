@@ -18,7 +18,7 @@ using Task = Microsoft.Win32.TaskScheduler.Task;
 namespace MaxRunSoftware.Utilities.Windows;
 
 [PublicAPI]
-public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedulerPath.Comparer>
+public class TaskSchedulerPath : ComparableBase<TaskSchedulerPath, TaskSchedulerPathComparer>
 {
     // ReSharper disable once InconsistentNaming
     private static readonly string PATH_DELIMITER_TaskScheduler = PATH_DELIMITER_TaskScheduler_Build();
@@ -27,9 +27,9 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
         var delim = @"\";
         try
         {
-            var ts = typeof(TaskFolder).ToTypeSlim();
-            var f = ts.GetFieldSlim("rootString", BindingFlags.NonPublic | BindingFlags.Static)
-                    ?? ts.GetFieldSlim("rootString", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            var ts = typeof(TaskFolder);
+            var f = ts.GetField("rootString", BindingFlags.NonPublic | BindingFlags.Static)
+                    ?? ts.GetField("rootString", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
             if (f != null)
             {
                 var ds = f.GetValue(null)?.ToString();
@@ -56,7 +56,7 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
     public bool IsRoot => Parent == null;
     public TaskSchedulerPath(Task task) : this(task.Folder.Path + PATH_DELIMITER + task.Name) { }
     public TaskSchedulerPath(TaskFolder folder) : this(folder.Path) { }
-    public TaskSchedulerPath(string? path) : base(Comparer.Instance)
+    public TaskSchedulerPath(string? path) : base(TaskSchedulerPathComparer.Default)
     {
         var pathParts = PathParse(path);
         if (pathParts.Count == 0)
@@ -96,13 +96,30 @@ public class TaskSchedulerPath : ComparableClass<TaskSchedulerPath, TaskSchedule
     }
 
     public override string ToString() => Path;
+}
 
-    public sealed class Comparer : ComparerBaseClass<TaskSchedulerPath>
+public sealed class TaskSchedulerPathComparer : ComparerBaseDefault<TaskSchedulerPath, TaskSchedulerPathComparer>
+{
+    protected override bool Equals_Internal(TaskSchedulerPath x, TaskSchedulerPath y) => StringComparer.OrdinalIgnoreCase.Equals(x, y);
+
+    protected override int GetHashCode_Internal(TaskSchedulerPath obj) => StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Path);
+
+    protected override int Compare_Internal(TaskSchedulerPath x, TaskSchedulerPath y)
     {
-        public static Comparer Instance { get; } = new();
-        protected override bool EqualsInternal(TaskSchedulerPath x, TaskSchedulerPath y) => EqualsStruct(x.GetHashCode(), y.GetHashCode()) && EqualsOrdinalIgnoreCase(x.Path, y.Path);
-        protected override int GetHashCodeInternal(TaskSchedulerPath obj) => HashOrdinalIgnoreCase(obj.Path);
-        protected override int CompareInternal(TaskSchedulerPath x, TaskSchedulerPath y) => CompareOrdinalIgnoreCaseThenOrdinal(x.PathParts, y.PathParts) ?? 0;
+        var xPathParts = x.PathParts;
+        var yPathParts = y.PathParts;
+
+        var xLen = xPathParts.Count;
+        var yLen = yPathParts.Count;
+            
+        var len = Math.Min(xLen, yLen);
+        for (var i = 0; i < len; i++)
+        {
+            var c = xPathParts[i].CompareToOrdinalIgnoreCaseThenOrdinal(yPathParts[i]);
+            if (c != 0) return c;
+        }
+            
+        return xLen.CompareTo(yLen);
     }
 }
 

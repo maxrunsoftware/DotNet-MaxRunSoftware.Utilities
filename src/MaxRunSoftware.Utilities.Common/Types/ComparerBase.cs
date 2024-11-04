@@ -1,44 +1,194 @@
-// Copyright (c) 2024 Max Run Software (dev@maxrunsoftware.com)
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-// http://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-// ReSharper disable ConditionIsAlwaysTrueOrFalse
-
-// ReSharper disable InconsistentNaming
-
 namespace MaxRunSoftware.Utilities.Common;
 
-public abstract class ComparerBase
+public interface IComparerHashCodeCached
 {
-    #region Helpers
+    public int HashCode { get; }
+}
 
-    protected static int Hash<TT>(TT? obj) => Util.Hash(obj);
-    protected static int HashEnumerable<TT>(IEnumerable<TT?> enumerable) => Util.HashEnumerable(enumerable);
-    protected static int Hash(params object?[] objs) => objs.Length == 0 ? 0 : Util.HashEnumerable(objs);
-    protected static int HashOrdinal(string? s) => s == null ? 0 : StringComparer.Ordinal.GetHashCode(s);
-    protected static int HashOrdinalIgnoreCase(string? s) => s == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(s);
-    protected static int HashOrdinal(IEnumerable<string?>? s) => s == null ? 0 : Util.HashEnumerable(s.Select(HashOrdinal));
-    protected static int HashOrdinalIgnoreCase(IEnumerable<string?>? s) => s == null ? 0 : Util.HashEnumerable(s.Select(HashOrdinalIgnoreCase));
-
-    protected static bool EqualsClass<TT>(TT? x, TT? y) where TT : class, IEquatable<TT>
+public abstract class ComparerBase<T> : 
+    IEqualityComparer, IComparer,
+    IEqualityComparer<T?>, IComparer<T?>,
+    IEqualityComparer<T?[]?>, IComparer<T?[]?>,
+    IEqualityComparer<IReadOnlyList<T?>?>, IComparer<IReadOnlyList<T?>?>,
+    IEqualityComparer<IEnumerable<T?>?>, IComparer<IEnumerable<T?>?>
+    where T : class
+{
+    #region IEqualityComparer, IComparer
+    
+    bool IEqualityComparer.Equals(object? x, object? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (ReferenceEquals(x, null)) return false;
         if (ReferenceEquals(y, null)) return false;
+
+        if (x is T[] xArray && y is T[] yArray) return Equals(xArray, yArray);
+        if (x is IReadOnlyList<T?> xReadOnlyList && y is IReadOnlyList<T?> yReadOnlyList) return Equals(xReadOnlyList, yReadOnlyList);
+        if (x is IEnumerable<T?> xEnumerable && y is IEnumerable<T?> yEnumerable) return Equals(xEnumerable, yEnumerable);
+        if (x is T xx && y is T yy) return Equals(xx, yy);
+
         return x.Equals(y);
     }
+    
+    int IEqualityComparer.GetHashCode(object? obj)
+    {
+        if (ReferenceEquals(obj, null)) return 0;
+        
+        if (obj is T[] objArray) return GetHashCode(objArray);
+        if (obj is IReadOnlyList<T?> objReadOnlyList) return GetHashCode(objReadOnlyList);
+        if (obj is IEnumerable<T?> objEnumerable) return GetHashCode(objEnumerable);
+        if (obj is T xx) return GetHashCode(xx);
+        
+        return 0;
+    }
 
-    protected static bool EqualsClassEnumerable<TT>(IEnumerable<TT?>? x, IEnumerable<TT?>? y, bool skipCount = false) where TT : class, IEquatable<TT>
+    int IComparer.Compare(object? x, object? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+        
+        if (x is T[] xArray && y is T[] yArray) return Compare(xArray, yArray);
+        if (x is IReadOnlyList<T?> xReadOnlyList && y is IReadOnlyList<T?> yReadOnlyList) return Compare(xReadOnlyList, yReadOnlyList);
+        if (x is IEnumerable<T?> xEnumerable && y is IEnumerable<T?> yEnumerable) return Compare(xEnumerable, yEnumerable);
+
+        if (x is not T xx) throw new ArgumentException($"Expecting type [{typeof(T).FullNameFormatted()}] but was instead [{x.GetType().FullNameFormatted()}]: {x}");
+        if (y is not T yy) throw new ArgumentException($"Expecting type [{typeof(T).FullNameFormatted()}] but was instead [{y.GetType().FullNameFormatted()}]: {y}");
+        
+        return Compare(xx, yy);
+    }
+    
+    #endregion IEqualityComparer, IComparer
+
+    #region IEqualityComparer<T>, IComparer<T>
+    
+    public virtual bool Equals(T? x, T? y)
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return false;
+        
+        return Equals_Internal(x, y);
+    }
+    
+    public virtual int GetHashCode(T? obj) => ReferenceEquals(obj, null) ? 0 : GetHashCode_Internal(obj);
+
+    public virtual int Compare(T? x, T? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        return Compare_Internal(x, y);
+    }
+    
+    #endregion IEqualityComparer<T>, IComparer<T>
+    
+    #region IEqualityComparer<T[]>, IComparer<T[]>
+
+    private const bool skipCount = false;
+    
+    public virtual bool Equals(T?[]? x, T?[]? y) 
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return false;
+        
+        if (x.Length != y.Length) return false;
+        for (var i = 0; i < x.Length; i++)
+        {
+            if (!Equals(x[i], y[i])) return false;
+        }
+        return true;
+    }
+
+    public virtual int GetHashCode(T?[]? obj) {
+        var h = new HashCode();
+        if (obj != null)
+        {
+            for (var i = 0; i < obj.Length; i++)
+            {
+                h.Add(GetHashCode(obj[i]));
+            }
+        }
+
+        return h.ToHashCode();
+    }
+
+    public virtual int Compare(T?[]? x, T?[]? y) 
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        var len = Math.Max(x.Length, y.Length);
+        for (var i = 0; i < len; i++)
+        {
+            var xItem = x.GetAtIndexOrDefault(i);
+            var yItem = y.GetAtIndexOrDefault(i);
+            var c = Compare(xItem, yItem);
+            if (c != 0) return c;
+        }
+
+        return 0;
+    }
+    
+    #endregion IEqualityComparer<T[]>, IComparer<T[]>
+
+    #region IEqualityComparer<IReadOnlyList<T>>, IComparer<IReadOnlyList<T>>
+
+    public virtual bool Equals(IReadOnlyList<T?>? x, IReadOnlyList<T?>? y) 
+    {
+        if (ReferenceEquals(x, y)) return true;
+        if (ReferenceEquals(x, null)) return false;
+        if (ReferenceEquals(y, null)) return false;
+
+        var xCount = x.Count;
+        var yCount = y.Count;
+        if (xCount != yCount) return false;
+        for (var i = 0; i < xCount; i++)
+        {
+            if (!Equals(x[i], y[i])) return false;
+        }
+        return true;
+    }
+
+    public virtual int GetHashCode(IReadOnlyList<T?>? obj) {
+        var h = new HashCode();
+        if (obj != null)
+        {
+            var count = obj.Count;
+            for (var i = 0; i < count; i++)
+            {
+                h.Add(GetHashCode(obj[i]));
+            }
+        }
+
+        return h.ToHashCode();
+    }
+
+    public virtual int Compare(IReadOnlyList<T?>? x, IReadOnlyList<T?>? y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        var len = Math.Max(x.Count, y.Count);
+        for (var i = 0; i < len; i++)
+        {
+            var xItem = x.GetAtIndexOrDefault(i);
+            var yItem = y.GetAtIndexOrDefault(i);
+            var c = Compare(xItem, yItem);
+            if (c != 0) return c;
+        }
+
+        return 0;
+    }
+    
+    #endregion IEqualityComparer<IReadOnlyList<T>>, IComparer<IReadOnlyList<T>>
+
+    #region IEqualityComparer<IEnumerable<T>>, IComparer<IEnumerable<T>>
+    
+    public virtual bool Equals(IEnumerable<T?>? x, IEnumerable<T?>? y)
     {
         if (ReferenceEquals(x, y)) return true;
         if (ReferenceEquals(x, null)) return false;
@@ -63,81 +213,26 @@ public abstract class ComparerBase
             yContinue = yEnumerator.MoveNext();
             if (xContinue != yContinue) return false;
             if (!xContinue && !yContinue) return true;
-            if (!EqualsClass(xEnumerator.Current, yEnumerator.Current)) return false;
+            if (!Equals(xEnumerator.Current, yEnumerator.Current)) return false;
         } while (xContinue && yContinue);
 
         return true;
     }
 
-
-    protected static bool EqualsStruct<TT>(TT x, TT y) where TT : struct => x.Equals(y);
-    protected static bool EqualsStruct<TT>(TT x, TT? y) where TT : struct => y.HasValue && EqualsStruct(x, y.Value);
-    protected static bool EqualsStruct<TT>(TT? x, TT y) where TT : struct => x.HasValue && EqualsStruct(x.Value, y);
-    protected static bool EqualsStruct<TT>(TT? x, TT? y) where TT : struct
+    public virtual int GetHashCode(IEnumerable<T?>? obj)
     {
-        if (!x.HasValue) return !y.HasValue;
-        if (!y.HasValue) return !x.HasValue;
-        return EqualsStruct(x.Value, y.Value);
+        var h = new HashCode();
+        if (obj != null)
+        {
+            foreach (var item in obj)
+            {
+                h.Add(GetHashCode(item));
+            }
+        }
+        return h.ToHashCode();
     }
 
-    protected static bool EqualsObject(object? x, object? y)
-    {
-        if (ReferenceEquals(x, y)) return true;
-        if (ReferenceEquals(x, null)) return false;
-        if (ReferenceEquals(y, null)) return false;
-        return x.Equals(y);
-    }
-
-    protected static bool EqualsOrdinal(string? x, string? y) => StringComparer.Ordinal.Equals(x, y);
-    protected static bool EqualsOrdinalIgnoreCase(string? x, string? y) => StringComparer.OrdinalIgnoreCase.Equals(x, y);
-
-    protected static int? CompareNullable(int i) => i == 0 ? null : i;
-
-    protected static int? CompareClass<TT>(TT? x, TT? y) where TT : class, IComparable<TT>
-    {
-        if (ReferenceEquals(x, y)) return null;
-        if (ReferenceEquals(x, null)) return -1;
-        if (ReferenceEquals(y, null)) return 1;
-        return CompareNullable(x.CompareTo(y));
-    }
-
-    protected static int? CompareStruct<TT>(TT x, TT y) where TT : struct, IComparable<TT> => CompareNullable(x.CompareTo(y));
-    protected static int? CompareStruct<TT>(TT x, TT? y) where TT : struct, IComparable<TT> => y.HasValue ? CompareStruct(x, y.Value) : 1;
-    protected static int? CompareStruct<TT>(TT? x, TT y) where TT : struct, IComparable<TT> => x.HasValue ? CompareStruct(x.Value, y) : -1;
-    protected static int? CompareStruct<TT>(TT? x, TT? y) where TT : struct, IComparable<TT>
-    {
-        if (x.HasValue) return CompareStruct(x.Value, y);
-        if (y.HasValue) return CompareStruct(x, y.Value);
-        return null;
-    }
-
-    protected static int? CompareEnumEnumerable<TT>(TT x, TT y) where TT : struct, Enum => CompareNullable(x.CompareTo(y));
-    protected static int? CompareEnumEnumerable<TT>(TT x, TT? y) where TT : struct, Enum => y.HasValue ? CompareEnumEnumerable(x, y.Value) : 1;
-    protected static int? CompareEnumEnumerable<TT>(TT? x, TT y) where TT : struct, Enum => x.HasValue ? CompareEnumEnumerable(x.Value, y) : -1;
-    protected static int? CompareEnumEnumerable<TT>(TT? x, TT? y) where TT : struct, Enum
-    {
-        if (x.HasValue) return CompareEnumEnumerable(x.Value, y);
-        if (y.HasValue) return CompareEnumEnumerable(x, y.Value);
-        return null;
-    }
-
-    protected static int? CompareObject(object? x, object? y)
-    {
-        if (ReferenceEquals(x, y)) return null;
-        if (ReferenceEquals(x, null)) return -1;
-        if (ReferenceEquals(y, null)) return 1;
-        if (x is IComparable xComparable) return CompareNullable(xComparable.CompareTo(y));
-        throw new ArgumentException($"Object {x.GetType().FullNameFormatted()} does not implement {nameof(IComparable)}", nameof(x));
-    }
-
-    protected static int? CompareOrdinal(string? x, string? y) => CompareNullable(StringComparer.Ordinal.Compare(x, y));
-    protected static int? CompareOrdinalIgnoreCase(string? x, string? y) => CompareNullable(StringComparer.OrdinalIgnoreCase.Compare(x, y));
-    protected static int? CompareOrdinalIgnoreCaseThenOrdinal(string? x, string? y) => CompareNullable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal.Compare(x, y));
-
-    protected static int? CompareOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(StringComparer.Ordinal, x, y);
-    protected static int? CompareOrdinalIgnoreCase(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(StringComparer.OrdinalIgnoreCase, x, y);
-    protected static int? CompareOrdinalIgnoreCaseThenOrdinal(IEnumerable<string?>? x, IEnumerable<string?>? y) => CompareClassEnumerable(Constant.StringComparer_OrdinalIgnoreCase_Ordinal, x, y);
-    protected static int? CompareClassEnumerable<T>(IComparer<T> comparer, IEnumerable<T?>? x, IEnumerable<T?>? y) where T : class
+    public virtual int Compare(IEnumerable<T?>? x, IEnumerable<T?>? y)
     {
         if (ReferenceEquals(x, y)) return 0;
         if (ReferenceEquals(x, null)) return -1;
@@ -153,36 +248,28 @@ public abstract class ComparerBase
             yContinue = yEnumerator.MoveNext();
             if (xContinue && !yContinue) return 1;
             if (!xContinue && yContinue) return -1;
-            if (!xContinue && !yContinue) return null;
-            var c = comparer.Compare(xEnumerator.Current, yEnumerator.Current);
+            if (!xContinue && !yContinue) return 0;
+            var c = Compare(xEnumerator.Current, yEnumerator.Current);
             if (c != 0) return c;
         } while (xContinue && yContinue);
 
-        return null;
+        return 0;
     }
-    protected static int? CompareClassEnumerable<T>(IEnumerable<T?>? x, IEnumerable<T?>? y) where T : class, IComparable<T>
+
+    #endregion IEqualityComparer<IEnumerable<T>>, IComparer<IEnumerable<T>>
+
+    protected virtual bool Equals_Internal(T x, T y) => throw new NotImplementedException();
+    
+    protected virtual int GetHashCode_Internal(T obj)
     {
-        if (ReferenceEquals(x, y)) return 0;
-        if (ReferenceEquals(x, null)) return -1;
-        if (ReferenceEquals(y, null)) return 1;
-
-        using var xEnumerator = x.GetEnumerator();
-        using var yEnumerator = y.GetEnumerator();
-
-        bool xContinue, yContinue;
-        do
-        {
-            xContinue = xEnumerator.MoveNext();
-            yContinue = yEnumerator.MoveNext();
-            if (xContinue && !yContinue) return 1;
-            if (!xContinue && yContinue) return -1;
-            if (!xContinue && !yContinue) return null;
-            var c = CompareClass(xEnumerator.Current, yEnumerator.Current);
-            if (c.HasValue && c.Value != 0) return c;
-        } while (xContinue && yContinue);
-
-        return null;
+        var h = new HashCode();
+        GetHashCode_Internal(obj, ref h);
+        return h.ToHashCode();
     }
+    
+    protected virtual void GetHashCode_Internal(T obj, ref HashCode h) => throw new NotImplementedException();
+    
+    protected virtual int Compare_Internal(T x, T y) => Compare_Internal_Comparisons(x, y).FirstOrDefault(i => i != 0);
 
-    #endregion Helpers
+    protected virtual IEnumerable<int> Compare_Internal_Comparisons(T x, T y) => throw new NotImplementedException();
 }

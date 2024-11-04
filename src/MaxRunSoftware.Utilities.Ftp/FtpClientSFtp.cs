@@ -31,9 +31,107 @@ public class FtpClientSFtp : FtpClientBase
 
     private SftpClient? client;
     private SftpClient Client => client ?? throw new ObjectDisposedException(GetType().FullNameFormatted());
-    
+
+
+    private class GetCanonicalPathWrapper
+    {
+        private readonly Func<object?, object?> getSession;
+        private readonly MethodCaller getCanonicalPath;
+
+        private GetCanonicalPathWrapper(Func<object?, object?> getSession, MethodInfo getCanonicalPathMethod)
+        {
+            this.getSession = getSession;
+            getCanonicalPath = getCanonicalPathMethod.GetMethodCaller();
+        }
+        
+        private bool Invoke(SftpClient client, string path, out string? canonicalPath)
+        {
+            var session = getSession(client);
+            if (session == null)
+            {
+                canonicalPath = null;
+                return false;
+            }
+            
+            var pathObj = getCanonicalPath.Invoke(session, [path]);
+            canonicalPath = (string?)pathObj;
+            return true;
+        }
+
+        private static MethodInfo? GetCanonicalPathMethod(Type type)
+        {
+            var typeNamespace = type.Namespace;
+            if (typeNamespace == null) return null;
+            if (typeNamespace.StartsWithAny(StringComparison.OrdinalIgnoreCase, "System", "Microsoft")) return null;
+
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                if (!method.Name.EqualsOrdinalIgnoreCase("GetCanonicalPath")) continue;
+                if (!method.ReturnType.IsAssignableTo(typeof(string))) continue;
+                var parameters = method.GetParameters();
+                if (parameters.Length != 1) continue;
+                if (!parameters[0].ParameterType.IsAssignableTo(typeof(string))) continue;
+                return method;
+            }
+
+            return null;
+        }
+        
+        private static GetCanonicalPathWrapper? Create(PropertyInfo info)
+        {
+            var method = GetCanonicalPathMethod(info.PropertyType);
+            if (method == null) return null;
+            var getter = info.CreatePropertyGetter();
+            return new(getter, method);
+        }
+        
+        private static GetCanonicalPathWrapper? Create(FieldInfo info)
+        {
+            var method = GetCanonicalPathMethod(info.FieldType);
+            if (method == null) return null;
+            var getter = info.CreateFieldGetter();
+            return new(getter, method);
+        }
+
+        private static ImmutableArray<GetCanonicalPathWrapper> CreateAll()
+        {
+            var fields = typeof(SftpClient).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Select(Create).WhereNotNull().ToList();
+            var properties = typeof(SftpClient).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Select(Create).WhereNotNull().ToList();
+            return fields.Concat(properties).ToImmutableArray();
+        }
+
+        private static readonly Lzy<ImmutableArray<GetCanonicalPathWrapper>> wrappers = Lzy.Create(CreateAll);
+        
+        public static bool TryGetCanonicalPath(SftpClient client, string path, out string? canonicalPath)
+        {
+            var ws = wrappers.Value;
+            if (ws.Length == 0)
+            {
+                canonicalPath = null;
+                return false;
+            }
+            
+            foreach (var w in ws)
+            {
+                if (w.Invoke(client, path, out var cp))
+                {
+                    canonicalPath = cp;
+                    return true;
+                }
+            }
+            
+            canonicalPath = null;
+            return true;
+        }
+    }
+
     protected override string DirectorySeparatorGet() => "/"; // https://stackoverflow.com/a/45693117
-    protected override string WorkingDirectoryGet() => Client.WorkingDirectory ?? DirectorySeparator;
+    protected override string WorkingDirectoryGet()
+    {
+        var workingDirectory = Client.WorkingDirectory;
+        return string.IsNullOrEmpty(workingDirectory) ? DirectorySeparator : workingDirectory;
+    }
+
     protected override void WorkingDirectorySet(string directory) => Client.ChangeDirectory(directory);
 
 
@@ -56,7 +154,7 @@ public class FtpClientSFtp : FtpClientBase
         long? remoteFileLength = null;
         try
         {
-            remoteFileLength = Client.Get(remoteFile)?.Length;
+            remoteFileLength = Client.Get(remoteFile).Length;
         }
         catch (Exception e)
         {
@@ -197,7 +295,7 @@ public class FtpClientSFtp : FtpClientBase
                 .WhereNotNull()
         );
     
-    protected override string? ServerInfoGet() => Client.ConnectionInfo?.ClientVersion;
+    protected override string? ServerInfoGet() => Client.ConnectionInfo.ClientVersion;
 
     protected override void DeleteFileInternal(string remoteFile)
     {
@@ -234,7 +332,7 @@ public class FtpClientSFtp : FtpClientBase
     {
         if (!Client.Exists(remotePath)) return null;
         var obj = Client.Get(remotePath);
-        if (obj == null) return null;
+        //if (obj == null) return null;
         return CreateFileSystemObject(obj);
     }
     
@@ -244,7 +342,7 @@ public class FtpClientSFtp : FtpClientBase
         {
             if (Client.Exists(remotePath))
             {
-                var pathFull = Client.Get(remotePath)?.FullName;
+                var pathFull = Client.Get(remotePath).FullName;
                 if (pathFull != null && IsAbsolutePath(pathFull)) return pathFull;
             }
         }
@@ -254,7 +352,7 @@ public class FtpClientSFtp : FtpClientBase
         }
         
         log.LogTraceMethod(new(remotePath), "Attempting reflection to retrieve canonical path");
-        if (Client.TryGetCanonicalPathInternal(remotePath, out var canonicalPath))
+        if (GetCanonicalPathWrapper.TryGetCanonicalPath(Client, remotePath, out var canonicalPath))
         {
             if (canonicalPath != null && IsAbsolutePath(canonicalPath)) return canonicalPath;
         }

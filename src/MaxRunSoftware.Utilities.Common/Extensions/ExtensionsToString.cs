@@ -118,15 +118,15 @@ public static class ExtensionsToString
 
         public ToStringGuessFormatGetLength(Type type)
         {
-            var slimProperties = type.GetPropertySlims(BindingFlags.Public | BindingFlags.Instance)
-                .Where(o => o.IsGettablePublic)
-                .Where(o => Constant.Types_Numeric.Contains(o.Type))
-                .Select(o => new SlimObj(o, o.Name, o.Type, o.GetValue))
+            var slimProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => o.IsGettable())
+                .Where(o => Constant.Types_Numeric.Contains(o.PropertyType))
+                .Select(o => new SlimObj(o, o.Name, o.PropertyType, o.GetValue))
                 .ToArray();
 
-            var slimFields = type.GetFieldSlims(BindingFlags.Public | BindingFlags.Instance)
-                .Where(o => Constant.Types_Numeric.Contains(o.Type))
-                .Select(o => new SlimObj(o, o.Name, o.Type, o.GetValue))
+            var slimFields = type.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Where(o => Constant.Types_Numeric.Contains(o.FieldType))
+                .Select(o => new SlimObj(o, o.Name, o.FieldType, o.GetValue))
                 .ToArray();
 
             const string nameCount = nameof(ICollection.Count);

@@ -25,9 +25,9 @@ namespace MaxRunSoftware.Utilities.Data;
 /// </summary>
 public class MicrosoftSqlServerProperties : DatabaseServerProperties
 {
-    private static readonly ImmutableArray<PropertySlim> PROPERTIES_QUERY = typeof(MicrosoftSqlServerProperties)
-        .ToTypeSlim().GetPropertySlims(BindingFlags.Public | BindingFlags.Instance)
-        .Where(o => o.IsGettablePublic)
+    private static readonly ImmutableArray<PropertyInfo> PROPERTIES_QUERY = typeof(MicrosoftSqlServerProperties)
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        .Where(o => o.IsGettable())
         .Where(o => o.Name.NotIn(nameof(ServerOS)))
         .ToImmutableArray();
 

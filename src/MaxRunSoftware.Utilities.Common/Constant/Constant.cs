@@ -53,7 +53,7 @@ public static partial class Constant
                         var err = exception.GetType().FullName;
                         msg = msg + " " + err;
                     }
-                    catch (Exception) { }
+                    catch (Exception) { /* ignored */ }
                 }
             }
         }
@@ -65,7 +65,7 @@ public static partial class Constant
             catch (Exception)
             {
                 try { Console.WriteLine(msg); }
-                catch { }
+                catch { /* ignored */ }
             }
         }
     }
@@ -123,6 +123,18 @@ public static partial class Constant
     {
         return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == otherType);
     }
+
+    #region InternalExecuteSafe
+    
+    // @formatter:off
+
+    private static T? InternalExecuteSafe<T>(this Func<T?> func) where T : class { try { return func(); } catch (Exception) { return null; } }
+    private static T InternalExecuteSafe<T>(this Func<T> func, T defaultValue) where T : struct { try { return func(); } catch (Exception) { return defaultValue; } }
+    private static T? InternalExecuteSafeNullable<T>(this Func<T> func) where T : struct { try { return func(); } catch (Exception) { return null; } }
+
+    // @formatter:on
+    
+    #endregion InternalExecuteSafe
     
     #endregion Helpers
 }

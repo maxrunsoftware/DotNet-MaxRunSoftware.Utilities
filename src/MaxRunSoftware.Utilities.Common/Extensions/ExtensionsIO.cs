@@ -48,100 +48,105 @@ public static class ExtensionsIO
         return list.ToArray();
     }
     
-    public static long GetLength(this FileInfo? file, bool suppressException = false, long defaultLength = -1)
+    private static readonly ImmutableArray<Type> EX_IOException_SecurityException = [typeof(IOException), typeof(SecurityException)];
+
+    private static long GetLength_ByStream(this FileInfo file)
     {
-        if (file == null) return defaultLength;
         // https://stackoverflow.com/a/26473940
-        if (file.IsSymbolic(suppressException: suppressException))
-        {
-            // https://stackoverflow.com/a/57454136
-            if (!suppressException) return GetLengthByStream(file);
-
-            try
-            {
-                return GetLengthByStream(file);
-            }
-            catch (SecurityException) { }
-            catch (IOException) { }
-
-            return defaultLength;
-
-        }
-
-        if (!suppressException) return file.Length;
-        try
-        {
-            return file.Length;
-        }
-        catch (SecurityException) { }
-        catch (IOException) { }
-        
-        return defaultLength;
-        
-        static long GetLengthByStream(FileInfo info)
-        {
-            using Stream fs = Util.FileOpenRead(info.FullName);
-            return fs.Length;
-        }
+        // https://stackoverflow.com/a/57454136
+        using Stream fs = Util.FileOpenRead(file.FullName);
+        return fs.Length;
     }
+    
+    public static long? GetLength(this FileInfo? file)
+    {
+        if (file == null) return null;
+        if (file.IsSymbolic_Safe() ?? false)
+        {
+            return GetLength_ByStream(file);
+        }
 
+        return file.Length;
+    }
+    
+    public static long? GetLength_Safe(this FileInfo? file)
+    {
+        if (file == null) return null;
+        if (file.IsSymbolic_Safe() ?? false)
+        {
+            var length = Util.CatchN(() => GetLength_ByStream(file));
+            if (length != null) return length;
+        }
+
+        return Util.CatchN(() => file.Length, EX_IOException_SecurityException);
+    }
+    
+    
+    
     /// <summary>
     /// Checks whether a file is a Symbolic link.
     /// This is unreliable https://stackoverflow.com/a/26473940
     /// </summary>
     /// <param name="info">File to check</param>
-    /// <param name="suppressException">If true then no exception is thrown and instead just false is returned</param>
-    /// <returns>true if file is a symbolic link, otherwise false</returns>
-    public static bool IsSymbolic(this FileSystemInfo? info, bool suppressException = false)
+    /// <returns>true if file is a symbolic link, false if is not a symbolic link or null if it could not be determined</returns>
+    public static bool? IsSymbolic(this FileSystemInfo? info) => info?.Attributes.HasFlag(FileAttributes.ReparsePoint);
+
+    /// <summary>
+    /// Checks whether a file is a Symbolic link without throwing an exception.
+    /// This is unreliable https://stackoverflow.com/a/26473940
+    /// </summary>
+    /// <param name="info">File to check</param>
+    /// <returns>true if file is a symbolic link, false if is not a symbolic link or null if it could not be determined</returns>
+    public static bool? IsSymbolic_Safe(this FileSystemInfo? info)
     {
-        if (info == null) return false;
-        FileAttributes? attr = null;
-        if (suppressException)
-        {
-            try
-            {
-                attr = info.Attributes;
-            }
-            catch (SecurityException)
-            {
-            }
-            catch (IOException)
-            {
-            }
-        }
-        else
-        {
-            attr = info.Attributes;
-        }
-
-        if (attr == null) return false;
-
-        return (attr.Value & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+        var attr = info?.Attributes_Safe();
+        return attr?.HasFlag(FileAttributes.ReparsePoint);
     }
 
-    public static bool IsFile(this FileSystemInfo info)
+    public static string? FullName_Safe(this FileSystemInfo? info) => Util.Catch(() => info?.FullName, EX_IOException_SecurityException);
+
+    public static FileAttributes? Attributes_Safe(this FileSystemInfo? info) => info == null ? null : Util.CatchN(() => info.Attributes);
+
+    private static int IsDirectoryOrFile(FileSystemInfo? info)
     {
         // https://stackoverflow.com/a/1395212
-        if (File.Exists(info.FullName)) return true;
-        if (Directory.Exists(info.FullName)) return false;
-        
         // https://stackoverflow.com/a/1395226
-        var attr = info.Attributes;
-        if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return false;
-        return false;
+
+        const int unknown = 0, directory = 1, file = 2;
+        
+        if (info == null) return unknown;
+        
+        var name = info.FullName_Safe();
+        if (name != null)
+        {
+            if (File.Exists(name)) return file;
+            if (Directory.Exists(name)) return directory;
+        }
+        
+        var attr = info.Attributes_Safe() ?? FileAttributes.None;
+        if (attr.HasFlag(FileAttributes.Directory)) return directory;
+        if (attr.HasFlag(FileAttributes.Normal)) return file;
+        
+        return unknown;
     }
     
-    public static bool IsDirectory(this FileSystemInfo info)
+    public static bool? IsFile(this FileSystemInfo info) => IsDirectoryOrFile(info) switch
     {
-        // https://stackoverflow.com/a/1395212
-        if (File.Exists(info.FullName)) return false;
-        if (Directory.Exists(info.FullName)) return true;
-        
-        // https://stackoverflow.com/a/1395226
-        var attr = info.Attributes;
-        if ((attr & FileAttributes.Directory) == FileAttributes.Directory) return true;
-        return false;
-    }
+        0 => null,
+        1 => false,
+        2 => true,
+        _ => throw new NotImplementedException()
+    };
+
+    public static bool? IsDirectory(this FileSystemInfo info) => IsDirectoryOrFile(info) switch
+    {
+        0 => null,
+        1 => true,
+        2 => false,
+        _ => throw new NotImplementedException()
+    };
+
+    
     
     public record FileSystemInfosTyped(
         List<DirectoryInfo> Directories,

@@ -14,8 +14,8 @@ public class OptionsAttribute(string configSectionPath) : Attribute
 
 public static class OptionsAttributeExtensions
 {
-    private static readonly MethodSlim method_AddOptionsAndBind_Internal = typeof(OptionsAttributeExtensions)
-        .GetMethodSlims(BindingFlags.NonPublic | BindingFlags.Static)
+    private static readonly MethodInfo method_AddOptionsAndBind_Internal = typeof(OptionsAttributeExtensions)
+        .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
         .First(o => o.Name.EqualsOrdinal(nameof(AddOptionsAndBind_Internal)));
     
     /// <summary>

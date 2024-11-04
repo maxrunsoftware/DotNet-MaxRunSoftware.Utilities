@@ -17,8 +17,7 @@ namespace MaxRunSoftware.Utilities.Common;
 [PublicAPI]
 public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, IComparable
 {
-    public TypeSlim TypeSlim { get; }
-    public Type Type => TypeSlim.Type;
+    public Type Type { get; }
     public string Name { get; }
     public object Item { get; }
     public int Index { get; }
@@ -27,14 +26,14 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
 
     public IEnumerable<Attribute> Attributes => info.GetCustomAttributes();
 
-    private EnumItem(TypeSlim typeSlim, string name, object item, int index, FieldInfo info)
+    private EnumItem(Type type, string name, object item, int index, FieldInfo info)
     {
-        TypeSlim = typeSlim;
+        Type = type;
         Name = name;
         Item = item;
         Index = index;
         this.info = info;
-        getHashCode = Util.Hash(TypeSlim.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
+        getHashCode = Util.Hash(type.GetHashCode(), Index, StringComparer.Ordinal.GetHashCode(Name));
     }
 
     #region Override
@@ -52,7 +51,7 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
 
         if (getHashCode != other.getHashCode) return false;
         if (Index != other.Index) return false;
-        if (!TypeSlim.Equals(other.TypeSlim)) return false;
+        if (Type != other.Type) return false;
         if (!StringComparer.Ordinal.Equals(Name, other.Name)) return false;
 
         return true;
@@ -66,7 +65,7 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
         if (ReferenceEquals(this, other)) return 0;
 
         int c;
-        if (0 != (c = TypeSlim.CompareTo(other.TypeSlim))) return c;
+        if (0 != (c = (Type.FullName ?? Type.Name).CompareToOrdinal(other.Type.FullName ?? other.Type.Name))) return c;
         if (0 != (c = Index.CompareTo(other.Index))) return c;
         if (0 != (c = Name.CompareToOrdinalIgnoreCaseThenOrdinal(other.Name))) return c;
         if (0 != (c = getHashCode.CompareTo(other.getHashCode))) return c;
@@ -80,7 +79,6 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
     public static ImmutableArray<EnumItem> Get(Type enumType)
     {
         enumType.CheckIsEnum();
-        var typeSlim = new TypeSlim(enumType);
         var names = Enum.GetNames(enumType).ToHashSet();
 
         // https://stackoverflow.com/questions/6819348/enum-getnames-results-in-unexpected-order-with-negative-enum-constants
@@ -88,7 +86,7 @@ public sealed class EnumItem : IEquatable<EnumItem>, IComparable<EnumItem>, ICom
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
                 .Where(fieldInfo => names.Contains(fieldInfo.Name))
                 .Select((fieldInfo, i) => new EnumItem(
-                    typeSlim,
+                    enumType,
                     fieldInfo.Name,
                     Enum.Parse(enumType, fieldInfo.Name),
                     i,

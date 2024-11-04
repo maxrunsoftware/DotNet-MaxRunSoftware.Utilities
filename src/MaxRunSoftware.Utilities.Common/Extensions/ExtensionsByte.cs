@@ -232,13 +232,15 @@ public static class ExtensionsByte
 
     #endregion Compression
 
-    public static bool EqualsBytes(this Span<byte> x, Span<byte> y) => EqualsBytes((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
+    #region IsEqual
+    
+    public static bool IsEqual(this Span<byte> x, Span<byte> y) => IsEqual((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
 
-    public static bool EqualsBytes(this ReadOnlySpan<byte> x, Span<byte> y) => EqualsBytes(x, (ReadOnlySpan<byte>)y);
+    public static bool IsEqual(this ReadOnlySpan<byte> x, Span<byte> y) => IsEqual(x, (ReadOnlySpan<byte>)y);
 
-    public static bool EqualsBytes(this Span<byte> x, ReadOnlySpan<byte> y) => EqualsBytes((ReadOnlySpan<byte>)x, y);
+    public static bool IsEqual(this Span<byte> x, ReadOnlySpan<byte> y) => IsEqual((ReadOnlySpan<byte>)x, y);
 
-    public static bool EqualsBytes(this ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
+    public static bool IsEqual(this ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
     {
         if (x.Length != y.Length) return false;
         if (x.Length == 0) return true;
@@ -248,10 +250,43 @@ public static class ExtensionsByte
         return x.SequenceEqual(y);
     }
 
-    public static bool EqualsBytes(this byte[]? x, byte[]? y)
+    public static bool IsEqual(this byte[]? x, byte[]? y)
     {
         if (ReferenceEquals(x, y)) return true; //reference equality check
         if (ReferenceEquals(x, null) || ReferenceEquals(y, null)) return false;
-        return EqualsBytes((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
+        return IsEqual((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
     }
+    
+    #endregion IsEqual
+
+    #region Compare
+
+    public static int Compare(this Span<byte> x, Span<byte> y) => Compare((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
+
+    public static int Compare(this ReadOnlySpan<byte> x, Span<byte> y) => Compare(x, (ReadOnlySpan<byte>)y);
+
+    public static int Compare(this Span<byte> x, ReadOnlySpan<byte> y) => Compare((ReadOnlySpan<byte>)x, y);
+
+    public static int Compare(this ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
+    {
+        var len = Math.Min(x.Length, y.Length);
+        for (var i = 0; i < len; i++)
+        {
+            int c;
+            if ((c = x[i].CompareTo(y[i])) != 0) return c;
+        }
+        return x.Length.CompareTo(y.Length);
+    }
+
+    public static int Compare(this byte[]? x, byte[]? y)
+    {
+        if (ReferenceEquals(x, y)) return 0; //reference equality check
+        if (ReferenceEquals(x, null)) return -1;
+        if (ReferenceEquals(y, null)) return 1;
+
+        return Compare((ReadOnlySpan<byte>)x, (ReadOnlySpan<byte>)y);
+    }
+    
+    #endregion Compare
+
 }
