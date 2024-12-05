@@ -24,9 +24,12 @@ namespace MaxRunSoftware.Utilities.Ftp.Tests;
 public abstract class FtpClientTests<T> : TestBase where T : FtpClientBase
 {
     protected T Client { get; private set; }
-    protected FtpClientTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper) =>
+    protected FtpClientTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+        LogLevel = LogLevel.Trace;
         // ReSharper disable once VirtualMemberCallInConstructor
         Client = CreateClient();
+    }
 
     public override void Dispose()
     {

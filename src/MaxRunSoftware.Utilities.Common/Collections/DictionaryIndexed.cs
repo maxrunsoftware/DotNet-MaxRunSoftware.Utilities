@@ -28,6 +28,7 @@ namespace MaxRunSoftware.Utilities.Common;
 /// for various human-friendlier reasons.
 /// There is no support to manually re-order keys or to access keys
 /// by index without using Keys/Values or the Enumerator (eg).
+/// TODO: This will be replaced by OrderedDictionary in .NET 9
 /// </summary>
 /// <see href="https://stackoverflow.com/a/46596033">StackOverflow</see>
 [Serializable]

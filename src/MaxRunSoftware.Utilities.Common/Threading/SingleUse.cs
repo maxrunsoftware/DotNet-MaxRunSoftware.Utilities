@@ -15,13 +15,12 @@
 namespace MaxRunSoftware.Utilities.Common;
 
 [Serializable]
-public sealed class SingleUse
+public sealed class SingleUse(object locker)
 {
-    private readonly object locker;
+    private readonly object locker = locker.CheckNotNull(nameof(locker));
     private volatile bool isUsed;
 
     public SingleUse() : this(new()) { }
-    public SingleUse(object locker) => this.locker = locker.CheckNotNull(nameof(locker));
 
     /// <summary>
     /// Attempts to use, if it has not already been used.

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <Title>Data helper utilities for SQLite databases</Title>
+        <Description>Various helper methods and functions for data manipulation such as SQL and CSV files</Description>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    </ItemGroup>
+</Project>

@@ -5,16 +5,30 @@ public interface IComparerHashCodeCached
     public int HashCode { get; }
 }
 
-public abstract class ComparerBase<T> : 
-    IEqualityComparer, IComparer,
-    IEqualityComparer<T?>, IComparer<T?>,
-    IEqualityComparer<T?[]?>, IComparer<T?[]?>,
-    IEqualityComparer<IReadOnlyList<T?>?>, IComparer<IReadOnlyList<T?>?>,
-    IEqualityComparer<IEnumerable<T?>?>, IComparer<IEnumerable<T?>?>
-    where T : class
+public abstract partial class ComparerBase<T> where T : class
 {
-    #region IEqualityComparer, IComparer
     
+
+
+
+    protected virtual bool Equals_Internal(T x, T y) => throw new NotImplementedException();
+    
+    protected virtual int GetHashCode_Internal(T obj)
+    {
+        var h = new HashCode();
+        GetHashCode_Internal(obj, ref h);
+        return h.ToHashCode();
+    }
+    
+    protected virtual void GetHashCode_Internal(T obj, ref HashCode h) => throw new NotImplementedException();
+    
+    protected virtual int Compare_Internal(T x, T y) => Compare_Internal_Comparisons(x, y).FirstOrDefault(i => i != 0);
+
+    protected virtual IEnumerable<int> Compare_Internal_Comparisons(T x, T y) => throw new NotImplementedException();
+}
+
+public abstract partial class ComparerBase<T> : IEqualityComparer, IComparer
+{
     bool IEqualityComparer.Equals(object? x, object? y)
     {
         if (ReferenceEquals(x, y)) return true;
@@ -56,11 +70,11 @@ public abstract class ComparerBase<T> :
         
         return Compare(xx, yy);
     }
-    
-    #endregion IEqualityComparer, IComparer
 
-    #region IEqualityComparer<T>, IComparer<T>
-    
+}
+
+public abstract partial class ComparerBase<T> : IEqualityComparer<T?>, IComparer<T?>
+{
     public virtual bool Equals(T? x, T? y)
     {
         if (ReferenceEquals(x, y)) return true;
@@ -80,11 +94,10 @@ public abstract class ComparerBase<T> :
 
         return Compare_Internal(x, y);
     }
-    
-    #endregion IEqualityComparer<T>, IComparer<T>
-    
-    #region IEqualityComparer<T[]>, IComparer<T[]>
+}
 
+public abstract partial class ComparerBase<T> : IEqualityComparer<T?[]?>, IComparer<T?[]?>
+{
     private const bool skipCount = false;
     
     public virtual bool Equals(T?[]? x, T?[]? y) 
@@ -131,11 +144,10 @@ public abstract class ComparerBase<T> :
 
         return 0;
     }
-    
-    #endregion IEqualityComparer<T[]>, IComparer<T[]>
+}
 
-    #region IEqualityComparer<IReadOnlyList<T>>, IComparer<IReadOnlyList<T>>
-
+public abstract partial class ComparerBase<T> : IEqualityComparer<IReadOnlyList<T?>?>, IComparer<IReadOnlyList<T?>?>
+{
     public virtual bool Equals(IReadOnlyList<T?>? x, IReadOnlyList<T?>? y) 
     {
         if (ReferenceEquals(x, y)) return true;
@@ -183,11 +195,10 @@ public abstract class ComparerBase<T> :
 
         return 0;
     }
-    
-    #endregion IEqualityComparer<IReadOnlyList<T>>, IComparer<IReadOnlyList<T>>
+}
 
-    #region IEqualityComparer<IEnumerable<T>>, IComparer<IEnumerable<T>>
-    
+public abstract partial class ComparerBase<T> : IEqualityComparer<IEnumerable<T?>?>, IComparer<IEnumerable<T?>?>
+{
     public virtual bool Equals(IEnumerable<T?>? x, IEnumerable<T?>? y)
     {
         if (ReferenceEquals(x, y)) return true;
@@ -255,21 +266,4 @@ public abstract class ComparerBase<T> :
 
         return 0;
     }
-
-    #endregion IEqualityComparer<IEnumerable<T>>, IComparer<IEnumerable<T>>
-
-    protected virtual bool Equals_Internal(T x, T y) => throw new NotImplementedException();
-    
-    protected virtual int GetHashCode_Internal(T obj)
-    {
-        var h = new HashCode();
-        GetHashCode_Internal(obj, ref h);
-        return h.ToHashCode();
-    }
-    
-    protected virtual void GetHashCode_Internal(T obj, ref HashCode h) => throw new NotImplementedException();
-    
-    protected virtual int Compare_Internal(T x, T y) => Compare_Internal_Comparisons(x, y).FirstOrDefault(i => i != 0);
-
-    protected virtual IEnumerable<int> Compare_Internal_Comparisons(T x, T y) => throw new NotImplementedException();
 }

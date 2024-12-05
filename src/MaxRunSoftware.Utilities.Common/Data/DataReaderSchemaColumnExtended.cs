@@ -14,36 +14,9 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class DataReaderSchemaColumn
+public class DataReaderSchemaColumnExtended(IReadOnlyDictionary<string, object?> values)
 {
-    public int Index { get; }
-    public string ColumnName { get; }
-    public Type FieldType { get; }
-    public string DataTypeName { get; }
-
-    public DataReaderSchemaColumn(int index, string columnName, Type fieldType, string dataTypeName)
-    {
-        Index = index;
-        ColumnName = columnName;
-        FieldType = fieldType;
-        DataTypeName = dataTypeName;
-    }
-
-    public DataReaderSchemaColumn(IDataReader reader, int columnIndex)
-    {
-        Index = columnIndex;
-        ColumnName = reader.GetName(columnIndex);
-        FieldType = reader.GetFieldType(columnIndex);
-        DataTypeName = reader.GetDataTypeName(columnIndex);
-    }
-
-    public static List<DataReaderSchemaColumn> Create(IDataReader reader) =>
-        Enumerable.Range(0, reader.FieldCount).Select(i => new DataReaderSchemaColumn(reader, i)).ToList();
-}
-
-public class DataReaderSchemaColumnExtended
-{
-    public IReadOnlyDictionary<string, object?> Values { get; }
+    public IReadOnlyDictionary<string, object?> Values { get; } = values;
 
     /// <summary>
     /// FYI: Check for MySql ordinal/index bug
@@ -98,8 +71,7 @@ public class DataReaderSchemaColumnExtended
         return (T?)oo;
     }
 
-    public DataReaderSchemaColumnExtended(IReadOnlyDictionary<string, object?> values) => Values = values;
-    public DataReaderSchemaColumnExtended(IDictionary<string, object?> values) => Values = values.AsReadOnly();
+    public DataReaderSchemaColumnExtended(IDictionary<string, object?> values) : this((IReadOnlyDictionary<string, object?>)values.AsReadOnly()) { }
 
     public static List<DataReaderSchemaColumnExtended> Create(IDataReader reader)
     {
@@ -144,10 +116,4 @@ public class DataReaderSchemaColumnExtended
 
         return sb.ToString();
     }
-}
-
-public static class DataReaderSchemaExtensions
-{
-    public static List<DataReaderSchemaColumn> GetSchema(this IDataReader reader) => DataReaderSchemaColumn.Create(reader);
-    public static List<DataReaderSchemaColumnExtended> GetSchemaExtended(this IDataReader reader) => DataReaderSchemaColumnExtended.Create(reader);
 }

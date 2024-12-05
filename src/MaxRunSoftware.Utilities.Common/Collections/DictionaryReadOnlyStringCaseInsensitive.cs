@@ -17,10 +17,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace MaxRunSoftware.Utilities.Common;
 
 /// <summary>
-/// Implements a IReadOnlyDictionary of string keys that are case insensitive. Each time a lookup is done first it is
-/// searched by
-/// case-insensitive, then if found, it adds that case-sensitive key to a cache so that future lookups will not incur the
-/// cost of
+/// Implements a IReadOnlyDictionary of string keys that are case-insensitive. Each time a lookup is done first it is searched by
+/// case-insensitive, then if found, it adds that case-sensitive key to a cache so that future lookups will not incur the cost of
 /// doing a case-insensitive search.
 /// </summary>
 /// <typeparam name="TValue">Value Type</typeparam>
@@ -33,7 +31,7 @@ public class DictionaryReadOnlyStringCaseInsensitive<TValue> : IReadOnlyDictiona
     private readonly IReadOnlyList<string> keys;
     private readonly IReadOnlyList<TValue> values;
     private readonly object locker = new();
-    private readonly HashSet<string> invalidKeys = new();
+    private readonly HashSet<string> invalidKeys = [];
 
     public DictionaryReadOnlyStringCaseInsensitive(IDictionary<string, TValue> dictionary) : this(dictionary.ToArray()) { }
 

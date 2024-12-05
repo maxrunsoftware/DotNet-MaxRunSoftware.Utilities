@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.Csv\MaxRunSoftware.Utilities.Data.Csv.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.Excel\MaxRunSoftware.Utilities.Data.Excel.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.MicrosoftSql\MaxRunSoftware.Utilities.Data.MicrosoftSql.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.MySql\MaxRunSoftware.Utilities.Data.MySql.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.OracleSql\MaxRunSoftware.Utilities.Data.OracleSql.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.PostgreSql\MaxRunSoftware.Utilities.Data.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\src\MaxRunSoftware.Utilities.Data.SqliteSql\MaxRunSoftware.Utilities.Data.SqliteSql.csproj" />
+  </ItemGroup>
 </Project>

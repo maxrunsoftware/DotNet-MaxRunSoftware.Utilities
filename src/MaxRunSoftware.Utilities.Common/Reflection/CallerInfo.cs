@@ -16,26 +16,23 @@ using System.Runtime.CompilerServices;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public sealed class CallerInfo : ImmutableObjectBase<CallerInfo>
+public sealed class CallerInfo(
+    string? callerFilePath, 
+    int? callerLineNumber, 
+    string? callerMemberName, 
+    string? callerArgumentExpression = null
+    ) : ImmutableObjectBase<CallerInfo>
 {
-    public string? FilePath { get; }
-    public int? LineNumber { get; }
-    public string? MemberName { get; }
-    public string? ArgumentExpression { get; }
+    public string? FilePath { get; } = callerFilePath.TrimOrNull();
+    public int? LineNumber { get; } = callerLineNumber is null or int.MaxValue or int.MinValue ? null : callerLineNumber.Value;
+    public string? MemberName { get; } = callerMemberName.TrimOrNull();
+    public string? ArgumentExpression { get; } = callerArgumentExpression.TrimOrNull();
 
     // , [CallerFilePath] string? filePath = null, [CallerLineNumber] int? lineNumber = null, [CallerMemberName] string? memberName = null)
     // , [CallerFilePath] string? filePath = null, [CallerLineNumber] int? lineNumber = null, [CallerMemberName] string? memberName = null, [CallerArgumentExpression("condition")] string? callerArgumentExpression = null)
-    public CallerInfo(string? callerFilePath, int? callerLineNumber, string? callerMemberName, string? callerArgumentExpression = null)
-    {
-        // https://blog.jetbrains.com/dotnet/2021/11/04/caller-argument-expressions-in-csharp-10/
-        // https://weblogs.asp.net/dixin/csharp-10-new-feature-callerargumentexpression-argument-check-and-more
-
-        // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/attributes/caller-information
-        FilePath = callerFilePath.TrimOrNull();
-        LineNumber = callerLineNumber is null or int.MaxValue or int.MinValue ? null : callerLineNumber.Value;
-        MemberName = callerMemberName.TrimOrNull();
-        ArgumentExpression = callerArgumentExpression.TrimOrNull();
-    }
+    // https://blog.jetbrains.com/dotnet/2021/11/04/caller-argument-expressions-in-csharp-10/
+    // https://weblogs.asp.net/dixin/csharp-10-new-feature-callerargumentexpression-argument-check-and-more
+    // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/attributes/caller-information
 
     protected override int GetHashCode_Build() => Util.Hash(FilePath, LineNumber, MemberName, ArgumentExpression);
     protected override string ToString_Build() => $"{nameof(CallerInfo)}({nameof(MemberName)}={MemberName}, {nameof(FilePath)}={FilePath}, {nameof(LineNumber)}={LineNumber}, {nameof(ArgumentExpression)}={ArgumentExpression})";

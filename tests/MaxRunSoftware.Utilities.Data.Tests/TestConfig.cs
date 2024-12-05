@@ -23,10 +23,11 @@ public static class TestConfig
         SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableColumns), "takes too long"),
         SkippedTest.Create<OracleSqlTests>(nameof(OracleSqlTests.GetTableExists), "takes too long"),
 
-        SkippedTest.Create<MicrosoftSqlTests>("no test DB server"),
-        SkippedTest.Create<MySqlTests>("no test DB server"),
-        SkippedTest.Create<OracleSqlTests>("no test DB server"),
-        SkippedTest.Create<PostgreSqlTests>("no test DB server"),
+//        SkippedTest.Create<MicrosoftSqlTests>("no test DB server"),
+//        SkippedTest.Create<MySqlTests>("no test DB server"),
+//        SkippedTest.Create<OracleSqlTests>("no test DB server"),
+//        SkippedTest.Create<PostgreSqlTests>("no test DB server"),
+//        SkippedTest.Create<SqliteSqlTests>("no test DB server"),
     }.ToImmutableArray();
 
 
@@ -34,12 +35,15 @@ public static class TestConfig
     private static readonly string DEFAULT_PASSWORD = "testPass1!";
 
     public static readonly string MicrosoftSql_TestDatabase = "MRSTEST";
-    public static readonly string MicrosoftSql_ConnectionString_Master = $"Server={DEFAULT_SERVER};Database=master;User Id=sa;Password={DEFAULT_PASSWORD};";
-    public static readonly string MicrosoftSql_ConnectionString_Test = $"Server={DEFAULT_SERVER};Database={MicrosoftSql_TestDatabase};User Id=sa;Password={DEFAULT_PASSWORD};";
+    public static readonly string MicrosoftSql_ConnectionString_Master = $"Server={DEFAULT_SERVER};Database=master;User Id=sa;Password={DEFAULT_PASSWORD};TrustServerCertificate=True;";
+    public static readonly string MicrosoftSql_ConnectionString_Test = $"Server={DEFAULT_SERVER};Database={MicrosoftSql_TestDatabase};User Id=sa;Password={DEFAULT_PASSWORD};TrustServerCertificate=True;";
 
     public static readonly string MySql_ConnectionString_Test = $"Server={DEFAULT_SERVER};Port=3306;User Id=root;Password={DEFAULT_PASSWORD};";
 
     public static readonly string PostgreSql_ConnectionString_Test = $"Host={DEFAULT_SERVER};Username=postgres;Password={DEFAULT_PASSWORD};";
 
     public static readonly string OracleSql_ConnectionString_Test = $"Data Source={DEFAULT_SERVER}:1521/XE;User Id=SYSTEM;Password={DEFAULT_PASSWORD};";
+    
+    public static readonly string SqliteSql_ConnectionString_Test = $"Data Source=:memory:";
+
 }

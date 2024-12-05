@@ -75,20 +75,20 @@ public static class SqlExtensions
 
         return instance.Insert(table, itemColumns, itemValues.ToArray().Yield());
     }
-    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<(string ColumnName, string? ColumnValue)> values) =>
-        instance.Insert(table, values.Select(o => (o.ColumnName, (object?)o.ColumnValue)));
+//    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<(string ColumnName, string? ColumnValue)> values) =>
+//        instance.Insert(table, values.Select(o => (o.ColumnName, (object?)o.ColumnValue)));
 
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<KeyValuePair<string, object?>> values) =>
         instance.Insert(table, values.Select(o => (o.Key, o.Value)));
 
-    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<KeyValuePair<string, string?>> values) =>
-        instance.Insert(table, values.Select(o => (o.Key, o.Value)));
+//    public static int Insert(this Sql instance, DatabaseSchemaTable table, IEnumerable<KeyValuePair<string, string?>> values) =>
+//        instance.Insert(table, values.Select(o => (o.Key, o.Value)));
 
     public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, object?> values) =>
         instance.Insert(table, values.Select(o => (o.Key, o.Value)));
 
-    public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, string?> values) =>
-        instance.Insert(table, values.Select(o => (o.Key, (object?)o.Value)));
+//    public static int Insert(this Sql instance, DatabaseSchemaTable table, IDictionary<string, string?> values) =>
+//        instance.Insert(table, values.Select(o => (o.Key, (object?)o.Value)));
 
     #endregion Insert
 
@@ -130,4 +130,12 @@ public static class SqlExtensions
     }
 
     #endregion DatabaseParameter
+
+    public static DataReaderResult GetRows(this DatabaseSchemaTable table, Sql sql)
+    {
+        var sqlCode = new StringBuilder(1024);
+        sqlCode.Append("SELECT * FROM ");
+        sqlCode.Append(sql.Escape(table));
+        return sql.Query(sqlCode.ToString()).CheckNotNull();
+    }
 }

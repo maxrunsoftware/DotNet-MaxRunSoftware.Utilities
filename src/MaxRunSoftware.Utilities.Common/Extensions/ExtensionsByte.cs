@@ -242,11 +242,34 @@ public static class ExtensionsByte
 
     public static bool IsEqual(this ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
     {
-        if (x.Length != y.Length) return false;
-        if (x.Length == 0) return true;
+        var len = x.Length;
+        if (len != y.Length) return false;
+        switch (len)
+        {
+            case 0: return true;
+            case 1: return x[0] == y[0];
+            case 2: return x[0] == y[0] && x[1] == y[1];
+            case 3: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2];
+            case 4: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2] && x[3] == y[3];
+            case 5: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2] && x[3] == y[3] && x[4] == y[4];
+            case 6: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2] && x[3] == y[3] && x[4] == y[4] && x[5] == y[5];
+            case 7: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2] && x[3] == y[3] && x[4] == y[4] && x[5] == y[5] && x[6] == y[6];
+            case 8: return x[0] == y[0] && x[1] == y[1] && x[2] == y[2] && x[3] == y[3] && x[4] == y[4] && x[5] == y[5] && x[6] == y[6] && x[7] == y[7];
+        }
+
         if (x[0] != y[0]) return false; // compare first byte
+        
         if (x[^1] != y[^1]) return false; // compare last byte
-        if (x[x.Length / 2] != y[y.Length / 2]) return false; // compare middle byte
+        
+        var index50 = len / 2;
+        if (x[index50] != y[index50]) return false; // compare middle byte
+
+        var index25 = index50 / 2;
+        if (x[index25] != y[index25]) return false; // compare 25%
+        
+        var index75 = Math.Min(index50 + index25, len);
+        if (x[index75] != y[index75]) return false; // compare 75%
+        
         return x.SequenceEqual(y);
     }
 

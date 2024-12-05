@@ -29,34 +29,3 @@ public class ServiceAttribute<TInterface> : ServiceAttribute where TInterface : 
     /// <param name="lifetime">Specifies the lifetime of the service</param>
     public ServiceAttribute(ServiceLifetime lifetime = ServiceLifetime.Scoped) : base(lifetime: lifetime, interfaceType: typeof(TInterface)) { }
 }
-
-
-public static class ServiceAttributeExtensions
-{
-    public static IServiceCollection AddServiceAttributeServices(
-        this IServiceCollection services,
-        IEnumerable<(Type, ServiceAttribute)> serviceAttributeServices,
-        Func<Type, ServiceAttribute, bool>? predicate = null
-    )
-    {
-        foreach (var (serviceType, serviceAttribute) in serviceAttributeServices)
-        {
-            if (predicate == null || predicate(serviceType, serviceAttribute))
-            {
-                services.Add(serviceAttribute.ToServiceDescriptor(serviceType));
-            }
-        }
-        
-        return services;
-    }
-
-    public static IServiceCollection AddServiceAttributeServices(
-        this IServiceCollection services,
-        Assembly assembly,
-        Func<Type, ServiceAttribute, bool>? predicate = null
-    ) => AddServiceAttributeServices(
-        services,
-        assembly.GetTypesWithAttribute<ServiceAttribute>(),
-        predicate: predicate
-    );
-}

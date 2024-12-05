@@ -25,30 +25,3 @@ public class Table(IReadOnlyList<ITableColumn>? columns, IReadOnlyList<ITableRow
     public IReadOnlyList<ITableColumn>? Columns { get; } = columns;
     public IReadOnlyList<ITableRow> Rows { get; } = rows;
 }
-
-public interface ITableColumn
-{
-    public int Index { get; }
-    public string? Name { get; }
-}
-
-public class TableColumn(int index, string? name) : ITableColumn
-{
-    public int Index { get; } = index;
-    public string? Name { get; } = name;
-}
-
-public interface ITableRow : IReadOnlyList<object?>
-{
-    public int Index { get; }
-}
-
-public class TableRow(int index, IReadOnlyList<object?> data) : ITableRow
-{
-    public IEnumerator<object?> GetEnumerator() => data.GetEnumerator();
-    public int Count => data.Count;
-    public object? this[int index] => data[index];
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    
-    public int Index { get; } = index;
-}

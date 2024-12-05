@@ -18,7 +18,7 @@ using CC=System.ConsoleColor;
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class TerminalColor
+public partial class TerminalColor
 {
     static TerminalColor()
     {
@@ -95,7 +95,49 @@ public class TerminalColor
     // ReSharper disable once InconsistentNaming
     public static ImmutableDictionary<Color, TerminalColor> Color_TerminalColor => _Color_TerminalColor.Value;
     public static TerminalColor? Get(Color color) => Color_TerminalColor.GetValueOrDefault(color);
+}
 
+public partial class TerminalColor
+{
+    public static bool EnableOnWindows() => ColorsOnWindows.Enable();
+
+    /// <summary>
+    /// https://www.jerriepelser.com/blog/using-ansi-color-codes-in-net-console-apps/
+    /// </summary>
+    private static class ColorsOnWindows
+    {
+        private static readonly object locker = new();
+        public static bool Enable()
+        {
+            lock (locker)
+            {
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return false;
+
+                var iStdOut = GetStdHandle(StdOutputHandle);
+                return GetConsoleMode(iStdOut, out var outConsoleMode) &&
+                       SetConsoleMode(iStdOut, outConsoleMode | EnableVirtualTerminalProcessing);
+            }
+        }
+
+        private const int StdOutputHandle = -11;
+        private const uint EnableVirtualTerminalProcessing = 0x0004;
+
+        [DllImport("kernel32.dll")]
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+        [DllImport("kernel32.dll")]
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr GetStdHandle(int nStdHandle);
+
+        //[DllImport("kernel32.dll")]
+        //public static extern uint GetLastError();
+    }
+}
+
+public partial class TerminalColor
+{
     public static ImmutableArray<TerminalColor> Colors { get; } =
     [
         new(0, "#000000", "black", 30, 40, CC.Black),
@@ -302,45 +344,4 @@ public class TerminalColor
         new(254, "#e4e4e4", "grey89"),
         new(255, "#eeeeee", "grey93"),
     ];
-
-    #region EnableOnWindows
-
-    public static bool EnableOnWindows() => ColorsOnWindows.Enable();
-
-    /// <summary>
-    /// https://www.jerriepelser.com/blog/using-ansi-color-codes-in-net-console-apps/
-    /// </summary>
-    private static class ColorsOnWindows
-    {
-        private static readonly object locker = new();
-        public static bool Enable()
-        {
-            lock (locker)
-            {
-                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return false;
-
-                var iStdOut = GetStdHandle(StdOutputHandle);
-                return GetConsoleMode(iStdOut, out var outConsoleMode) &&
-                       SetConsoleMode(iStdOut, outConsoleMode | EnableVirtualTerminalProcessing);
-            }
-        }
-
-        private const int StdOutputHandle = -11;
-        private const uint EnableVirtualTerminalProcessing = 0x0004;
-
-        [DllImport("kernel32.dll")]
-        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
-
-        [DllImport("kernel32.dll")]
-        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern IntPtr GetStdHandle(int nStdHandle);
-
-        //[DllImport("kernel32.dll")]
-        //public static extern uint GetLastError();
-    }
-
-    #endregion EnableOnWindows
-
 }

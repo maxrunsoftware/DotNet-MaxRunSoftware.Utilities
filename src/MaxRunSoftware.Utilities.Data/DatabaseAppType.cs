@@ -44,10 +44,21 @@ public enum DatabaseAppType
     /// https://www.npgsql.org/doc/connection-string-parameters.html
     /// </summary>
     PostgreSql,
+    
+    /// <summary>
+    /// Data Source=Application.db;Cache=Shared
+    /// Data Source=Encrypted.db;Password=MyEncryptionKey
+    /// Data Source=Reference.db;Mode=ReadOnly
+    /// Data Source=:memory:
+    /// Data Source=Sharable;Mode=Memory;Cache=Shared
+    /// https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/connection-strings
+    /// </summary>
+    SqliteSql,
 }
 
 public static class DatabaseAppTypeExtensions
 {
+    /*
     public static ImmutableDictionary<DatabaseAppType, Func<string, IDbConnection>> ConnectionFactories { get; } = new Dictionary<DatabaseAppType, Func<string, IDbConnection>>
     {
         [DatabaseAppType.MicrosoftSql] = MicrosoftSql.CreateConnection,
@@ -69,4 +80,5 @@ public static class DatabaseAppTypeExtensions
 
     public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerFactory loggerProvider) =>
         SqlFactories[connectionType](CreateConnection(connectionType, connectionString), loggerProvider);
+    */
 }

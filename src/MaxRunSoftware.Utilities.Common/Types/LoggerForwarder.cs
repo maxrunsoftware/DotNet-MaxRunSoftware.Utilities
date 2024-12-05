@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MaxRunSoftware.Utilities.Common;
 
@@ -12,6 +11,7 @@ public interface ILoggerForwarderHandler
 public class LoggerForwarderProvider(IEnumerable<ILoggerForwarderHandler> handlers) : ILoggerProvider
 {
     private readonly ConcurrentDictionary<string, LoggerForwarder> loggers = new();
+
     public ICollection<ILoggerForwarderHandler> Handlers { get; set; } = handlers.ToList();
     public LogLevel LogLevel { get; set; } = LogLevel.Trace;
     
@@ -43,7 +43,7 @@ public class LoggerForwarderProvider(IEnumerable<ILoggerForwarderHandler> handle
     public virtual void Dispose()
     {
         loggers.Clear();
-        handlers = new List<ILoggerForwarderHandler>();
+        Handlers = new List<ILoggerForwarderHandler>();
     }
     
     private class LoggerForwarder(string categoryName, LoggerForwarderProvider loggerForwarderProvider) : LoggerBase(categoryName)
@@ -51,15 +51,5 @@ public class LoggerForwarderProvider(IEnumerable<ILoggerForwarderHandler> handle
         public override bool IsEnabled(LogLevel logLevel) => logLevel.IsActiveFor(loggerForwarderProvider.LogLevel);
         
         protected override void Log(LogEvent logEvent) => loggerForwarderProvider.Add(logEvent);
-    }
-}
-
-public static class LoggerForwarderProviderExtensions
-{
-    public static IServiceCollection AddLoggerForwarderProvider(this IServiceCollection services)
-    {
-        var descriptor = new ServiceDescriptor(typeof(ILoggerProvider), typeof(LoggerForwarderProvider), ServiceLifetime.Singleton);
-        services.Add(descriptor);
-        return services;
     }
 }

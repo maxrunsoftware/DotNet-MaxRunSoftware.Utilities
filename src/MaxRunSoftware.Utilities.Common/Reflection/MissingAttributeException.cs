@@ -14,25 +14,22 @@
 
 namespace MaxRunSoftware.Utilities.Common;
 
-public class MissingAttributeException : InvalidOperationException
+public partial class MissingAttributeException(
+    string message,
+    Type attribute,
+    Type clazz,
+    string? memberName,
+    MemberTypes memberType
+) : InvalidOperationException(message)
 {
-    public Type Attribute { get; }
-    public Type Class { get; }
-    public string? MemberName { get; }
-    public MemberTypes MemberType { get; }
+    public Type Attribute { get; } = attribute;
+    public Type Class { get; } = clazz;
+    public string? MemberName { get; } = memberName;
+    public MemberTypes MemberType { get; } = memberType;
+}
 
-    #region Constructors
-
-    public MissingAttributeException(string message, Type attribute, Type clazz, string? memberName, MemberTypes memberType) : base(message)
-    {
-        Attribute = attribute;
-        Class = clazz;
-        MemberName = memberName;
-        MemberType = memberType;
-    }
-
-    #endregion Constructors
-
+public partial class MissingAttributeException
+{
     public static MissingAttributeException ClassMissingAttribute<TAttribute>(Type clazz) where TAttribute : Attribute => ClassMissingAttribute(clazz, typeof(TAttribute));
 
     public static MissingAttributeException ClassMissingAttribute(Type clazz, Type attribute) => GenerateMissingAttributeException(attribute, clazz, null, MemberTypes.TypeInfo);

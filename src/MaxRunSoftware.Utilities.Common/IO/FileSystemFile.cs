@@ -18,7 +18,7 @@ public sealed class FileSystemFile : FileSystemObject
 {
     //private static readonly ILogger log = LogFactory.LogFactoryImpl.GetLogger(MethodBase.GetCurrentMethod()!.DeclaringType);
 
-    private readonly Lazy<long> size;
+    private readonly Lzy<long> size;
 
     public override bool IsExist => File.Exists(Path);
     public override long Size => size.Value;
@@ -29,8 +29,9 @@ public sealed class FileSystemFile : FileSystemObject
         if (!IsReparsePoint) return FileInfo!.Length;
 
         // https://stackoverflow.com/a/57454136
-        using (Stream fs = Util.FileOpenRead(Path)) { return fs.Length; }
-    }, LazyThreadSafetyMode.PublicationOnly);
+        using Stream fs = Util.FileOpenRead(Path);
+        return fs.Length;
+    });
 
     public byte[] Read() => Util.FileRead(Path);
 

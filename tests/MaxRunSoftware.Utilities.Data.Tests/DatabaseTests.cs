@@ -42,6 +42,33 @@ public abstract class DatabaseFixture : IDisposable
     }
 }
 
+internal static class Helpers
+{
+    private static ImmutableDictionary<DatabaseAppType, Func<string, IDbConnection>> ConnectionFactories { get; } = new Dictionary<DatabaseAppType, Func<string, IDbConnection>>
+    {
+        [DatabaseAppType.MicrosoftSql] = MicrosoftSql.CreateConnection,
+        [DatabaseAppType.OracleSql] = OracleSql.CreateConnection,
+        [DatabaseAppType.MySql] = MySql.CreateConnection,
+        [DatabaseAppType.PostgreSql] = PostgreSql.CreateConnection,
+        [DatabaseAppType.SqliteSql] = SqliteSql.CreateConnection,
+    }.ToImmutableDictionary();
+
+    private static ImmutableDictionary<DatabaseAppType, Func<IDbConnection, ILoggerFactory, Sql>> SqlFactories { get; } = new Dictionary<DatabaseAppType, Func<IDbConnection, ILoggerFactory, Sql>>
+    {
+        [DatabaseAppType.MicrosoftSql] = (connection, loggerProvider) => new MicrosoftSql(connection, loggerProvider),
+        [DatabaseAppType.OracleSql] = (connection, loggerProvider) => new OracleSql(connection, loggerProvider),
+        [DatabaseAppType.MySql] = (connection, loggerProvider) => new MySql(connection, loggerProvider),
+        [DatabaseAppType.PostgreSql] = (connection, loggerProvider) => new PostgreSql(connection, loggerProvider),
+        [DatabaseAppType.SqliteSql] = (connection, loggerProvider) => new SqliteSql(connection, loggerProvider),
+    }.ToImmutableDictionary();
+
+    public static IDbConnection CreateConnection(this DatabaseAppType connectionType, string connectionString) =>
+        ConnectionFactories[connectionType](connectionString);
+
+    public static Sql CreateSql(this DatabaseAppType connectionType, string connectionString, ILoggerFactory loggerProvider) =>
+        SqlFactories[connectionType](CreateConnection(connectionType, connectionString), loggerProvider);
+}
+
 public abstract class DatabaseFixtureCollection<T> : ICollectionFixture<T> where T : DatabaseFixture
 {
     // This class has no code, and is never created. Its purpose is simply
@@ -58,7 +85,7 @@ public abstract class DatabaseTests<T> : TestBase where T : Sql
         sql = (T)databaseAppType.CreateSql(connectionString, LoggerProvider);
         DatabaseAppType = sql.DatabaseAppType;
     }
-
+    
     [SkippableFact]
     public void GetCurrentDatabase()
     {

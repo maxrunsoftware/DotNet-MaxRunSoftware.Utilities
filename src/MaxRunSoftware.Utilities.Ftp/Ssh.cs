@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using Renci.SshNet;
+using Renci.SshNet.Common;
 
 namespace MaxRunSoftware.Utilities.Ftp;
 
@@ -91,6 +92,21 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
         ci.RetryAttempts = config.RetryAttempts;
         ci.MaxSessions = config.MaxSessions;
 
+        client.HostKeyReceived += (_, args) =>
+        {
+            log.LogDebug("{Host}:{Port}  HostKeyName={HostKeyName}  HostKeyLength={HostKeyLength}  HostKey={HostKey}  FingerPrint={FingerPrint}  FingerPrintMD5={FingerPrintMD5}  FingerPrintSHA256={FingerPrintSHA256}"
+                ,   ci.Host
+                ,   ci.Port
+                ,   args.HostKeyName
+                ,   args.KeyLength
+                ,   args.HostKey
+                ,   args.FingerPrint
+                ,   args.FingerPrintMD5
+                ,   args.FingerPrintSHA256
+                );
+            args.CanTrust = config.HostKeyCheck(args);
+        };
+        
         try
         {
             log.LogInformation("Connecting {Type} to server {Host}:{Port} with username '{Username}'", clientType.NameFormatted(), host, port, username);
@@ -163,19 +179,29 @@ public class Ssh(SshConfig config, ILogger log) : IDisposable
             log.LogWarning(e, "Error disposing of {Type}", client.GetType().FullNameFormatted());
         }
     }
-}
 
-[PublicAPI]
-public class SshConfig
-{
-    public string Host { get; set; } = "localhost";
-    public ushort Port { get; set; } = 22;
-    public string? Username { get; set; }
-    public string? Password { get; set; }
-    public List<(byte[], string?)> PrivateKeys { get; set; } = new();
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
-    public TimeSpan ChannelCloseTimeout { get; set; } = TimeSpan.FromSeconds(1);
-    public Encoding Encoding { get; set; } = Encoding.UTF8;
-    public ushort RetryAttempts { get; set; } = 10;
-    public ushort MaxSessions { get; set; } = 10;
+    public static HostKeyEventArgs GetHostKey(string host, ushort port)
+    {
+        var list = new List<HostKeyEventArgs>();
+        if (port == 0) port = 22;
+        var client = new SshClient(host, port, "anonymous", "anonymous");
+        client.HostKeyReceived += (_, args) =>
+        {
+            list.Add(args);
+            args.CanTrust = false;
+        };
+
+        try
+        {
+            client.Connect();
+        }
+        catch (SshConnectionException)
+        {
+            if (list.Count < 1) throw;
+        }
+
+        if (list.Count < 1) throw new SshConnectionException("Did not receive the host key");
+        return list[0];
+
+    }
 }

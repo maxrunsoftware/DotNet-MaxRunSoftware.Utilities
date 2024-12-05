@@ -16,39 +16,36 @@ namespace MaxRunSoftware.Utilities.Common;
 
 public sealed class FileSystemDirectory : FileSystemObject
 {
-    private class RecursiveObjects
+    private class RecursiveObjects(
+        ICollection<FileSystemObject> objectsRecursive,
+        ICollection<FileSystemDirectory> directoriesRecursive,
+        ICollection<FileSystemFile> filesRecursive
+    )
     {
-        public readonly ICollection<FileSystemObject> objectsRecursive;
-        public readonly ICollection<FileSystemDirectory> directoriesRecursive;
-        public readonly ICollection<FileSystemFile> filesRecursive;
-
-        public RecursiveObjects(ICollection<FileSystemObject> objectsRecursive, ICollection<FileSystemDirectory> directoriesRecursive, ICollection<FileSystemFile> filesRecursive)
-        {
-            this.objectsRecursive = objectsRecursive;
-            this.directoriesRecursive = directoriesRecursive;
-            this.filesRecursive = filesRecursive;
-        }
+        public readonly ICollection<FileSystemObject> objectsRecursive = objectsRecursive;
+        public readonly ICollection<FileSystemDirectory> directoriesRecursive = directoriesRecursive;
+        public readonly ICollection<FileSystemFile> filesRecursive = filesRecursive;
     }
 
-    private readonly Lazy<long> size;
+    private readonly Lzy<long> size;
 
     public override bool IsExist => Directory.Exists(Path);
     public override long Size => size.Value;
     public override bool IsDirectory => true;
 
-    private readonly Lazy<long> sizeRecursive;
+    private readonly Lzy<long> sizeRecursive;
     public long SizeRecursive => sizeRecursive.Value;
 
-    private readonly Lazy<IReadOnlyCollection<FileSystemFile>> files;
+    private readonly Lzy<IReadOnlyCollection<FileSystemFile>> files;
     public IReadOnlyCollection<FileSystemFile> Files => files.Value;
 
-    private readonly Lazy<IReadOnlyCollection<FileSystemDirectory>> directories;
+    private readonly Lzy<IReadOnlyCollection<FileSystemDirectory>> directories;
     public IReadOnlyCollection<FileSystemDirectory> Directories => directories.Value;
 
-    private readonly Lazy<IReadOnlyCollection<FileSystemObject>> objects;
+    private readonly Lzy<IReadOnlyCollection<FileSystemObject>> objects;
     public IReadOnlyCollection<FileSystemObject> Objects => objects.Value;
 
-    private readonly Lazy<RecursiveObjects> recursiveObjects;
+    private readonly Lzy<RecursiveObjects> recursiveObjects;
     public ICollection<FileSystemObject> ObjectsRecursive => recursiveObjects.Value.objectsRecursive;
     public ICollection<FileSystemDirectory> DirectoriesRecursive => recursiveObjects.Value.directoriesRecursive;
     public ICollection<FileSystemFile> FilesRecursive => recursiveObjects.Value.filesRecursive;
@@ -56,19 +53,19 @@ public sealed class FileSystemDirectory : FileSystemObject
 
     internal FileSystemDirectory(string path) : base(path)
     {
-        files = new(() => Directory.GetFiles(Path).Select(o => new FileSystemFile(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
-        directories = new(() => Directory.GetDirectories(Path).Select(o => new FileSystemDirectory(o)).ToList(), LazyThreadSafetyMode.PublicationOnly);
+        files = new(() => Directory.GetFiles(Path).Select(o => new FileSystemFile(o)).ToList());
+        directories = new(() => Directory.GetDirectories(Path).Select(o => new FileSystemDirectory(o)).ToList());
         objects = new(() =>
         {
             var objs = new List<FileSystemObject>(Files.Count + Directories.Count);
             objs.AddRange(Files);
             objs.AddRange(Directories);
             return objs;
-        }, LazyThreadSafetyMode.PublicationOnly);
+        });
 
-        size = new(() => GetSizes(Files), LazyThreadSafetyMode.PublicationOnly);
-        sizeRecursive = new(() => Size + GetSizes(DirectoriesRecursive), LazyThreadSafetyMode.PublicationOnly);
-        recursiveObjects = new(GetObjectsRecursive, LazyThreadSafetyMode.PublicationOnly);
+        size = new(() => GetSizes(Files));
+        sizeRecursive = new(() => Size + GetSizes(DirectoriesRecursive));
+        recursiveObjects = new(GetObjectsRecursive);
     }
 
     private long GetSizes(IEnumerable<FileSystemObject> enumerable)

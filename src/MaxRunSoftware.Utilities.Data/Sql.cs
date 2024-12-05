@@ -560,22 +560,43 @@ public abstract class Sql : IDisposable
             columnNames.Add(columnName);
         }
 
-        var sql = $"INSERT INTO {Escape(table)} ({columnNames}) VALUES ({parameterNames})";
+        var sql = new StringBuilder(1024);
+        sql.Append("INSERT INTO ");
+        sql.Append(Escape(table));
+        sql.Append(" (");
+        sql.Append(columnNames.ToStringDelimited(", "));
+        sql.Append(") VALUES (");
+        var sqlLogPrefix = sql.ToString();
+        sql.Append(parameterNames.ToStringDelimited(", "));
+        sql.Append(")");
         //sql += ";"; // breaks Oracle
 
-        var cp = CreateCommand(sql, databaseParameters);
+        var cp = CreateCommand(sql.ToString(), databaseParameters);
         using var command = cp.Command;
         var parameters = cp.Parameters;
+        
 
         var resultCount = 0;
         foreach (var row in values)
         {
+            var sqlLog = new StringBuilder(sqlLogPrefix, 1024);
             for (var i = 0; i < parameters.Length; i++)
             {
                 var p = (IDbDataParameter?)command.Parameters[i];
                 if (p == null) throw new NullReferenceException($"Parameter {parameters[i].ParameterName} does not exist on command"); // should not happen
                 p.Value = row[i] ?? DBNull.Value;
+
+                var sqlLogValue = row[i];
+                if (sqlLogValue == null || sqlLogValue == DBNull.Value) sqlLogValue = "NULL";
+                else if (sqlLogValue is string sqlLogValueString) sqlLogValue = "\"" + sqlLogValueString + "\"";
+                
+                if (i > 0) sqlLog.Append(", ");
+                sqlLog.Append(sqlLogValue);
             }
+
+            sqlLog.Append(")");
+            log.LogTrace("Executing {Command}: {Sql}", nameof(Insert), sql);
+            log.LogTrace("Executing {Command}: {Sql}", nameof(Insert), sqlLog);
 
             resultCount += command.ExecuteNonQuery();
         }

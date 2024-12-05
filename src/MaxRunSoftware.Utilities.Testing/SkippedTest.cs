@@ -16,18 +16,11 @@ using Xunit;
 
 namespace MaxRunSoftware.Utilities.Testing;
 
-public class SkippedTest
+public class SkippedTest(Type clazz, string? method, string message)
 {
-    public Type Clazz { get; }
-    public string? Method { get; }
-    public string Message { get; }
-
-    public SkippedTest(Type clazz, string? method, string message)
-    {
-        Clazz = clazz;
-        Method = method;
-        Message = message;
-    }
+    public Type Clazz { get; } = clazz;
+    public string? Method { get; } = method;
+    public string Message { get; } = message;
 
     public SkippedTest(Type clazz, string message) : this(clazz, null, message) { }
 
@@ -44,4 +37,5 @@ public class SkippedTest
 
     public static SkippedTest Create<T>(string methodName, string message) => new(typeof(T), methodName, message);
     public static SkippedTest Create<T>(string message) => new(typeof(T), null, message);
+    
 }

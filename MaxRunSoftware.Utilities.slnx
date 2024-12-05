@@ -5,6 +5,13 @@
   </Folder>
   <Folder Name="/Data/">
     <Project Path="src\MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.Csv\MaxRunSoftware.Utilities.Data.Csv.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.Excel\MaxRunSoftware.Utilities.Data.Excel.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.MicrosoftSql\MaxRunSoftware.Utilities.Data.MicrosoftSql.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.MySql\MaxRunSoftware.Utilities.Data.MySql.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.OracleSql\MaxRunSoftware.Utilities.Data.OracleSql.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.PostgreSql\MaxRunSoftware.Utilities.Data.PostgreSql.csproj" Type="Classic C#" />
+    <Project Path="src\MaxRunSoftware.Utilities.Data.SqliteSql\MaxRunSoftware.Utilities.Data.SqliteSql.csproj" Type="Classic C#" />
     <Project Path="tests\MaxRunSoftware.Utilities.Data.Tests\MaxRunSoftware.Utilities.Data.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Ftp/">
