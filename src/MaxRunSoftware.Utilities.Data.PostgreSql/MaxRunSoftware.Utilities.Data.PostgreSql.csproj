@@ -8,6 +8,6 @@
         <ProjectReference Include="..\MaxRunSoftware.Utilities.Data\MaxRunSoftware.Utilities.Data.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Npgsql" Version="9.0.1" />
+        <PackageReference Include="Npgsql" Version="9.0.2" />
     </ItemGroup>
 </Project>

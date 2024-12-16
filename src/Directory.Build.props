@@ -9,11 +9,14 @@
         <PackOnBuild>true</PackOnBuild>
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <VersionSuffix Condition="Exists('$(SolutionDir)version_suffix.txt')">$([System.IO.File]::ReadAllText("$(SolutionDir)version_suffix.txt"))</VersionSuffix>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <IncludeSymbols>true</IncludeSymbols>
         <IncludeSource>true</IncludeSource>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <DebugType>embedded</DebugType>
         <EmbedAllSources>true</EmbedAllSources>
         <WarningLevel>4</WarningLevel>

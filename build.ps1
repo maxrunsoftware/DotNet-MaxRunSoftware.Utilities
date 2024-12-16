@@ -1,15 +1,15 @@
 param(
-    [Alias("action", "baction", "build_action", "a")]
-    [Parameter(Mandatory=$false, Position=0, ValueFromPipeline=$false, HelpMessage="Build Action to execute")]
-    [string]$buildAction,
+    [Alias("action", "actions", "baction", "bactions", "build_action", "build_actions", "a")]
+    [Parameter(Mandatory=$false, Position=0, ValueFromPipeline=$false, HelpMessage="Build Action to execute [ CleanProjectDirs | CleanBuildDirs | Build | NugetCopy | NugetPush ]")]
+    [string]$buildActions,
 
     [Alias("btype", "build_type", "bt", "t")]
     [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Build Type to use (DEBUG or RELEASE)")]
     [string]$buildType,
 
-    [Alias("solution_file", "sln")]
+    [Alias("solution_file", "sln", "slnx")]
     [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Solution File")]
-    [string]$slnFile,
+    [string]$solutionFile,
 
     [Alias("v")]
     [Parameter(Mandatory=$false, ValueFromPipeline=$false, HelpMessage="Enable extra log information")]
@@ -20,33 +20,14 @@ param(
     [switch]$logDebug = $false
 )
 
+$logDebug = $true
+$logVerbose = $true
+
 if ($logDebug) { $DebugPreference = "Continue" }
 if ($logVerbose) { $VerbosePreference = "Continue" }
 $InformationPreference = "Continue"
 $WarningPreference = "Continue"
 $ErrorActionPreference = "Stop"
-
-#$buildAction = "nugetpush"
-
-$SCRIPTDIR = (Resolve-Path $PSScriptRoot).Path
-Write-Verbose "Script Directory: $SCRIPTDIR"
-Write-Verbose "Working Directory: $PWD"
-
-Write-Verbose "START"
-
-# https://stackoverflow.com/questions/25915450/how-to-use-extension-methods-in-powershell
-# https://stackoverflow.com/a/77682793
-# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.4
-# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_return?view=powershell-7.4
-# https://stackoverflow.com/questions/24868273/run-a-c-sharp-cs-file-from-a-powershell-script
-
-$buildCsScriptFilePath = [IO.Path]::Combine($SCRIPTDIR, 'builder', 'Builder.cs')
-$buildCsScript = Get-Content -Raw -Path $buildCsScriptFilePath
-
-$CLASS_ID_SUFFIX = (New-Guid).ToString().Replace("-", "")
-$buildCsScript = $buildCsScript.Replace("class Builder", "class Builder_$CLASS_ID_SUFFIX")
-$buildCsScript = $buildCsScript.Replace("class Extensions", "class Extensions_$CLASS_ID_SUFFIX")
-Add-Type -TypeDefinition $buildCsScript
 
 $builderLog = [System.Action[string, object, System.Exception]]{
     param(
@@ -68,42 +49,6 @@ $builderLog = [System.Action[string, object, System.Exception]]{
     }
 }
 
-#$buiderLog = [System.Action[string, object, System.Exception]]$buiderLogImpl
-#$builderLog = $builderLogImpl
-
-$parameters = @{
-    TypeName = "MaxRunSoftware.Builder_$CLASS_ID_SUFFIX"
-    # ArgumentList = ($buiderLog, $builderScriptDir)
-}
-$b = New-Object @parameters
-
-
-
-# Clear screen  https://superuser.com/a/1738611
-#Write-Output "$([char]27)[2J"  # ESC[2J clears the screen, but leaves the scrollback
-#Write-Output "$([char]27)[3J"  # ESC[3J clears the screen, including all scrollback
-
-if (!$b.TrimOrNull($buildAction)) {
-    $title    = "Action"
-    $question = 'No build action specified' 
-    $choices  = '&clean', '&build', '&nuget', 'nuget&push'
-
-    $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
-    $buildAction = $choices[$decision].Replace('&', '')
-}
-
-$b.ScriptDir = $SCRIPTDIR
-$b.Log = $builderLog
-$b.BuildType = $buildType
-$b.BuildAction = $buildAction
-$b.BuildVersionType = "beta"
-$b.GitKeyPath = "~/Keys/MaxRunSoftware_NuGet.txt"
-
-$b.DebugDoNotDelete = $false
-
-$b.Init()
-Write-Debug $b
-
 function RunCmdString{
     param(
         [Parameter(Mandatory=$false, Position=0)] [string] $cmd, 
@@ -114,32 +59,34 @@ function RunCmdString{
     return $r
 }
 
-#$b.GitId = git -C $($b.SlnDir) rev-parse HEAD | Out-String
-#$b.GitBranch = git -C $b.SlnDir branch --show-current | Out-String
-#$b.GitUrl = git -C $b.SlnDir config --get remote.origin.url | Out-String
+function Choice{
+    param(
+        [Parameter(Mandatory=$true, Position=0)] [string] $label,
+        [Parameter(Mandatory=$true, Position=1)] [string] $helpMessage 
+    )
+    return New-Object System.Management.Automation.Host.ChoiceDescription $label, $helpMessage
+}
 
-$b.GitId = RunCmdString 'git' @('-C', "$($b.SlnDir)", 'rev-parse', 'HEAD') 
-$b.GitBranch = RunCmdString 'git' @('-C', "$($b.SlnDir)/", 'branch', '--show-current') 
-$b.GitUrl = RunCmdString 'git' @('-C', "$($b.SlnDir)/", 'config', '--get', 'remote.origin.url') 
+#region Actions
 
-
-
-
-
-function ActionClean {
+function Action_CleanProjectDirs { param ($b)
     $b.CleanProjectDirs()
 }
 
-function ActionBuild {
+function Action_CleanBuildDirs { param ($b)
+    $b.CleanBuildDirs()
+}
+
+function Action_Build { param ($b)
     $b.LogI("Building Projects")
 
     # $dotnetProps = "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl)`""  # https://stackoverflow.com/a/51485481    
-    # dotnet build "$($b.SlnFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "$($b.GetDotNetProperties())"
-    # dotnet build "$($b.SlnFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl)`""
+    # dotnet build "$($b.SolutionFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "$($b.GetDotNetProperties())"
+    # dotnet build "$($b.SolutionFile)" --configuration "$($b.BuildType)" --nologo --version-suffix "$($b.VersionSuffix)" "`"/p:RepositoryCommit=$($b.GitId);RepositoryBranch=$($b.GitBranch);RepositoryUrl=$($b.GitUrl)`""
 
     [string]$cmd = 'dotnet'
     [string[]]$cmdParams = @(
-        'build', "`"$($b.SlnFile)`""
+        'build', "`"$($b.SolutionFile)`""
     ,   '--configuration', "`"$($b.BuildType)`""
     ,   '--nologo'
     ,   '--force'
@@ -150,11 +97,11 @@ function ActionBuild {
     & $cmd $cmdParams
 }
 
-function ActionNuget {
-    $b.CopyNugetFiles("scheduler", "testing", "web")
+function Action_NugetCopy { param ($b)
+    $b.CopyNugetFiles()
 }
 
-function ActionNugetPush {
+function Action_NugetPush { param ($b)
     # dotnet nuget push "$filename" --api-key $keyNuGet --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     foreach($file in $b.BuildDirNugetFiles) {
@@ -163,7 +110,7 @@ function ActionNugetPush {
             'nuget', 
         ,   'push', "$file"
         ,   '--source', 'https://api.nuget.org/v3/index.json'
-        ,   '--api-key', "$($b.ReadGitKey())"
+        ,   '--api-key', "$($b.GetGitKey())"
         ,   '--skip-duplicate'
         )
 
@@ -174,34 +121,139 @@ function ActionNugetPush {
 
         $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
         if ($decision -eq 0) {
-            & $cmd $cmdParams
+            # & $cmd $cmdParams
+            Write-Information "FORCE Skipping: $filename"
         } else {
             Write-Information "Skipping: $filename"
         }
         Write-Information ''
         #Write-Information "$cmd $($cmdParams -join ' ')"
-        
-
-
     }
-    
 }
 
+#endregion Actions
 
-if ($buildAction -eq "clean") {
-    ActionClean
+$SCRIPTDIR = (Resolve-Path $PSScriptRoot).Path
+Write-Verbose "Script Directory: $SCRIPTDIR"
+Write-Verbose "Working Directory: $PWD"
+
+Write-Verbose "START"
+
+# https://stackoverflow.com/questions/25915450/how-to-use-extension-methods-in-powershell
+# https://stackoverflow.com/a/77682793
+# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.4
+# https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_return?view=powershell-7.4
+# https://stackoverflow.com/questions/24868273/run-a-c-sharp-cs-file-from-a-powershell-script
+
+$CLASS_NAME = "Builder"
+$buildCsScriptFilePath = [IO.Path]::Combine($SCRIPTDIR, "builder", "$CLASS_NAME.cs")
+$buildCsScript = Get-Content -Raw -Path $buildCsScriptFilePath
+
+#$CLASS_ID_SUFFIX = (New-Guid).ToString().Replace("-", "")
+$CLASS_NAME_NEW = $CLASS_NAME + '_' + ([long]([System.DateTime]::UtcNow.Ticks / 10000)).ToString()
+$buildCsScript = $buildCsScript.Replace("class $CLASS_NAME", "class $CLASS_NAME_NEW")
+Add-Type -TypeDefinition $buildCsScript
+$CLASS_NAME = $CLASS_NAME_NEW
+
+
+
+#$buiderLog = [System.Action[string, object, System.Exception]]$buiderLogImpl
+#$builderLog = $builderLogImpl
+
+$parameters = @{
+    TypeName = "MaxRunSoftware.$CLASS_NAME"
+    # ArgumentList = ($buiderLog, $builderScriptDir)
 }
-elseif ($buildAction -eq "build") {
-    ActionClean
-    ActionBuild
+$b = New-Object @parameters
+
+
+
+# Clear screen  https://superuser.com/a/1738611
+#Write-Output "$([char]27)[2J"  # ESC[2J clears the screen, but leaves the scrollback
+#Write-Output "$([char]27)[3J"  # ESC[3J clears the screen, including all scrollback
+
+
+
+$b.ScriptDir = $SCRIPTDIR
+$b.Log = $builderLog
+$b.BuildType = $buildType
+$b.BuildVersionType = "beta"
+$b.GitKeyPath = "~/Keys/MaxRunSoftware_NuGet.txt"
+
+#$b.GitId = git -C $($b.SlnDir) rev-parse HEAD | Out-String
+$b.GitId = RunCmdString 'git' @('-C', "$($b.SolutionDir)", 'rev-parse', 'HEAD') 
+
+#$b.GitBranch = git -C $b.SlnDir branch --show-current | Out-String
+$b.GitBranch = RunCmdString 'git' @('-C', "$($b.SolutionDir)/", 'branch', '--show-current') 
+
+#$b.GitUrl = git -C $b.SlnDir config --get remote.origin.url | Out-String
+$b.GitUrl = RunCmdString 'git' @('-C', "$($b.SolutionDir)/", 'config', '--get', 'remote.origin.url') 
+
+$b.BuildDateTime = [System.DateTime]::UtcNow
+$b.ProjectsToIncludeNuget = "Common Data Ftp Microsoft Windows"
+$b.FileExtensionsToCleanInBuildDirs = "exe dll xml zip txt nupkg snupkg nuspec"
+
+#$b.DebugDoNotDelete = $true
+
+
+Write-Debug $b
+
+
+#$buildActionsSet = New-Object System.Collections.Generic.HashSet[string]
+$buildActionsSet = [System.Collections.Generic.HashSet[String]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach($action in $b.SplitAndTrim($buildActions)) {
+    $buildActionsSet.Add($action);
 }
-elseif ($buildAction -eq "nuget") {
-    ActionClean
-    ActionBuild
-    ActionNuget
+
+function Menu { param ($b, $bas)
+    $title    = "Action"
+    $question = 'No build action specified'
+    [System.Management.Automation.Host.ChoiceDescription[]] $choices = @()
+    $choices += Choice 'CleanBuild&Dirs' 'Cleans build directories'
+    $choices += Choice '&CleanProjectDirs' 'Cleans project directories'
+    $choices += Choice '&Build' 'Builds all projects'
+    $choices += Choice '&NugetCopy' 'Copies project .nupkg files to build directory'
+    $choices += Choice 'Nuget&Push' 'Pushes .nupkg files to nuget.org'
+    $choices += Choice '&Quit' 'Pushes .nupkg files to nuget.org'
+
+
+    #$choices  = '&clean', '&build', '&nuget', 'nuget&push'
+
+    $decisions = $Host.UI.PromptForChoice($title, $question, $choices, [int[]](0))
+    Write-Verbose "Decisions: $decision"
+    foreach($d in $b.SplitAndTrim($decisions)) {
+        $c = $choices[$d].Label.Replace('&', '')
+        $bas.Add($c);
+    }
+    #$buildActions = $choices[$decisions].Label.Replace('&', '')
 }
-elseif ($buildAction -eq "nugetpush") {
-    ActionNugetPush
+
+while ($buildActionsSet.Count -lt 1) {
+    Menu $b $buildActionsSet
+}
+
+Write-Information "Actions: $buildActionsSet"
+
+if ($buildActionsSet.Count -lt 1) {
+    Write-Error "No build action specified"
+}
+if ($buildActionsSet.Contains("CleanProjectDirs")) {
+    Action_CleanProjectDirs $b
+}
+if ($buildActionsSet.Contains("CleanBuildDirs")) {
+    Action_CleanBuildDirs $b
+}
+if ($buildActionsSet.Contains("Build")) {
+    Action_Build $b 
+}
+if ($buildActionsSet.Contains("NugetCopy")) {
+    Action_NugetCopy $b
+}
+if ($buildActionsSet.Contains("NugetPush")) {
+    Action_NugetPush $b
+}
+if ($buildActionsSet.Contains("Quit")) {
+    Write-Information "Quiting..."
 }
 
 
