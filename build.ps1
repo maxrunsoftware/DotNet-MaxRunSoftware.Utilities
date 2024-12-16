@@ -121,8 +121,7 @@ function Action_NugetPush { param ($b)
 
         $decision = $Host.UI.PromptForChoice($title, $question, $choices, 1)
         if ($decision -eq 0) {
-            # & $cmd $cmdParams
-            Write-Information "FORCE Skipping: $filename"
+            & $cmd $cmdParams
         } else {
             Write-Information "Skipping: $filename"
         }
